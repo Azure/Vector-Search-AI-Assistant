@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "4655573614574763812"
+      "templateHash": "18421251048993661191"
     }
   },
   "parameters": {
@@ -26,7 +26,7 @@
       "defaultValue": "[uniqueString(resourceGroup().id)]",
       "maxLength": 15,
       "metadata": {
-        "description": "Unique name for the deployed services below. Max length 15 characters, alphanumeric only:\r\n- Azure Cosmos DB\r\n- Azure App Service\r\n- Azure Functions\r\n- Azure OpenAI\r\n- Redis Enterprise\r\nThe name defaults to a unique string generated from the resource group identifier.\r\n"
+        "description": "Unique name for the deployed services below. Max length 15 characters, alphanumeric only:\r\n- Azure Cosmos DB for NoSQL\r\n- Azure Cosmos DB for MongoDB vCore\r\n- Azure OpenAI\r\n- Azure App Service\r\n- Azure Functions\r\n\r\nThe name defaults to a unique string generated from the resource group identifier.\r\n"
       }
     },
     "appServiceSku": {
@@ -52,16 +52,16 @@
     },
     "appGitRepository": {
       "type": "string",
-      "defaultValue": "https://github.com/azurecosmosdb/byoc.git",
+      "defaultValue": "https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git",
       "metadata": {
-        "description": "Git repository URL for the application source. This defaults to the [`azurecosmosdb/byoc`](https://github.com/azurecosmosdb/byoc) repository."
+        "description": "Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant) repository."
       }
     },
     "appGetRepositoryBranch": {
       "type": "string",
-      "defaultValue": "main",
+      "defaultValue": "MongovCore",
       "metadata": {
-        "description": "Git repository branch for the application source. This defaults to the [**main** branch of the `azurecosmosdb/byoc`](https://github.com/azurecosmosdb/byoc/tree/main) repository."
+        "description": "Git repository branch for the application source. This defaults to the [**MongovCore** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/MongovCore) repository."
       }
     }
   },
@@ -88,6 +88,11 @@
     "cosmosDbSettings": {
       "name": "[format('{0}-cosmos-nosql', parameters('name'))]",
       "databaseName": "database"
+    },
+    "mongovCoreSettings": {
+      "name": "[format('{0}-mongo', parameters('name'))]",
+      "login": "[format('{0}-mongo-admin', parameters('name'))]",
+      "password": "[uniqueString(format('{0}-mongo-admin', parameters('name')))]"
     },
     "cosmosContainers": {
       "embeddingContainer": {
@@ -135,51 +140,9 @@
           "branch": "[parameters('appGetRepositoryBranch')]"
         }
       }
-    },
-    "redisSettings": {
-      "name": "[format('{0}-redis', parameters('name'))]",
-      "database": {
-        "name": "default"
-      }
     }
   },
   "resources": [
-    {
-      "type": "Microsoft.Cache/redisEnterprise",
-      "apiVersion": "2022-01-01",
-      "name": "[variables('redisSettings').name]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "Enterprise_E10",
-        "capacity": 2
-      },
-      "properties": {
-        "minimumTlsVersion": "1.2"
-      }
-    },
-    {
-      "type": "Microsoft.Cache/redisEnterprise/databases",
-      "apiVersion": "2022-01-01",
-      "name": "[format('{0}/{1}', variables('redisSettings').name, variables('redisSettings').database.name)]",
-      "properties": {
-        "clientProtocol": "Encrypted",
-        "port": 10000,
-        "clusteringPolicy": "EnterpriseCluster",
-        "evictionPolicy": "NoEviction",
-        "modules": [
-          {
-            "name": "RediSearch"
-          }
-        ],
-        "persistence": {
-          "aofEnabled": false,
-          "rdbEnabled": false
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name)]"
-      ]
-    },
     {
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "apiVersion": "2022-08-15",
@@ -240,6 +203,50 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosDbSettings').name, variables('cosmosDbSettings').databaseName)]"
+      ]
+    },
+    {
+      "type": "Microsoft.DocumentDB/mongoClusters",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[variables('mongovCoreSettings').name]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "administratorLogin": "[variables('mongovCoreSettings').login]",
+        "administratorLoginPassword": "[variables('mongovCoreSettings').password]",
+        "serverVersion": "5.0",
+        "nodeGroupSpecs": [
+          {
+            "kind": "Shard",
+            "sku": "M30",
+            "diskSizeGB": 128,
+            "enableHa": false,
+            "nodeCount": 1
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/mongoClusters/firewallRules",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', variables('mongovCoreSettings').name, 'allowAll')]",
+      "properties": {
+        "startIpAddress": "0.0.0.0",
+        "endIpAddress": "255.255.255.255"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongovCoreSettings').name)]"
+      ]
+    },
+    {
+      "type": "Microsoft.DocumentDB/mongoClusters/firewallRules",
+      "apiVersion": "2023-03-01-preview",
+      "name": "[format('{0}/{1}', variables('mongovCoreSettings').name, 'allowAzure')]",
+      "properties": {
+        "startIpAddress": "0.0.0.0",
+        "endIpAddress": "0.0.0.0"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongovCoreSettings').name)]"
       ]
     },
     {
@@ -358,7 +365,7 @@
         "OPENAI__EMBEDDINGSDEPLOYMENT": "[variables('openAiSettings').embeddingsModel.deployment.name]",
         "OPENAI__COMPLETIONSDEPLOYMENT": "[variables('openAiSettings').completionsModel.deployment.name]",
         "OPENAI__MAXCONVERSATIONBYTES": "[variables('openAiSettings').maxConversationBytes]",
-        "REDIS__CONNECTION": "[format('{0}:10000,abortConnect=false,ssl=true,password={1}', reference(resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name), '2022-01-01').hostName, listKeys(resourceId('Microsoft.Cache/redisEnterprise/databases', variables('redisSettings').name, variables('redisSettings').database.name), '2022-01-01').primaryKey)]"
+        "MONGO__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').name, variables('mongovCoreSettings').password, variables('mongovCoreSettings').name)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('appServiceSettings').web.name)]",
@@ -367,9 +374,7 @@
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').completionsModel.deployment.name)]",
-        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]",
-        "[resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name)]",
-        "[resourceId('Microsoft.Cache/redisEnterprise/databases', variables('redisSettings').name, variables('redisSettings').database.name)]"
+        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]"
       ]
     },
     {
@@ -387,7 +392,7 @@
         "OpenAiKey": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').key1]",
         "EmbeddingsDeployment": "[variables('openAiSettings').embeddingsModel.deployment.name]",
         "OpenAiMaxTokens": "8191",
-        "RedisConnection": "[format('{0}:10000,abortConnect=false,ssl=true,password={1}', reference(resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name), '2022-01-01').hostName, listKeys(resourceId('Microsoft.Cache/redisEnterprise/databases', variables('redisSettings').name, variables('redisSettings').database.name), '2022-01-01').primaryKey)]"
+        "MongoConnection": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').name, variables('mongovCoreSettings').password, variables('mongovCoreSettings').name)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('appServiceSettings').function.name)]",
@@ -395,8 +400,6 @@
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]",
-        "[resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name)]",
-        "[resourceId('Microsoft.Cache/redisEnterprise/databases', variables('redisSettings').name, variables('redisSettings').database.name)]",
         "[resourceId('Microsoft.Storage/storageAccounts', format('{0}fnstorage', parameters('name')))]"
       ]
     },
@@ -459,6 +462,10 @@
     "deployedUrl": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Web/sites', variables('appServiceSettings').web.name), '2022-03-01').defaultHostName]"
+    },
+    "cosmosConnection": {
+      "type": "string",
+      "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name), '2022-08-15').connectionStrings[0].connectionString]"
     }
   }
 }
