@@ -1,0 +1,13 @@
+{
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "CosmosDBConnection": "",
+    "OpenAIEndpoint": "",
+    "OpenAiKey": "",
+    "EmbeddingsDeployment": "",
+    "OpenAiMaxTokens": "8191",
+    "RedisConnection": ""
+  },
+  "IsEncrypted": false
+}
