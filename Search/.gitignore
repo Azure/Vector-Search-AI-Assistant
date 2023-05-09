@@ -3,7 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-*.local.settings.json
+# Environment-specific app settings
+appsettings.development.json
+
 
 # User-specific files
 *.rsuser
@@ -351,9 +353,3 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-/DataCopilot/local.settings.json
-__azurite_db_blob__.json
-__azurite_db_blob_extent__.json
-__blobstorage__/7af3d269-0e18-4d4d-8058-ace79fb798d5
-__blobstorage__/9bfc53a5-c7a0-4f23-badc-bd1ec352fd5f
-__blobstorage__/bb49451b-5984-491a-bf47-800ae14ce60f
