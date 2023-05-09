@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vectorize", "Vectorize\Vectorize.csproj", "{68289028-AC86-47AD-8D31-234825508A2A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Search", "Search\Search.csproj", "{E8C2FE79-83B4-460F-BACD-467E9200C9DD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D7AF34B5-704A-406D-962A-B27B064F23C0}"
+	ProjectSection(SolutionItems) = preProject
+		azuredeploy.bicep = azuredeploy.bicep
+		azuredeploy.json = azuredeploy.json
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{68289028-AC86-47AD-8D31-234825508A2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68289028-AC86-47AD-8D31-234825508A2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68289028-AC86-47AD-8D31-234825508A2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68289028-AC86-47AD-8D31-234825508A2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8C2FE79-83B4-460F-BACD-467E9200C9DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8C2FE79-83B4-460F-BACD-467E9200C9DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8C2FE79-83B4-460F-BACD-467E9200C9DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8C2FE79-83B4-460F-BACD-467E9200C9DD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FF5DE858-4B85-4EE8-8A6D-46E8E4FBA078}
+	EndGlobalSection
+EndGlobal
