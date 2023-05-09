@@ -1,4 +1,4 @@
-# Vector Search & AI Assistant for Azure Cosmos DB 
+# Vector Search & AI Assistant for Azure Cosmos DB & Redis
 
 This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using Azure Redis Cache Enterprise. The data in this scenario centers around answering specific questions about the data stored in Azure Cosmos DB in a consumer retail "Intelligent Agent" workload that allows users to ask questions on products and customer stored in the database. 
 
@@ -38,13 +38,13 @@ This solution is composed of the following services:
 ### Installation
 
 1. Fork this repository to your own GitHub account.
-1. Depending on whether you deploy using the ARM Template or Bicep, modify "appGitRepository" variable in one of those files to point to your fork of this repository: https://github.com/azurecosmosdb/byoc.git 
+1. Depending on whether you deploy using the ARM Template or Bicep, modify "appGitRepository" variable in one of those files to point to your fork of this repository: https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git (Be sure to reference the correct branch for your version)
 1. If using the Deploy to Azure button below, also modify this README.md file to change the path for the Deploy To Azure button to your local repository.
 1. If you deploy this application without making either of these changes, you can update the repository by disconnecting and connecting an external git repository pointing to your fork.
 
 
 The provided ARM or Bicep Template will provision the following resources:
-1. Azure Cosmos DB account with a database and 4 containers at 1000 RU/s autoscale.
+1. Azure Cosmos DB account with a database and 5 containers at 1000 RU/s autoscale.
 1. Azure App service. This will be configured to deploy the Search web application from **this** GitHub repository. This will work fine if no changes are made. If you want it to deploy from your forked repository, modify the Deploy To Azure button below.
 1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
 1. Azure Functions. This will run on the same hosting plan as the Azure App Service.
@@ -54,7 +54,7 @@ The provided ARM or Bicep Template will provision the following resources:
 
 All connection information for Azure Cosmos DB, Azure OpenAI and Azure Cache for Redis is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2Fbyoc%2Fmain%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2FVectorSearchAiAssistant%2Fmain%2Fazuredeploy.json)
 
 ### Initial data load
 
