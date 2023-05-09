@@ -31,11 +31,11 @@ param appServiceSku string = 'B1'
 ])
 param openAiSku string = 'S0'
 
-@description('Git repository URL for the application source. This defaults to the [`azurecosmosdb/byoc`](https://github.com/azurecosmosdb/byoc) repository.')
-param appGitRepository string = 'https://github.com/azurecosmosdb/byoc.git'
+@description('Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant`) repository.')
+param appGitRepository string = 'https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git'
 
-@description('Git repository branch for the application source. This defaults to the [**main** branch of the `azurecosmosdb/byoc`](https://github.com/azurecosmosdb/byoc/tree/main) repository.')
-param appGetRepositoryBranch string = 'main'
+@description('Git repository branch for the application source. This defaults to the [**Redis** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis) repository.')
+param appGetRepositoryBranch string = 'Redis'
 
 var openAiSettings = {
   name: '${name}-openai'
