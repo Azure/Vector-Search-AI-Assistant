@@ -8,11 +8,12 @@ param location string = 'East US'
 
 @description('''
 Unique name for the deployed services below. Max length 15 characters, alphanumeric only:
-- Azure Cosmos DB
+- Azure Cosmos DB for NoSQL
+- Azure Cosmos DB for MongoDB vCore
+- Azure OpenAI
 - Azure App Service
 - Azure Functions
-- Azure OpenAI
-- Redis Enterprise
+
 The name defaults to a unique string generated from the resource group identifier.
 ''')
 @maxLength(15)
@@ -31,11 +32,11 @@ param appServiceSku string = 'B1'
 ])
 param openAiSku string = 'S0'
 
-@description('Git repository URL for the application source. This defaults to the [`azurecosmosdb/byoc`](https://github.com/azurecosmosdb/byoc) repository.')
-param appGitRepository string = 'https://github.com/azurecosmosdb/byoc.git'
+@description('Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant) repository.')
+param appGitRepository string = 'https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git'
 
-@description('Git repository branch for the application source. This defaults to the [**main** branch of the `azurecosmosdb/byoc`](https://github.com/azurecosmosdb/byoc/tree/main) repository.')
-param appGetRepositoryBranch string = 'main'
+@description('Git repository branch for the application source. This defaults to the [**MongovCore** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/MongovCore) repository.')
+param appGetRepositoryBranch string = 'MongovCore'
 
 var openAiSettings = {
   name: '${name}-openai'
@@ -60,6 +61,12 @@ var openAiSettings = {
 var cosmosDbSettings = {
   name: '${name}-cosmos-nosql'
   databaseName: 'database'
+}
+
+var mongovCoreSettings = {
+  name: '${name}-mongo'
+  login: '${name}-mongo-admin'
+  password: uniqueString('${name}-mongo-admin')
 }
 
 var cosmosContainers = {
@@ -107,45 +114,6 @@ var appServiceSettings = {
     git: {
       repo: appGitRepository
       branch: appGetRepositoryBranch
-    }
-  }
-}
-
-var redisSettings = {
-  name: '${name}-redis'
-  database : {
-    name: 'default'
-  }
-}
-
-resource redisEnterprise 'Microsoft.Cache/redisEnterprise@2022-01-01' = {
-  name: redisSettings.name
-  location: location
-  sku: {
-    name: 'Enterprise_E10'
-    capacity: 2
-  }
-  properties: {
-    minimumTlsVersion: '1.2'
-  }
-}
-
-resource redisEnterpriseDatabase 'Microsoft.Cache/redisEnterprise/databases@2022-01-01' = {
-  parent: redisEnterprise
-  name: redisSettings.database.name
-  properties: {
-    clientProtocol: 'Encrypted'
-    port: 10000
-    clusteringPolicy: 'EnterpriseCluster'
-    evictionPolicy: 'NoEviction'
-    modules: [
-      {
-        name: 'RediSearch'
-      }
-    ]
-    persistence: {
-      aofEnabled: false
-      rdbEnabled: false
     }
   }
 }
@@ -200,6 +168,43 @@ resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/con
     }
   }
 }]
+
+resource mongoCluster 'Microsoft.DocumentDB/mongoClusters@2023-03-01-preview' = {
+  name: mongovCoreSettings.name
+  location: location
+  properties: {
+    administratorLogin: mongovCoreSettings.login
+    administratorLoginPassword: mongovCoreSettings.password
+    serverVersion: '5.0'
+    nodeGroupSpecs: [
+      {
+        kind: 'Shard'
+        sku: 'M30'
+        diskSizeGB: 128
+        enableHa: false
+        nodeCount: 1
+      }
+    ]
+  }
+}
+
+resource mongoFirewallRulesAllowAll 'Microsoft.DocumentDB/mongoClusters/firewallRules@2023-03-01-preview' = {
+  parent: mongoCluster
+  name: 'allowAll'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '255.255.255.255'
+  }
+}
+
+resource mongoFirewallRulesAllowAzure 'Microsoft.DocumentDB/mongoClusters/firewallRules@2023-03-01-preview' = {
+  parent: mongoCluster
+  name: 'allowAzure'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
+}
 
 
 resource openAiAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = {
@@ -302,7 +307,7 @@ resource appServiceWebSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
     OPENAI__COMPLETIONSDEPLOYMENT: openAiCompletionsModelDeployment.name
     OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
-    REDIS__CONNECTION: '${redisEnterprise.properties.hostName}:10000,abortConnect=false,ssl=true,password=${redisEnterpriseDatabase.listKeys().primaryKey}'
+    MONGO__CONNECTION: 'mongodb+srv://${mongovCoreSettings.name}:${mongovCoreSettings.password}@${mongovCoreSettings.name}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
   }
 }
 
@@ -320,7 +325,7 @@ resource appServiceFunctionSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OpenAiKey: openAiAccount.listKeys().key1
     EmbeddingsDeployment: openAiEmbeddingsModelDeployment.name
     OpenAiMaxTokens: '8191'
-    RedisConnection: '${redisEnterprise.properties.hostName}:10000,abortConnect=false,ssl=true,password=${redisEnterpriseDatabase.listKeys().primaryKey}'
+    MongoConnection: 'mongodb+srv://${mongovCoreSettings.name}:${mongovCoreSettings.password}@${mongovCoreSettings.name}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
   }
 }
 
@@ -369,3 +374,4 @@ resource appServiceWebInsights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 output deployedUrl string = appServiceWeb.properties.defaultHostName
+output cosmosConnection string = cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString

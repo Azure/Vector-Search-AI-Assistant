@@ -1,6 +1,6 @@
-# Vector Search & AI Assistant for Azure Cosmos DB 
+# Vector Search & AI Assistant for Azure Cosmos DB for MongoDB vCore
 
-This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using a variety of different vector capable databases available within Azure Cosmos DB and Azure. The data in this scenario centers around answering specific questions about the data stored in Azure Cosmos DB in a consumer retail "Intelligent Agent" workload that allows users to ask questions on products and customer stored in the database. 
+This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using Azure Cosmos DB for MongoDB vCore capable. The user experience is a Retail AI Assistant. The data in this scenario centers around answering specific questions about the data stored in Azure Cosmos DB in a consumer retail "Intelligent Agent" workload that allows users to ask questions on products and customer stored in the database. The data for the prompts and completions are also stored in Azure Cosmos DB along with the token usage. This data can further be developed to allow users to develop more refine prompts for their own data. 
 
 The data used in this solution is from the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB, adapted from the Adventure Works dataset for a retail Bike Shop that sells bicycles as well as biking accessories, components and clothing.
 
@@ -21,9 +21,9 @@ The application frontend is a Blazor application with basic Q&A functionality:
 This solution is composed of the following services:
 
 1.	Azure Cosmos DB - Stores the operational retail data, generated embeddings and chat prompts and completions.
-1.	Azure Functions - Hosts a Cosmos DB trigger to generate embeddings, Cosmos DB output binding to save the embeddings and Redis.
+1.  Azure Cosmos DB for MongoDB vCore - stores the vectorizes retail data for search.
+1.	Azure Functions - Hosts a Cosmos DB trigger to generate embeddings, Cosmos DB output binding to save the embeddings and Azure Cosmos DB for MongoDB vCore.
 1.	Azure OpenAI - Generates embeddings using the Embeddings API and chat completions using the Completion API.
-1.	Azure Cache for Redis Enterprise - Performs vector matching.
 1.	Azure App Service - Hosts Intelligent Agent UI.
 
 **Note:**  This solution does not yet include Azure Cognitive Search, which will be added in a future version.
@@ -38,23 +38,23 @@ This solution is composed of the following services:
 ### Installation
 
 1. Fork this repository to your own GitHub account.
-1. Depending on whether you deploy using the ARM Template or Bicep, modify "appGitRepository" variable in one of those files to point to your fork of this repository: https://github.com/azurecosmosdb/byoc.git 
+1. Depending on whether you deploy using the ARM Template or Bicep, modify "appGitRepository" variable in one of those files to point to your fork of this repository: https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git (Be sure to have the right branch that corresponds with the vector search database you are using)
 1. If using the Deploy to Azure button below, also modify this README.md file to change the path for the Deploy To Azure button to your local repository.
 1. If you deploy this application without making either of these changes, you can update the repository by disconnecting and connecting an external git repository pointing to your fork.
 
 
 The provided ARM or Bicep Template will provision the following resources:
-1. Azure Cosmos DB account with a database and 4 containers at 1000 RU/s autoscale.
+1. Azure Cosmos DB for NoSQL account with a database and 5 containers at 1000 RU/s autoscale.
+1. Azure Cosmos DB for MongoDB vCore for vector search.
 1. Azure App service. This will be configured to deploy the Search web application from **this** GitHub repository. This will work fine if no changes are made. If you want it to deploy from your forked repository, modify the Deploy To Azure button below.
 1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
 1. Azure Functions. This will run on the same hosting plan as the Azure App Service.
-1. Azure Cache for Redis Enterprise. **Please note that this service costs a minimum of $700 per month.**
 
 **Note:** You must have access to Azure OpenAI service from your subscription before attempting to deploy this application.
 
-All connection information for Azure Cosmos DB, Azure OpenAI and Azure Cache for Redis is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
+All connection information for Azure Cosmos DB and Azure OpenAI is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2Fbyoc%2Fmain%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2FVectorSearchAiAssistant%2FMongovCore%2Fazuredeploy.json)
 
 ### Initial data load
 
@@ -64,7 +64,7 @@ The data for this solution must be loaded once it has been deployed. This proces
 1. Copy the `migrationsettings.json` from the root folder of this repository and replace the version in the folder where you downloaded the tool above.
 1. Open the file using any text editor.
 1. Open the Azure Cosmos DB blade in the resource group for this solution.
-1. Navigate to the Keys blade in Azure Portal and copy the Primary Connection String for the Cosmos DB account.
+1. Navigate to the Keys blade in Azure Portal and copy the Primary Connection String for the Azure Cosmos DB for NoSQL account.
 1. Paste the connection string to replace to placeholders called `ADD-COSMOS-CONNECTION-STRING`. Save the file.
 1. Run dmt.exe
 1. You can watch Azure Functions processing the data by navigating to each of the Azure Functions in the portal.
