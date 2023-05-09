@@ -4,6 +4,8 @@ This solution is a series of samples that demonstrate how to build solutions tha
 
 The data used in this solution is from the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB, adapted from the Adventure Works dataset for a retail Bike Shop that sells bicycles as well as biking accessories, components and clothing.
 
+For the Redis version of this solution, see https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis 
+
 ## Solution Architecture
 
 The solution architecture is represented by this diagram:
@@ -54,7 +56,7 @@ The provided ARM or Bicep Template will provision the following resources:
 
 All connection information for Azure Cosmos DB, Azure OpenAI and Azure Cache for Redis is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2Fbyoc%2Fmain%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2FVectorSearchAiAssistant%2Fmain%2Fazuredeploy.json)
 
 ### Initial data load
 
