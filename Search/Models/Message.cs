@@ -1,4 +1,4 @@
-namespace DataCopilot.Search.Models;
+namespace Search.Models;
 
 public record Message
 {

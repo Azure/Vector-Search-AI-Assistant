@@ -2,29 +2,32 @@
 using Azure.AI.OpenAI;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
-using System.Text;
 
 namespace Vectorize.Services;
 
 public class OpenAiService
 {
-    private string _openAIEndpoint = string.Empty;
-    private string _openAIKey = string.Empty;
-    private string _openAIEmbeddings = string.Empty;
-    private int _openAIMaxTokens = default;
+    private readonly string _openAIEndpoint = string.Empty;
+    private readonly string _openAIKey = string.Empty;
+    private readonly string _openAIEmbeddings = string.Empty;
+    private readonly int _openAIMaxTokens = default;
+    private readonly ILogger _logger;
 
     private OpenAIClient _client;
 
 
-    public OpenAiService()
+    public OpenAiService(string endpoint, string key, string embeddingsDeployment, string maxTokens, ILogger logger)
     {
-        _openAIEndpoint = Environment.GetEnvironmentVariable("OpenAIEndpoint") + "";
-        _openAIKey = Environment.GetEnvironmentVariable("OpenAIKey") + "";
-        _openAIEmbeddings = Environment.GetEnvironmentVariable("EmbeddingsDeployment") + "";
-        string maxTokens = Environment.GetEnvironmentVariable("OpenAIMaxTokens") + "";
-        _openAIMaxTokens = int.TryParse(maxTokens, out _openAIMaxTokens) ? _openAIMaxTokens : 8191;
 
-        OpenAIClientOptions options = new OpenAIClientOptions()
+        
+        _openAIEndpoint = endpoint;
+        _openAIKey = key;
+        _openAIEmbeddings = embeddingsDeployment;
+        _openAIMaxTokens = int.TryParse(maxTokens, out _openAIMaxTokens) ? _openAIMaxTokens : 8191;
+        _logger = logger;
+
+
+        OpenAIClientOptions clientOptions = new OpenAIClientOptions()
         {
             Retry =
             {
@@ -36,9 +39,9 @@ public class OpenAiService
 
         //Use this as endpoint in configuration to use non-Azure Open AI endpoint and OpenAI model names
         if (_openAIEndpoint.Contains("api.openai.com"))
-            _client = new OpenAIClient(_openAIKey, options);
+            _client = new OpenAIClient(_openAIKey, clientOptions);
         else
-            _client = new(new Uri(_openAIEndpoint), new AzureKeyCredential(_openAIKey), options);
+            _client = new(new Uri(_openAIEndpoint), new AzureKeyCredential(_openAIKey), clientOptions);
 
     }
 

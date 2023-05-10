@@ -6,6 +6,10 @@
         "isEnabled": true,
         "excludedTypes": "Request"
       }
+    },
+    "logLevel": {
+      "Vectorize.OpenAiService": "Information",
+      "Vectorize.MongoDbService": "Information"
     }
   },
   "extensions": {

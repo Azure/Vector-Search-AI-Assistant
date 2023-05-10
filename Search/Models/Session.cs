@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace DataCopilot.Search.Models;
+namespace Search.Models;
 
 public record Session
 {
