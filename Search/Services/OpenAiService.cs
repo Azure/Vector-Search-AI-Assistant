@@ -1,15 +1,15 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
 using Azure.Core;
-using DataCopilot.Search.Components;
-using DataCopilot.Search.Models;
+using Search.Components;
+using Search.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 
-namespace DataCopilot.Search.Services;
+namespace Search.Services;
 
 /// <summary>
 /// Service to access Azure OpenAI.

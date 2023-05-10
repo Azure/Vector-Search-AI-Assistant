@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using System.Runtime.InteropServices;
 
-namespace DataCopilot.Search.Utilities;
+namespace Search.Utilities;
 
 /// <summary>
 /// Efficiently treat an array of float as an array of bytes.

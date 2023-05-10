@@ -2,14 +2,18 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-    "CosmosDBConnection": "",
-    "MongoDBConnection": "",
-    "MongoDBDatabase": "",
-    "MongoDBCollection":  "",
-    "OpenAIEndpoint": "",
-    "OpenAiKey": "",
-    "EmbeddingsDeployment": "",
-    "OpenAiMaxTokens": "8191"
-  },
-  "IsEncrypted": false
+    "CosmosDBConnection": "NEED To ADD Before Running",
+    "MongoDb": {
+      "Connection": "test mongo connection",
+      "DatabaseName": "mongo database",
+      "CollectionName": "mongo collection"
+    },
+    "OpenAi": {
+      "Endpoint": "open ai endpoint",
+      "Key": "open ai key",
+      "EmbeddingsDeployment": "embeddings-deployment",
+      "MaxTokens": "8191"
+    },
+    "IsEncrypted": false
+  }
 }

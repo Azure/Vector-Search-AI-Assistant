@@ -4,21 +4,17 @@ using MongoDB.Driver;
 
 namespace Vectorize.Services
 {
-    public class MongoDBService
+    public class MongoDbService
     {
         private readonly MongoClient _client;
         private readonly IMongoDatabase _database;
         private readonly IMongoCollection<BsonDocument> _collection;
 
 
-        public MongoDBService()
+        public MongoDbService(string connection, string databaseName, string collectionName, ILogger logger)
         {
 
-            string? connectionString = Environment.GetEnvironmentVariable("MongoDBConnection");
-            string? databaseName = Environment.GetEnvironmentVariable("MongoDBDatabase");
-            string? collectionName = Environment.GetEnvironmentVariable("MongoDBCollection");
-
-            _client = new MongoClient(connectionString);
+            _client = new MongoClient(connection);
             _database = _client.GetDatabase(databaseName);
             _collection = _database.GetCollection<BsonDocument>(collectionName);
 

@@ -1,9 +1,9 @@
 ﻿using StackExchange.Redis;
-using DataCopilot.Search.Utilities;
-using DataCopilot.Search.Models;
-using DataCopilot.Search.Constants;
+using Search.Utilities;
+using Search.Models;
+using Search.Constants;
 
-namespace DataCopilot.Search.Services
+namespace Search.Services
 {
     public class RedisService
     {

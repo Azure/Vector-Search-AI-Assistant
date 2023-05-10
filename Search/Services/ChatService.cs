@@ -1,8 +1,8 @@
 ﻿using Azure.AI.OpenAI;
-using DataCopilot.Search.Constants;
-using DataCopilot.Search.Models;
+using Search.Constants;
+using Search.Models;
 
-namespace DataCopilot.Search.Services;
+namespace Search.Services;
 
 public class ChatService
 {
