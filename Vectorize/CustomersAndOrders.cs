@@ -1,16 +1,16 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using DataCopilot.Vectorize.Models;
-using DataCopilot.Vectorize.Services;
+using Vectorize.Models;
+using Vectorize.Services;
 
-namespace DataCopilot.Vectorize
+namespace Vectorize
 {
     public class CustomersAndOrders
     {
 
-        private OpenAI _openAI;
-        private Redis _redis;
+        private OpenAiService _openAI = new OpenAiService();
+        private MongoDBService _mongo = new MongoDBService();
 
 
         [FunctionName("CustomersAndOrders")]
@@ -22,107 +22,51 @@ namespace DataCopilot.Vectorize
                 Connection = "CosmosDBConnection",
                 LeaseContainerName = "leases",
                 CreateLeaseContainerIfNotExists = true)]IReadOnlyList<JObject> input,
-            [CosmosDB(
-                databaseName: "database",
-                containerName: "embedding",
-                Connection = "CosmosDBConnection")]IAsyncCollector<DocumentVector> output,
-            ILogger log)
+            ILogger logger)
         {
-
-            _openAI = new OpenAI();
-            _redis = new Redis(log);
-
-            await _redis.CreateRedisIndex();
 
             if (input != null && input.Count > 0)
             {
-                log.LogInformation("Generating embeddings for " + input.Count + "Customers and Sales Orders");
 
-                try
-                {
-                    foreach (dynamic item in input)
-                    {
+                logger.LogInformation("Generating embeddings for " + input.Count + "Customers and Sales Orders");
 
-                        if (item.type == "customer")
-                        {
-                            Customer customer = item.ToObject<Customer>();
-                            await GenerateCustomerVectors(customer, output, log);
 
-                        }
-                        else
-                        if (item.type == "salesOrder")
-                        {
-                            SalesOrder salesOrder = item.ToObject<SalesOrder>();
-                            await GenerateOrderVectors(salesOrder, output, log);
+                //using dynamic types throughout as this container has two different entities
 
-                        }
-
-                    }
-                }
-                finally
+                foreach (dynamic item in input)
                 {
 
+                        
+                    await GenerateVectors(item, logger);
+
                 }
+                
             }
         }
 
-
-        public async Task GenerateCustomerVectors(Customer customer, IAsyncCollector<DocumentVector> output, ILogger log)
+        public async Task GenerateVectors(dynamic document, ILogger logger)
         {
+            //Serialize the object to send to OpenAI
+            string sDocument = JObject.FromObject(document).ToString();
 
-            //Serialize the customer object to send to OpenAI
-            string sCustomer = JObject.FromObject(customer).ToString(Newtonsoft.Json.Formatting.None);
 
-            DocumentVector documentVector = new DocumentVector(customer.id, customer.id, "customer");
-                          
             try
             {
                 //Get the embeddings from OpenAI
-                documentVector.vector = await _openAI.GetEmbeddingsAsync(sCustomer, log);
+                document.vector = await _openAI.GetEmbeddingsAsync(sDocument, logger);
 
-                //Save to Cosmos DB
-                await output.AddAsync(documentVector);
 
-                //Save to Redis Cache
-                await _redis.CacheVector(documentVector, log);
+                //Save to Mongo
+                await _mongo.UpsertVector(document, logger);
 
-                log.LogInformation("Cached embeddings for customer : " + customer.firstName + " " + customer.lastName);
+                logger.LogInformation($"Saved vector for object: {document.type}, id: {document.id} ");
 
             }
             catch (Exception x)
             {
-                log.LogError("Exception while generating embeddings for [" + customer.firstName + " " + customer.lastName + "]: " + x.Message);
+                logger.LogError($"Exception while generating vector for object: {document.type}, id: {document.id} " + x.Message);
             }
 
-        }
-
-        public async Task GenerateOrderVectors(SalesOrder salesOrder, IAsyncCollector<DocumentVector> output, ILogger log)
-        {
-
-            //Serialize the salesOrder to send to OpenAI
-            string sSalesOrder = JObject.FromObject(salesOrder).ToString();
-
-            DocumentVector documentVector = new DocumentVector(salesOrder.id, salesOrder.customerId, "customer");
-            
-            try
-            {
-
-                //Get the embeddings from OpenAI
-                documentVector.vector = await _openAI.GetEmbeddingsAsync(sSalesOrder, log);
-
-                //Save to Cosmos DB
-                await output.AddAsync(documentVector);
-
-                //Save to Redis Cache
-                await _redis.CacheVector(documentVector, log);
-
-                log.LogInformation("Cached embeddings for Sales Order Id: " + salesOrder.id);
-
-            }
-            catch (Exception x)
-            {
-                log.LogError("Exception while generating embeddings for [" + salesOrder.id + "]: " + x.Message);
-            }
         }
     }
 }
