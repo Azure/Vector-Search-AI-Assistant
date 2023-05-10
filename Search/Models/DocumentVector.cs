@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Vectorize.Models
+namespace DataCopilot.Search.Models
 {
     public record DocumentVector
     {
@@ -16,7 +16,7 @@ namespace Vectorize.Models
 
         public DocumentVector(string itemId, string partitionKey, string containerName, float[]? vector = null)
         {
-            this.id = Guid.NewGuid().ToString();
+            id = Guid.NewGuid().ToString();
             this.itemId = itemId;
             this.partitionKey = partitionKey;
             this.containerName = containerName;

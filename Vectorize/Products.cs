@@ -1,16 +1,16 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using DataCopilot.Vectorize.Models;
-using DataCopilot.Vectorize.Services;
+using Vectorize.Services;
+using Vectorize.Models;
 
-namespace DataCopilot.Vectorize
+namespace Vectorize
 {
     public class Products
     {
 
-        private OpenAI _openAI;
-        private Redis _redis;
+        private OpenAiService _openAI = new OpenAiService();
+        private MongoDBService _mongo = new MongoDBService();
 
         [FunctionName("Products")]
         public async Task Run(
@@ -21,58 +21,44 @@ namespace DataCopilot.Vectorize
                 Connection = "CosmosDBConnection",
                 LeaseContainerName = "leases",
                 CreateLeaseContainerIfNotExists = true)]IReadOnlyList<Product> input,
-            [CosmosDB(
-                databaseName: "database",
-                containerName: "embedding",
-                Connection = "CosmosDBConnection")]IAsyncCollector<DocumentVector> output,
-            ILogger log)
+            ILogger logger)
         {
 
-            _redis = new Redis(log);
-
-            await _redis.CreateRedisIndex();
-
-            _openAI = new OpenAI();
+           
 
             if (input != null && input.Count > 0)
             {
-                log.LogInformation("Generating embeddings for " + input.Count + " products");
-                try
+                logger.LogInformation("Generating embeddings for " + input.Count + " products");
+                
+
+                foreach (Product item in input)
                 {
-                    foreach (Product item in input)
-                    {
-                         await GenerateProductVectors(item, output, log);
-                    }
+                    await GenerateProductVector(item, logger);
                 }
-                finally
-                {
-                }
+                
             }
         }
 
-        public async Task GenerateProductVectors(Product product, IAsyncCollector<DocumentVector> output, ILogger log)
+        public async Task GenerateProductVector(Product product, ILogger logger)
         {
             //Serialize the product object to send to OpenAI
             string sProduct = JObject.FromObject(product).ToString();
 
-            DocumentVector documentVector = new DocumentVector(product.id, product.categoryId, "product");
             
             try
             {
                 //Get the embeddings from OpenAI
-                documentVector.vector = await _openAI.GetEmbeddingsAsync(sProduct, log);
+                product.vector = await _openAI.GetEmbeddingsAsync(sProduct, logger);
 
-                //Save to Cosmos DB
-                await output.AddAsync(documentVector);
+                
+                //Save to Mongo
+                await _mongo.UpsertVector(product, logger);
 
-                //Save to Redis Cache
-                await _redis.CacheVector(documentVector, log);
-
-                log.LogInformation("Cached embeddings for product: " + product.name);
+                logger.LogInformation("Saved vector for product: " + product.name);
             }
             catch (Exception x)
             {
-                log.LogError("Exception while generating embeddings for [" + product.name + "]: " + x.Message);
+                logger.LogError("Exception while generating vector for [" + product.name + "]: " + x.Message);
             }
 
         }
