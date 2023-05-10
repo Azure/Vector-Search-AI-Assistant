@@ -1,7 +1,6 @@
 ﻿using Azure.AI.OpenAI;
 using DataCopilot.Search.Constants;
 using DataCopilot.Search.Models;
-using Vectorize.Models;
 
 namespace DataCopilot.Search.Services;
 

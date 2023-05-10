@@ -1,7 +1,6 @@
 ﻿using DataCopilot.Search.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
-using Vectorize.Models;
 
 namespace DataCopilot.Search.Services;
 
