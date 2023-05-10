@@ -2,7 +2,6 @@
 using DataCopilot.Search.Utilities;
 using DataCopilot.Search.Models;
 using DataCopilot.Search.Constants;
-using Vectorize.Models;
 
 namespace DataCopilot.Search.Services
 {
