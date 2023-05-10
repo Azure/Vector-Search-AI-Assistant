@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataCopilot.Search.Models
+namespace Search.Models
 {
     public record DocumentVector
     {

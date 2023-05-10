@@ -3,7 +3,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>DataCopilot.Search</RootNamespace>
+    <RootNamespace>Search</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UserSecretsId>86b98284-0715-492f-80de-95ad9057b2d4</UserSecretsId>
   </PropertyGroup>

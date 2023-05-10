@@ -1,5 +1,5 @@
-using DataCopilot.Search.Options;
-using DataCopilot.Search.Services;
+using Search.Options;
+using Search.Services;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);

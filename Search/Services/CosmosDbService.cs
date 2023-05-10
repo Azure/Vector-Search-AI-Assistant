@@ -1,8 +1,8 @@
-﻿using DataCopilot.Search.Models;
+﻿using Search.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
 
-namespace DataCopilot.Search.Services;
+namespace Search.Services;
 
 /// <summary>
 /// Service to access Azure Cosmos DB for NoSQL.

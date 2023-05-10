@@ -1,7 +1,6 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using Vectorize.Models;
 using Vectorize.Services;
 
 namespace Vectorize
@@ -9,9 +8,14 @@ namespace Vectorize
     public class CustomersAndOrders
     {
 
-        private OpenAiService _openAI = new OpenAiService();
-        private MongoDBService _mongo = new MongoDBService();
+        private readonly OpenAiService _openAi;
+        private readonly MongoDbService _mongo;
 
+        public CustomersAndOrders(OpenAiService openAI, MongoDbService mongo)
+        {
+            _openAi = openAI;
+            _mongo = mongo;
+        }
 
         [FunctionName("CustomersAndOrders")]
         public async Task Run(
@@ -53,7 +57,7 @@ namespace Vectorize
             try
             {
                 //Get the embeddings from OpenAI
-                document.vector = await _openAI.GetEmbeddingsAsync(sDocument, logger);
+                document.vector = await _openAi.GetEmbeddingsAsync(sDocument, logger);
 
 
                 //Save to Mongo

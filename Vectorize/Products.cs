@@ -9,8 +9,15 @@ namespace Vectorize
     public class Products
     {
 
-        private OpenAiService _openAI = new OpenAiService();
-        private MongoDBService _mongo = new MongoDBService();
+        private readonly OpenAiService _openAI;// = new OpenAiService();
+        private readonly MongoDbService _mongo;// = new MongoDBService();
+
+        public Products(OpenAiService openAi, MongoDbService mongoDb) 
+        { 
+            _mongo = mongoDb;
+            _openAI = openAi;
+        
+        }
 
         [FunctionName("Products")]
         public async Task Run(
