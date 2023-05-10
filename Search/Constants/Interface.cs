@@ -1,4 +1,4 @@
-namespace DataCopilot.Search.Constants;
+namespace Search.Constants;
 
 public static class Interface
 {

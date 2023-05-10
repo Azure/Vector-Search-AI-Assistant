@@ -1,4 +1,4 @@
-﻿namespace DataCopilot.Search.Options
+﻿namespace Search.Options
 {
     public record Redis
     {
