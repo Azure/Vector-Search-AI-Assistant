@@ -2,18 +2,14 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-    "CosmosDBConnection": "NEED To ADD Before Running",
-    "MongoDb": {
-      "Connection": "test mongo connection",
-      "DatabaseName": "mongo database",
-      "CollectionName": "mongo collection"
-    },
-    "OpenAi": {
-      "Endpoint": "open ai endpoint",
-      "Key": "open ai key",
-      "EmbeddingsDeployment": "embeddings-deployment",
-      "MaxTokens": "8191"
-    },
-    "IsEncrypted": false
-  }
+    "CosmosDBConnection": "AccountEndpoint=https://byoc-cosmos.documents.azure.com:443/;AccountKey=74CR4a6KDRLyZR6Z0ukOGdOTXmW6sOWZBCT7G38oGRgW62km96yUIXuv7MSklTEihMAlnhiX1JYsACDbsBhU1w==;",
+    "MongoDb__Connection": "mongodb+srv://openaidemo:MongoRock5123@cqqs2y2ih4ifm5d6oe0oaayq2r3pwurq.pgmongo-dev.cosmos.windows-int.net/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+    "MongoDb__DatabaseName": "VectorsDb",
+    "MongoDb__CollectionName": "vectors",
+    "OpenAi__Endpoint": "https://cosmos-chat-openai.openai.azure.com/",
+    "OpenAi__Key": "1d6ade9dc7654aeba5e1cecbfcff6281",
+    "OpenAi__EmbeddingsDeployment": "cosmos-vectors",
+    "OpenAi__MaxTokens": "8191"
+  },
+  "IsEncrypted": false
 }
