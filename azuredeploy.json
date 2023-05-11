@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "18067519457186584781"
+      "templateHash": "5761799591100245240"
     }
   },
   "parameters": {
@@ -54,14 +54,14 @@
       "type": "string",
       "defaultValue": "https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git",
       "metadata": {
-        "description": "Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant`) repository."
+        "description": "Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant) repository."
       }
     },
     "appGetRepositoryBranch": {
       "type": "string",
-      "defaultValue": "Redis",
+      "defaultValue": "main",
       "metadata": {
-        "description": "Git repository branch for the application source. This defaults to the [**Redis** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis) repository."
+        "description": "Git repository branch for the application source. This defaults to the [**main** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/main) repository."
       }
     }
   },
@@ -383,17 +383,19 @@
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "CosmosDBConnection": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name), '2022-08-15').connectionStrings[0].connectionString]",
-        "OpenAiEndpoint": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').endpoint]",
-        "OpenAiKey": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').key1]",
-        "EmbeddingsDeployment": "[variables('openAiSettings').embeddingsModel.deployment.name]",
-        "OpenAiMaxTokens": "8191",
-        "RedisConnection": "[format('{0}:10000,abortConnect=false,ssl=true,password={1}', reference(resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name), '2022-01-01').hostName, listKeys(resourceId('Microsoft.Cache/redisEnterprise/databases', variables('redisSettings').name, variables('redisSettings').database.name), '2022-01-01').primaryKey)]"
+        "OPENAI__ENDPOINT": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').endpoint]",
+        "OPENAI__KEY": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').key1]",
+        "OPENAI__EMBEDDINGSDEPLOYMENT": "[variables('openAiSettings').embeddingsModel.deployment.name]",
+        "OPENAI__COMPLETIONSDEPLOYMENT": "[variables('openAiSettings').completionsModel.deployment.name]",
+        "OPENAI__MAXCONVERSATIONBYTES": "[variables('openAiSettings').maxConversationBytes]",
+        "REDIS__CONNECTION": "[format('{0}:10000,abortConnect=false,ssl=true,password={1}', reference(resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name), '2022-01-01').hostName, listKeys(resourceId('Microsoft.Cache/redisEnterprise/databases', variables('redisSettings').name, variables('redisSettings').database.name), '2022-01-01').primaryKey)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('appServiceSettings').function.name)]",
         "[resourceId('Microsoft.Insights/components', variables('appServiceSettings').function.name)]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
+        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').completionsModel.deployment.name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]",
         "[resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name)]",
         "[resourceId('Microsoft.Cache/redisEnterprise/databases', variables('redisSettings').name, variables('redisSettings').database.name)]",
