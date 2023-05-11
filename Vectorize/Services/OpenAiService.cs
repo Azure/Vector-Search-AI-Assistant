@@ -45,7 +45,7 @@ public class OpenAiService
 
     }
 
-    public async Task<float[]?> GetEmbeddingsAsync(dynamic data, ILogger log)
+    public async Task<float[]?> GetEmbeddingsAsync(dynamic data)
     {
         try
         {
@@ -64,7 +64,7 @@ public class OpenAiService
         }
         catch (Exception ex)
         {
-            log.LogError(ex.Message);
+            _logger.LogError(ex.Message);
             return null;
         }
     }

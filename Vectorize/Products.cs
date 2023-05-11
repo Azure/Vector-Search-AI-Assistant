@@ -3,6 +3,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Vectorize.Services;
 using Vectorize.Models;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.IO;
 
 namespace Vectorize
 {
@@ -55,11 +58,18 @@ namespace Vectorize
             try
             {
                 //Get the embeddings from OpenAI
-                product.vector = await _openAI.GetEmbeddingsAsync(sProduct, logger);
+                product.vector = await _openAI.GetEmbeddingsAsync(sProduct);
+
+
+                var bson = new BsonDocument();
+                var bsonSettings = new BsonDocumentWriterSettings { GuidRepresentation = GuidRepresentation.Standard };
+                var args = new BsonSerializationArgs { NominalType = typeof(Product) };
 
                 
+
                 //Save to Mongo
-                await _mongo.UpsertVector(product, logger);
+                //BsonDocument bsonProduct = product.ToBsonDocument();
+                await _mongo.InsertVector(bsonProduct);
 
                 logger.LogInformation("Saved vector for product: " + product.name);
             }
