@@ -4,6 +4,7 @@ using Vectorize.Services;
 using Vectorize.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 [assembly: FunctionsStartup(typeof(Vectorize.Startup))]
 
@@ -13,6 +14,20 @@ namespace Vectorize
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
+
+            builder.Services.AddOptions<OpenAi>()
+                 .Configure<IConfiguration>((settings, configuration) =>
+                 {
+                     configuration.GetSection(nameof(OpenAi)).Bind(settings);
+                 });
+
+
+
+            builder.Services.AddOptions<MongoDb>()
+                .Configure<IConfiguration>((settings, configuration) =>
+                {
+                    configuration.GetSection(nameof(MongoDb)).Bind(settings);
+                });
 
             builder.Services.AddSingleton<OpenAiService, OpenAiService>((provider) =>
             {
