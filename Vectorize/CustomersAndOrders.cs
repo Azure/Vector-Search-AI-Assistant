@@ -3,15 +3,21 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using DataCopilot.Vectorize.Models;
 using DataCopilot.Vectorize.Services;
+using Microsoft.Azure.Cosmos;
 
 namespace DataCopilot.Vectorize
 {
     public class CustomersAndOrders
     {
 
-        private OpenAI _openAI;
-        private Redis _redis;
+        private readonly OpenAiService _openAI;
+        private readonly RedisService _redis;
 
+        public CustomersAndOrders(OpenAiService openAI, RedisService redis)
+        {
+            _openAI = openAI;
+            _redis = redis;
+        }
 
         [FunctionName("CustomersAndOrders")]
         public async Task Run(
@@ -26,13 +32,15 @@ namespace DataCopilot.Vectorize
                 databaseName: "database",
                 containerName: "embedding",
                 Connection = "CosmosDBConnection")]IAsyncCollector<DocumentVector> output,
+            [CosmosDB(
+                databaseName: "database",
+                containerName: "embedding",
+                Connection = "CosmosDBConnection")]CosmosClient cosmosClient,
             ILogger log)
         {
 
-            _openAI = new OpenAI();
-            _redis = new Redis(log);
 
-            await _redis.CreateRedisIndex();
+            await _redis.CreateRedisIndex(cosmosClient);
 
             if (input != null && input.Count > 0)
             {
@@ -78,13 +86,13 @@ namespace DataCopilot.Vectorize
             try
             {
                 //Get the embeddings from OpenAI
-                documentVector.vector = await _openAI.GetEmbeddingsAsync(sCustomer, log);
+                documentVector.vector = await _openAI.GetEmbeddingsAsync(sCustomer);
 
                 //Save to Cosmos DB
                 await output.AddAsync(documentVector);
 
                 //Save to Redis Cache
-                await _redis.CacheVector(documentVector, log);
+                await _redis.CacheVector(documentVector);
 
                 log.LogInformation("Cached embeddings for customer : " + customer.firstName + " " + customer.lastName);
 
@@ -108,13 +116,13 @@ namespace DataCopilot.Vectorize
             {
 
                 //Get the embeddings from OpenAI
-                documentVector.vector = await _openAI.GetEmbeddingsAsync(sSalesOrder, log);
+                documentVector.vector = await _openAI.GetEmbeddingsAsync(sSalesOrder);
 
                 //Save to Cosmos DB
                 await output.AddAsync(documentVector);
 
                 //Save to Redis Cache
-                await _redis.CacheVector(documentVector, log);
+                await _redis.CacheVector(documentVector);
 
                 log.LogInformation("Cached embeddings for Sales Order Id: " + salesOrder.id);
 

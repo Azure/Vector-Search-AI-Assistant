@@ -316,11 +316,12 @@ resource appServiceFunctionSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     CosmosDBConnection: cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
-    OpenAiEndpoint: openAiAccount.properties.endpoint
-    OpenAiKey: openAiAccount.listKeys().key1
-    EmbeddingsDeployment: openAiEmbeddingsModelDeployment.name
-    OpenAiMaxTokens: '8191'
-    RedisConnection: '${redisEnterprise.properties.hostName}:10000,abortConnect=false,ssl=true,password=${redisEnterpriseDatabase.listKeys().primaryKey}'
+    OPENAI__ENDPOINT: openAiAccount.properties.endpoint
+    OPENAI__KEY: openAiAccount.listKeys().key1
+    OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
+    OPENAI__COMPLETIONSDEPLOYMENT: openAiCompletionsModelDeployment.name
+    OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
+    REDIS__CONNECTION: '${redisEnterprise.properties.hostName}:10000,abortConnect=false,ssl=true,password=${redisEnterpriseDatabase.listKeys().primaryKey}'
   }
 }
 
