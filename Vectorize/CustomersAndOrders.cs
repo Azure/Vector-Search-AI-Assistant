@@ -35,17 +35,29 @@ namespace Vectorize
             if (input != null && input.Count > 0)
             {
 
-                logger.LogInformation("Generating embeddings for " + input.Count + "Customers and Sales Orders");
+                logger.LogInformation("Generating embeddings for " + input.Count + " Customers and Sales Orders");
 
 
-                //using dynamic types throughout as this container has two different entities
+                //using dynamic type as this container has two different entities
 
                 foreach (dynamic item in input)
                 {
                     if (item.type == "customer")
-                        await GenerateCustomerVectors(item, logger);
+                    {
+                        Customer customer = item.ToObject<Customer>();
+                        await GenerateCustomerVectors(customer, logger);
+                    }
+
+                    else if (item.type == "salesOrder")
+                    {
+                        SalesOrder salesOrder = item.ToObject<SalesOrder>();
+                        await GenerateSalesOrderVectors(salesOrder, logger);
+
+                    }
                     else
-                        await GenerateSalesOrderVectors(item, logger);
+                    {
+                        logger.LogError($"Unsupported entity saved in customer container: {item.type}");
+                    }
 
                 }
                 
@@ -64,8 +76,8 @@ namespace Vectorize
 
 
                 //Save to Mongo
-                BsonDocument bsonCustomer = customer.ToBsonDocument();
-                await _mongo.InsertVector(bsonCustomer);
+                BsonDocument bsonDocument = customer.ToBsonDocument();
+                await _mongo.InsertVector(bsonDocument, logger);
 
 
                 logger.LogInformation($"Saved vector for customer: {customer.firstName} {customer.lastName} ");
@@ -90,8 +102,8 @@ namespace Vectorize
 
 
                 //Save to Mongo
-                BsonDocument bsonSalesOrder = salesOrder.ToBsonDocument();
-                await _mongo.InsertVector(bsonSalesOrder);
+                BsonDocument bsonDocument = salesOrder.ToBsonDocument();
+                await _mongo.InsertVector(bsonDocument, logger);
 
 
                 logger.LogInformation($"Saved vector for sales order id: {salesOrder.id} and customer id: {salesOrder.customerId} ");

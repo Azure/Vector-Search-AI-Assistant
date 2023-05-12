@@ -4,6 +4,7 @@ using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using Vectorize.Models;
+using System.Runtime.CompilerServices;
 
 namespace Vectorize.Services
 {
@@ -11,101 +12,76 @@ namespace Vectorize.Services
     {
         private readonly MongoClient _client;
         private readonly IMongoDatabase _database;
+        private readonly string _collectionName;
         private readonly IMongoCollection<BsonDocument> _collection;
-        private readonly ILogger _logger;
+        private readonly ILogger<MongoDbService> _logger;
 
-        public MongoDbService(string connection, string databaseName, string collectionName, ILogger logger)
+        public MongoDbService(string connection, string databaseName, string collectionName, ILogger<MongoDbService> logger)
         {
 
             _client = new MongoClient(connection);
             _database = _client.GetDatabase(databaseName);
-            _collection = _database.GetCollection<BsonDocument>(collectionName);
+            _collectionName = collectionName;
+            _collection = _database.GetCollection<BsonDocument>(_collectionName);
             _logger = logger;
 
             string vectorIndexName = "vectorSearchIndex";
-            
+
             //Find if vector index exists
-            var indexes = _collection.Indexes.List().ToList();
-            var indexExists = indexes.Find(i => i["name"].AsString == vectorIndexName);
-
-
-            if (indexExists is null) 
+            using (IAsyncCursor<BsonDocument> indexCursor = _collection.Indexes.List())
             {
-                
-                //To-Do: Build this string dynamically to allow for user defined values
-                //'vectors' is the collection name. the property is 'cosmosSearch'
-                
-                BsonDocumentCommand<BsonDocument> command = new BsonDocumentCommand<BsonDocument>(
-                BsonDocument.Parse("{createIndexes: 'vectors', indexes: [{ name: 'vectorSearchIndex', key: { vector: 'cosmosSearch' }, cosmosSearchOptions: { kind: 'vector-ivf', numLists: 5, similarity: 'COS', dimensions: 3 } }] }"));
-                
-                _database.RunCommand(command);
-            }
+                bool vectorIndexExists = indexCursor.ToList().Any(x => x["name"] == vectorIndexName);
+                if (!vectorIndexExists)
+                {
+                    BsonDocumentCommand<BsonDocument> command = new BsonDocumentCommand<BsonDocument>(
+                    BsonDocument.Parse(@"
+                        { createIndexes: 'vectors', 
+                          indexes: [{ 
+                            name: 'vectorSearchIndex', 
+                            key: { vector: 'cosmosSearch' }, 
+                            cosmosSearchOptions: { kind: 'vector-ivf', numLists: 5, similarity: 'COS', dimensions: 1536 } 
+                          }] 
+                        }"));
 
-            //Register new serializer to handle Cosmos JSON documents /id property.
-            BsonSerializer.RegisterSerializer(new JsonToBsonSerializer());
+                    BsonDocument result = _database.RunCommand(command);
+                    if (result["ok"] != 1)
+                    {
+                        _logger.LogError("CreateIndex failed with response: " + result.ToJson());
+                    }
+                }
+            }
         }
 
         
-        public async Task InsertVector(BsonDocument document)
+        public async Task InsertVector(BsonDocument document, ILogger logger)
         {
 
-            try 
+            if (!document.Contains("_id"))
             {
-
-                await _collection.InsertOneAsync(document);
-
-            }
-            catch (Exception ex) 
-            {
-                _logger.LogError(ex.Message);
+                logger.LogError("Document does not contain _id.");
+                throw new ArgumentException("Document does not contain _id.");
             }
 
-        }
+            string? _idValue = document.GetValue("_id").ToString();
 
-
-        public async Task UpsertVector(BsonDocument document)
-        {
-
-            throw new Exception("not implemented");
-
-            /*
             try
             {
-
-                var filter = Builders<MyDocument>.Filter.Eq(x => x.Id, myId);
+                var filter = Builders<BsonDocument>.Filter.Eq("_id", _idValue);
                 var options = new ReplaceOptions { IsUpsert = true };
-                await _collection.ReplaceOne(filter, newDocument, options);
+                await _collection.ReplaceOneAsync(filter, document, options);
 
+                logger.LogInformation("Inserted new vector into MongoDB");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
-            }
-            */
-        }
-
-    }
-
-    public class JsonToBsonSerializer : SerializerBase<dynamic>
-    {
-        public override dynamic Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
-        {
-            return BsonSerializer.Deserialize<dynamic>(context.Reader);
-        }
-
-        public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, dynamic value)
-        {
-            var bsonDocument = new BsonDocument();
-            BsonSerializer.Serialize(context.Writer, value.GetType(), value);
-
-            bsonDocument.AddRange(value.ToBsonDocument());
-
-            if (value.Id != ObjectId.Empty)
-            {
-                bsonDocument["_id"] = value.id;
+                //TODO: fix the logger. Output does not show up anywhere
+                logger.LogError(ex.Message);
+                throw;
             }
 
-            context.Writer.WriteEndDocument();
         }
+
+
+
     }
 }
