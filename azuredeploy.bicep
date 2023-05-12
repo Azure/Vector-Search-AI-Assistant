@@ -1,10 +1,10 @@
 @description('Location where all resources will be deployed. This value defaults to the **East US** region.')
 @allowed([
-  'South Central US'
-  'East US'
-  'West Europe'
+  'southcentralus'
+  'eastus'
+  'westeurope'
 ])
-param location string = 'East US'
+param location string = 'eastus'
 
 @description('''
 Unique name for the deployed services below. Max length 15 characters, alphanumeric only:
@@ -32,6 +32,16 @@ param appServiceSku string = 'B1'
 ])
 param openAiSku string = 'S0'
 
+@description('MongoDb vCore user Name. No dashes.')
+param mongoDbUserName string
+
+@description('MongoDb vCore password. 8-256 characters, 3 of the following: lower case, upper case, numeric, symbol.')
+@minLength(8)
+@maxLength(256)
+@secure()
+param mongoDbPassword string
+
+
 @description('Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant) repository.')
 param appGitRepository string = 'https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git'
 
@@ -58,15 +68,27 @@ var openAiSettings = {
   }
 }
 
+var deployedRegion = {
+  'East US': {
+    armName: toLower('eastus')
+  }
+  'South Central US': {
+    armName: toLower('southcentralus')
+  }
+  'West Europe': {
+    armName: toLower('westeurope')
+  }
+}
+
 var cosmosDbSettings = {
   name: '${name}-cosmos-nosql'
   databaseName: 'database'
 }
 
 var mongovCoreSettings = {
-  name: '${name}-mongo'
-  login: '${name}-mongo-admin'
-  password: uniqueString('${name}-mongo-admin')
+  mongoClusterName: '${name}-mongo'
+  mongoClusterLogin: mongoDbUserName
+  mongoClusterPassword: mongoDbPassword
 }
 
 var cosmosContainers = {
@@ -170,11 +192,11 @@ resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/con
 }]
 
 resource mongoCluster 'Microsoft.DocumentDB/mongoClusters@2023-03-01-preview' = {
-  name: mongovCoreSettings.name
+  name: mongovCoreSettings.mongoClusterName
   location: location
   properties: {
-    administratorLogin: mongovCoreSettings.login
-    administratorLoginPassword: mongovCoreSettings.password
+    administratorLogin: mongovCoreSettings.mongoClusterLogin
+    administratorLoginPassword: mongovCoreSettings.mongoClusterPassword
     serverVersion: '5.0'
     nodeGroupSpecs: [
       {
@@ -307,10 +329,10 @@ resource appServiceWebSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
     OPENAI__COMPLETIONSDEPLOYMENT: openAiCompletionsModelDeployment.name
     OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
-    MONGO__CONNECTION: 'mongodb+srv://${mongovCoreSettings.name}:${mongovCoreSettings.password}@${mongovCoreSettings.name}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
-    MONGO__DATABASENAME: 'vectordb'
-    MONGO_COLLECTIONNAME: 'vectors'
-    MONGO_MAXVECTORSEARCHRESULTS: '10'
+    MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
+    MONGODB__DATABASENAME: 'vectordb'
+    MONGODB_COLLECTIONNAME: 'vectors'
+    MONGODB_MAXVECTORSEARCHRESULTS: '10'
   }
 }
 
@@ -328,9 +350,9 @@ resource appServiceFunctionSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__KEY: openAiAccount.listKeys().key1
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
     OPENAI__MAXTOKENS: '8191'
-    MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.name}:${mongovCoreSettings.password}@${mongovCoreSettings.name}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
-    MONGO__DATABASENAME: 'vectordb'
-    MONGO_COLLECTIONNAME: 'vectors'
+    MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
+    MONGODB__DATABASENAME: 'vectordb'
+    MONGODB_COLLECTIONNAME: 'vectors'
   }
 }
 
