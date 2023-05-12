@@ -12,7 +12,7 @@ The solution architecture is represented by this diagram:
     <img src="img/architecture.png" width="100%">
 </p>
 
-The application frontend is a Blazor application with basic Q&A functionality:
+The application frontend is a Blazor application with Intelligent Agent UI functionality:
 
 <p align="center">
     <img src="img/ui.png" width="100%">
@@ -21,12 +21,10 @@ The application frontend is a Blazor application with basic Q&A functionality:
 This solution is composed of the following services:
 
 1.	Azure Cosmos DB - Stores the operational retail data, generated embeddings and chat prompts and completions.
-1.  Azure Cosmos DB for MongoDB vCore - stores the vectorizes retail data for search.
+1.  Azure Cosmos DB for MongoDB vCore - stores the vectorized retail data for search.
 1.	Azure Functions - Hosts a Cosmos DB trigger to generate embeddings, Cosmos DB output binding to save the embeddings and Azure Cosmos DB for MongoDB vCore.
 1.	Azure OpenAI - Generates embeddings using the Embeddings API and chat completions using the Completion API.
 1.	Azure App Service - Hosts Intelligent Agent UI.
-
-**Note:**  This solution does not yet include Azure Cognitive Search, which will be added in a future version.
 
 ## Getting Started
 
@@ -88,7 +86,7 @@ Here are some sample questions you can ask:
 
 ## Clean-up
 
-To remove all the resources used by this sample, you must first manually delete the deployed model within the Azure OpenAI service. You can then delete the resource group for your deployment. This will delete all remaining resources.
+Delete the resource group to delete all deployed resources.
 
 
 ## Run locally and debug

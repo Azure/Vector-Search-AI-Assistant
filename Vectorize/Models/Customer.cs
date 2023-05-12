@@ -1,9 +1,12 @@
-﻿using MongoDB.Bson.Serialization.IdGenerators;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 
 namespace Vectorize.Models
 {
     public class Customer
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
         public string id { get; set; }
         public string type { get; set; }
         public string customerId { get; set; }

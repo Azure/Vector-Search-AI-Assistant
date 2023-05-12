@@ -15,6 +15,9 @@ namespace Vectorize
         public override void Configure(IFunctionsHostBuilder builder)
         {
 
+            builder.Services.AddLogging();
+                
+
             builder.Services.AddOptions<OpenAi>()
                  .Configure<IConfiguration>((settings, configuration) =>
                  {
@@ -66,7 +69,7 @@ namespace Vectorize
                         connection: mongoOptions.Value?.Connection ?? string.Empty,
                         databaseName: mongoOptions.Value?.DatabaseName ?? string.Empty,
                         collectionName: mongoOptions.Value?.CollectionName ?? string.Empty,
-                        logger: provider.GetRequiredService<ILogger<MongoDb>>()
+                        logger: provider.GetRequiredService<ILogger<MongoDbService>>()
                     );
                 }
             });
