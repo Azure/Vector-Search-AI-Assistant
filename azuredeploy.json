@@ -5,17 +5,17 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "4978704763137502499"
+      "templateHash": "16843714031030183365"
     }
   },
   "parameters": {
     "location": {
       "type": "string",
-      "defaultValue": "East US",
+      "defaultValue": "eastus",
       "allowedValues": [
-        "South Central US",
-        "East US",
-        "West Europe"
+        "southcentralus",
+        "eastus",
+        "westeurope"
       ],
       "metadata": {
         "description": "Location where all resources will be deployed. This value defaults to the **East US** region."
@@ -48,6 +48,20 @@
       ],
       "metadata": {
         "description": "Specifies the SKU for the Azure OpenAI resource. Defaults to **S0**"
+      }
+    },
+    "mongoDbUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "MongoDb vCore user Name. No dashes."
+      }
+    },
+    "mongoDbPassword": {
+      "type": "securestring",
+      "maxLength": 256,
+      "minLength": 8,
+      "metadata": {
+        "description": "MongoDb vCore password. 8-256 characters, 3 of the following: lower case, upper case, numeric, symbol."
       }
     },
     "appGitRepository": {
@@ -85,14 +99,25 @@
         }
       }
     },
+    "deployedRegion": {
+      "East US": {
+        "armName": "[toLower('eastus')]"
+      },
+      "South Central US": {
+        "armName": "[toLower('southcentralus')]"
+      },
+      "West Europe": {
+        "armName": "[toLower('westeurope')]"
+      }
+    },
     "cosmosDbSettings": {
       "name": "[format('{0}-cosmos-nosql', parameters('name'))]",
       "databaseName": "database"
     },
     "mongovCoreSettings": {
-      "name": "[format('{0}-mongo', parameters('name'))]",
-      "login": "[format('{0}-mongo-admin', parameters('name'))]",
-      "password": "[uniqueString(format('{0}-mongo-admin', parameters('name')))]"
+      "mongoClusterName": "[format('{0}-mongo', parameters('name'))]",
+      "mongoClusterLogin": "[parameters('mongoDbUserName')]",
+      "mongoClusterPassword": "[parameters('mongoDbPassword')]"
     },
     "cosmosContainers": {
       "embeddingContainer": {
@@ -208,11 +233,11 @@
     {
       "type": "Microsoft.DocumentDB/mongoClusters",
       "apiVersion": "2023-03-01-preview",
-      "name": "[variables('mongovCoreSettings').name]",
+      "name": "[variables('mongovCoreSettings').mongoClusterName]",
       "location": "[parameters('location')]",
       "properties": {
-        "administratorLogin": "[variables('mongovCoreSettings').login]",
-        "administratorLoginPassword": "[variables('mongovCoreSettings').password]",
+        "administratorLogin": "[variables('mongovCoreSettings').mongoClusterLogin]",
+        "administratorLoginPassword": "[variables('mongovCoreSettings').mongoClusterPassword]",
         "serverVersion": "5.0",
         "nodeGroupSpecs": [
           {
@@ -228,25 +253,25 @@
     {
       "type": "Microsoft.DocumentDB/mongoClusters/firewallRules",
       "apiVersion": "2023-03-01-preview",
-      "name": "[format('{0}/{1}', variables('mongovCoreSettings').name, 'allowAll')]",
+      "name": "[format('{0}/{1}', variables('mongovCoreSettings').mongoClusterName, 'allowAll')]",
       "properties": {
         "startIpAddress": "0.0.0.0",
         "endIpAddress": "255.255.255.255"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongovCoreSettings').name)]"
+        "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongovCoreSettings').mongoClusterName)]"
       ]
     },
     {
       "type": "Microsoft.DocumentDB/mongoClusters/firewallRules",
       "apiVersion": "2023-03-01-preview",
-      "name": "[format('{0}/{1}', variables('mongovCoreSettings').name, 'allowAzure')]",
+      "name": "[format('{0}/{1}', variables('mongovCoreSettings').mongoClusterName, 'allowAzure')]",
       "properties": {
         "startIpAddress": "0.0.0.0",
         "endIpAddress": "0.0.0.0"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongovCoreSettings').name)]"
+        "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongovCoreSettings').mongoClusterName)]"
       ]
     },
     {
@@ -365,10 +390,10 @@
         "OPENAI__EMBEDDINGSDEPLOYMENT": "[variables('openAiSettings').embeddingsModel.deployment.name]",
         "OPENAI__COMPLETIONSDEPLOYMENT": "[variables('openAiSettings').completionsModel.deployment.name]",
         "OPENAI__MAXCONVERSATIONBYTES": "[variables('openAiSettings').maxConversationBytes]",
-        "MONGO__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').name, variables('mongovCoreSettings').password, variables('mongovCoreSettings').name)]",
-        "MONGO__DATABASENAME": "vectordb",
-        "MONGO_COLLECTIONNAME": "vectors",
-        "MONGO_MAXVECTORSEARCHRESULTS": "10"
+        "MONGODB__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').mongoClusterLogin, variables('mongovCoreSettings').mongoClusterPassword, variables('mongovCoreSettings').mongoClusterName)]",
+        "MONGODB__DATABASENAME": "vectordb",
+        "MONGODB_COLLECTIONNAME": "vectors",
+        "MONGODB_MAXVECTORSEARCHRESULTS": "10"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('appServiceSettings').web.name)]",
@@ -395,9 +420,9 @@
         "OPENAI__KEY": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').key1]",
         "OPENAI__EMBEDDINGSDEPLOYMENT": "[variables('openAiSettings').embeddingsModel.deployment.name]",
         "OPENAI__MAXTOKENS": "8191",
-        "MONGODB__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').name, variables('mongovCoreSettings').password, variables('mongovCoreSettings').name)]",
-        "MONGO__DATABASENAME": "vectordb",
-        "MONGO_COLLECTIONNAME": "vectors"
+        "MONGODB__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').mongoClusterLogin, variables('mongovCoreSettings').mongoClusterPassword, variables('mongovCoreSettings').mongoClusterName)]",
+        "MONGODB__DATABASENAME": "vectordb",
+        "MONGODB_COLLECTIONNAME": "vectors"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('appServiceSettings').function.name)]",
