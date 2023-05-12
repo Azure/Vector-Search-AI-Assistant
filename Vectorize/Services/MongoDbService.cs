@@ -19,9 +19,6 @@ namespace Vectorize.Services
         public MongoDbService(string connection, string databaseName, string collectionName, ILogger<MongoDbService> logger)
         {
 
-            logger.LogInformation("Mongo Connection value:" + connection);
-            logger.LogInformation("Mongo DatabaseName value:" + databaseName);
-            logger.LogInformation("Mongo CollectionName value:" + collectionName);
 
             try
             { 

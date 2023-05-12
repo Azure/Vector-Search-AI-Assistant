@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "16843714031030183365"
+      "templateHash": "10904877382859962413"
     }
   },
   "parameters": {
@@ -392,8 +392,8 @@
         "OPENAI__MAXCONVERSATIONBYTES": "[variables('openAiSettings').maxConversationBytes]",
         "MONGODB__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').mongoClusterLogin, variables('mongovCoreSettings').mongoClusterPassword, variables('mongovCoreSettings').mongoClusterName)]",
         "MONGODB__DATABASENAME": "vectordb",
-        "MONGODB_COLLECTIONNAME": "vectors",
-        "MONGODB_MAXVECTORSEARCHRESULTS": "10"
+        "MONGODB__COLLECTIONNAME": "vectors",
+        "MONGODB__MAXVECTORSEARCHRESULTS": "10"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('appServiceSettings').web.name)]",
@@ -422,7 +422,7 @@
         "OPENAI__MAXTOKENS": "8191",
         "MONGODB__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').mongoClusterLogin, variables('mongovCoreSettings').mongoClusterPassword, variables('mongovCoreSettings').mongoClusterName)]",
         "MONGODB__DATABASENAME": "vectordb",
-        "MONGODB_COLLECTIONNAME": "vectors"
+        "MONGODB__COLLECTIONNAME": "vectors"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('appServiceSettings').function.name)]",
