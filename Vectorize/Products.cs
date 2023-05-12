@@ -12,8 +12,8 @@ namespace Vectorize
     public class Products
     {
 
-        private readonly OpenAiService _openAI;// = new OpenAiService();
-        private readonly MongoDbService _mongo;// = new MongoDBService();
+        private readonly OpenAiService _openAI;
+        private readonly MongoDbService _mongo;
 
         public Products(OpenAiService openAi, MongoDbService mongoDb) 
         { 
@@ -61,15 +61,9 @@ namespace Vectorize
                 product.vector = await _openAI.GetEmbeddingsAsync(sProduct);
 
 
-                var bson = new BsonDocument();
-                var bsonSettings = new BsonDocumentWriterSettings { GuidRepresentation = GuidRepresentation.Standard };
-                var args = new BsonSerializationArgs { NominalType = typeof(Product) };
-
-                
-
                 //Save to Mongo
-                //BsonDocument bsonProduct = product.ToBsonDocument();
-                await _mongo.InsertVector(bsonProduct);
+                BsonDocument bsonProduct = product.ToBsonDocument();
+                await _mongo.InsertVector(bsonProduct, logger);
 
                 logger.LogInformation("Saved vector for product: " + product.name);
             }

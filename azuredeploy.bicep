@@ -308,6 +308,9 @@ resource appServiceWebSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__COMPLETIONSDEPLOYMENT: openAiCompletionsModelDeployment.name
     OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
     MONGO__CONNECTION: 'mongodb+srv://${mongovCoreSettings.name}:${mongovCoreSettings.password}@${mongovCoreSettings.name}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
+    MONGO__DATABASENAME: 'vectordb'
+    MONGO_COLLECTIONNAME: 'vectors'
+    MONGO_MAXVECTORSEARCHRESULTS: '10'
   }
 }
 
@@ -321,11 +324,13 @@ resource appServiceFunctionSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     CosmosDBConnection: cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
-    OpenAiEndpoint: openAiAccount.properties.endpoint
-    OpenAiKey: openAiAccount.listKeys().key1
-    EmbeddingsDeployment: openAiEmbeddingsModelDeployment.name
-    OpenAiMaxTokens: '8191'
-    MongoConnection: 'mongodb+srv://${mongovCoreSettings.name}:${mongovCoreSettings.password}@${mongovCoreSettings.name}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
+    OPENAI__ENDPOINT: openAiAccount.properties.endpoint
+    OPENAI__KEY: openAiAccount.listKeys().key1
+    OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
+    OPENAI__MAXTOKENS: '8191'
+    MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.name}:${mongovCoreSettings.password}@${mongovCoreSettings.name}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
+    MONGO__DATABASENAME: 'vectordb'
+    MONGO_COLLECTIONNAME: 'vectors'
   }
 }
 

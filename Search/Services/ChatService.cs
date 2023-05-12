@@ -13,14 +13,14 @@ public class ChatService
 
     private readonly CosmosDbService _cosmosDbService;
     private readonly OpenAiService _openAiService;
-    private readonly RedisService _redisService;
+    private readonly MongoDbService _mongoDbService;
     private readonly int _maxConversationBytes;
 
-    public ChatService(CosmosDbService cosmosDbService, OpenAiService openAiService, RedisService redisService)
+    public ChatService(CosmosDbService cosmosDbService, OpenAiService openAiService, MongoDbService mongoDbService)
     {
         _cosmosDbService = cosmosDbService;
         _openAiService = openAiService;
-        _redisService = redisService;
+        _mongoDbService = mongoDbService;
 
         _maxConversationBytes = openAiService.MaxConversationBytes;
 
@@ -116,16 +116,24 @@ public class ChatService
         ArgumentNullException.ThrowIfNull(sessionId);
 
         //Retrieve conversation, including latest prompt.
-        string conversation = GetChatSessionConversation(sessionId, userPrompt);
+        //If you put this after the vector search it doesn't take advantage of previous information given so harder to chain prompts together.
+        //However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
+        //string conversation = GetChatSessionConversation(sessionId, userPrompt);
+
 
         //Get embeddings for user prompt.
-        (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(sessionId, conversation);
+        (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(sessionId, userPrompt);
 
-        //Do vector search on prompt embeddings, return list of documents to go fetch
-        List<DocumentVector> vectorSearchResults =  await _redisService.VectorSearchAsync(promptVectors);
 
-        //Get the documents from Cosmos DB
-        string retrievedDocuments = await _cosmosDbService.GetVectorSearchDocumentsAsync(vectorSearchResults);
+
+        //Do vector search on prompt embeddings, return list of documents
+        string retrievedDocuments = await _mongoDbService.VectorSearchAsync(promptVectors);
+
+
+        //Retrieve conversation, including latest prompt.
+        string conversation = GetChatSessionConversation(sessionId, userPrompt);
+
+
 
         //Generate the completion to return to the user
         (string completion, int promptTokens, int responseTokens) = await _openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
