@@ -331,8 +331,8 @@ resource appServiceWebSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
     MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
     MONGODB__DATABASENAME: 'vectordb'
-    MONGODB_COLLECTIONNAME: 'vectors'
-    MONGODB_MAXVECTORSEARCHRESULTS: '10'
+    MONGODB__COLLECTIONNAME: 'vectors'
+    MONGODB__MAXVECTORSEARCHRESULTS: '10'
   }
 }
 
@@ -352,7 +352,7 @@ resource appServiceFunctionSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__MAXTOKENS: '8191'
     MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
     MONGODB__DATABASENAME: 'vectordb'
-    MONGODB_COLLECTIONNAME: 'vectors'
+    MONGODB__COLLECTIONNAME: 'vectors'
   }
 }
 
