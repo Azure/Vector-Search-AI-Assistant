@@ -1,8 +1,8 @@
 # Vector Search & AI Assistant for Azure Cosmos DB for MongoDB vCore
 
-This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using Azure Cosmos DB for MongoDB vCore capable. The user experience is a Retail AI Assistant. The data in this scenario centers around answering specific questions about the data stored in Azure Cosmos DB in a consumer retail "Intelligent Agent" workload that allows users to ask questions on products and customer stored in the database. The data for the prompts and completions are also stored in Azure Cosmos DB along with the token usage. This data can further be developed to allow users to develop more refine prompts for their own data. 
+This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using a variety of different vector capable databases available from Azure Cosmos DB and Azure.
 
-The data used in this solution is from the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB, adapted from the Adventure Works dataset for a retail Bike Shop that sells bicycles as well as biking accessories, components and clothing.
+The scenario for this sample centers around a consumer retail "Intelligent Agent" that allows users to ask questions on vectorized product, customer and sales order data stored in the database. The data in this solution is the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB. This data is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
 
 ## Solution Architecture
 
@@ -24,7 +24,24 @@ This solution is composed of the following services:
 1.  Azure Cosmos DB for MongoDB vCore - stores the vectorized retail data for search.
 1.	Azure Functions - Hosts a Cosmos DB trigger to generate embeddings, Cosmos DB output binding to save the embeddings and Azure Cosmos DB for MongoDB vCore.
 1.	Azure OpenAI - Generates embeddings using the Embeddings API and chat completions using the Completion API.
-1.	Azure App Service - Hosts Intelligent Agent UI.
+1.	Azure App Service - Hosts Intelligent Agent UX.
+
+## Overall solution workflow
+
+There are two key elements of this solution, generating vectors and searching vectors. Vectors are generated when data is inserted into Azure Cosmos DB, then cached in Redis. Users can then ask questions using web-based chat user interface to search the cached vectorized data and return augmented data to Azure OpenAI to generate a completion back to the user.
+
+### Generating vectors
+
+Vectors are generated in two Azure Functions contained in the Vectorize project, [Products](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs) and [CustomersAndOrders](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs). Vector generation starts with the data loading for this solution which loads data into Azure Cosmos DB from JSON files stored in Azure Storage. The containers in Cosmos have change feed running on them. When the data is inserted the Azure Function calls Azure OpenAI and passes the entire document to it, then returns vectorized data. This data is then saved to Redis as well as written to another container in Azure. If the Redis cache were to require reloading of the data, the Azure Function can re-cache the data from the vectorized data stored in Azure Cosmos DB.
+
+You can see this at work by debugging Azure Functions remotely or running locally. You can set a break point on the [GenerateProductVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs#L52), [GenerateCustomerVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L67) or [GenerateSalesOrderVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L93)
+
+## Searching vectors
+
+The web-based front-end for this solution provides users the means for searching the vectorized retail bike data for this solution. This work is centered around the [ChatService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Search/Services/ChatService.cs) in the Search project. In the chat UX a user starts a new chat session then types in a question. The text that is entered is sent to Azure OpenAI's embeddings API to generate vectors on the text. This is what occurs when they data is initially loaded. That vectorized text is then sent to Redis to perform a vector search on the cached data vector data. The response to this query provides  pointers for where the source data is stored in Azure Cosmos DB that includes the name of the container, the partition key value and the id value. This array of pointers is then sent to the Cosmos DB service where the data is fetched, then sent to Azure OpenAI to generate a completion which is then passed back to the user as a response.
+
+You can see this at work by debugging the Azure Web App remotely or running locally. Set a break point on [GetChatCompletionAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Search/Services/ChatService.cs#L114), then step through each of the function calls to see each step in action.
+
 
 ## Getting Started
 
@@ -42,7 +59,7 @@ This solution is composed of the following services:
 
 
 The provided ARM or Bicep Template will provision the following resources:
-1. Azure Cosmos DB for NoSQL account with a database and 5 containers at 1000 RU/s autoscale.
+1. Azure Cosmos DB for NoSQL account with a database and 5 containers at 1000 RU/s autoscale. This account will scale down to 500 RU/s when not in use.
 1. Azure Cosmos DB for MongoDB vCore for vector search.
 1. Azure App service. This will be configured to deploy the Search web application from **this** GitHub repository. This will work fine if no changes are made. If you want it to deploy from your forked repository, modify the Deploy To Azure button below.
 1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
@@ -96,7 +113,7 @@ This solution can be run locally post deployment. Below are the prerequisites an
 ### Prerequisites for running/debugging locally
 
 - Visual Studio, VS Code, or some editor if you want to edit or view the source for this sample.
-- .NET 7 SDK
+- .NET 6 and 7 SDK
 - Azure Functions SDK v4
 - Azurite, for debugging using Azure Functions local storage.
 
