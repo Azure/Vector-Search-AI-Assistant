@@ -4,7 +4,6 @@ This solution is a series of samples that demonstrate how to build solutions tha
 
 The scenario for this sample centers around a consumer retail "Intelligent Agent" that allows users to ask questions on vectorized product, customer and sales order data stored in the database. The data in this solution is the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB. This data is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
 
-For the Redis version of this solution, see https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis 
 
 ## Solution Architecture
 
