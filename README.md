@@ -1,8 +1,8 @@
-# Vector Search & AI Assistant for Azure Cosmos DB 
+# Vector Search & AI Assistant for Azure Cosmos DB & Redis
 
-This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using a variety of different vector capable databases available within Azure Cosmos DB and Azure. The data in this scenario centers around answering specific questions about the data stored in Azure Cosmos DB in a consumer retail "Intelligent Agent" workload that allows users to ask questions on products and customer stored in the database. 
+This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using a variety of different vector capable databases available from Azure Cosmos DB and Azure.
 
-The data used in this solution is from the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB, adapted from the Adventure Works dataset for a retail Bike Shop that sells bicycles as well as biking accessories, components and clothing.
+The scenario for this sample centers around a consumer retail "Intelligent Agent" that allows users to ask questions on vectorized product, customer and sales order data stored in the database. The data in this solution is the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB. This data is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
 
 For the Redis version of this solution, see https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis 
 
@@ -14,7 +14,7 @@ The solution architecture is represented by this diagram:
     <img src="img/architecture.png" width="100%">
 </p>
 
-The application frontend is a Blazor application with basic Q&A functionality:
+The application frontend is a Blazor application with a chat user experience:
 
 <p align="center">
     <img src="img/ui.png" width="100%">
@@ -28,7 +28,22 @@ This solution is composed of the following services:
 1.	Azure Cache for Redis Enterprise - Performs vector matching.
 1.	Azure App Service - Hosts Intelligent Agent UI.
 
-**Note:**  This solution does not yet include Azure Cognitive Search, which will be added in a future version.
+## Overall solution workflow
+
+There are two key elements of this solution, generating vectors and searching vectors. Vectors are generated when data is inserted into Azure Cosmos DB, then cached in Redis. Users can then ask questions using web-based chat user interface to search the cached vectorized data and return augmented data to Azure OpenAI to generate a completion back to the user.
+
+### Generating vectors
+
+Vectors are generated in two Azure Functions contained in the Vectorize project, [Products](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/Redis/Vectorize/Products.cs) and [CustomersAndOrders](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/Redis/Vectorize/CustomersAndOrders.cs). Vector generation starts with the data loading for this solution which loads data into Azure Cosmos DB from JSON files stored in Azure Storage. The containers in Cosmos have change feed running on them. When the data is inserted the Azure Function calls Azure OpenAI and passes the entire document to it, then returns vectorized data. This data is then saved to Redis as well as written to another container in Azure. If the Redis cache were to require reloading of the data, the Azure Function can re-cache the data from the vectorized data stored in Azure Cosmos DB.
+
+You can see this at work by debugging Azure Functions remotely or running locally. You can set a break point on the [GenerateProductVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/Redis/Vectorize/Products.cs#L61), [GenerateCustomerVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/Redis/Vectorize/CustomersAndOrders.cs#L78) or [GenerateOrderVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/Redis/Vectorize/CustomersAndOrders.cs#L107)
+
+## Searching vectors
+
+The web-based front-end for this solution provides users the means for searching the vectorized retail bike data for this solution. This work is centered around the [ChatService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/Redis/Search/Services/ChatService.cs) in the Search project. In the chat UX a user starts a new chat session then types in a question. The text that is entered is sent to Azure OpenAI's embeddings API to generate vectors on the text. This is what occurs when they data is initially loaded. That vectorized text is then sent to Redis to perform a vector search on the cached data vector data. The response to this query provides  pointers for where the source data is stored in Azure Cosmos DB that includes the name of the container, the partition key value and the id value. This array of pointers is then sent to the Cosmos DB service where the data is fetched, then sent to Azure OpenAI to generate a completion which is then passed back to the user as a response.
+
+You can see this at work by debugging the Azure Web App remotely or running locally. Set a break point on [GetChatCompletionAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/Redis/Search/Services/ChatService.cs#L115), then step through each of the function calls to see each step in action.
+
 
 ## Getting Started
 
@@ -46,7 +61,7 @@ This solution is composed of the following services:
 
 
 The provided ARM or Bicep Template will provision the following resources:
-1. Azure Cosmos DB account with a database and 4 containers at 1000 RU/s autoscale.
+1. Azure Cosmos DB account with a database and 5 containers at 1000 RU/s autoscale. These will scale down to 500 RU/s when not in use.
 1. Azure App service. This will be configured to deploy the Search web application from **this** GitHub repository. This will work fine if no changes are made. If you want it to deploy from your forked repository, modify the Deploy To Azure button below.
 1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
 1. Azure Functions. This will run on the same hosting plan as the Azure App Service.
@@ -68,7 +83,7 @@ The data for this solution must be loaded once it has been deployed. This proces
 1. Open the Azure Cosmos DB blade in the resource group for this solution.
 1. Navigate to the Keys blade in Azure Portal and copy the Primary Connection String for the Cosmos DB account.
 1. Paste the connection string to replace to placeholders called `ADD-COSMOS-CONNECTION-STRING`. Save the file.
-1. Run dmt.exe
+1. Run .\dmt.exe from any shell.
 1. You can watch Azure Functions processing the data by navigating to each of the Azure Functions in the portal.
 
 <p align="center">
@@ -107,16 +122,16 @@ This solution can be run locally post deployment. Below are the prerequisites an
 ### Local steps
 
 #### Search Azure App Service
+
 - Open the Configuration for the Azure App Service and copy the application setting values.
 - Within Visual Studio, right click the Search project, then copy the contents of appsettings.json into the User Secrets. 
 - If not using Visual Studio, create an `appsettings.Development.json` file and copy the appsettings.json and values into it.
  
 
 #### Vectorize Azure Function
+
 - Open the Configuration for the Azure Function copy the application setting values.
 - Within Visual Studio, right click the Vectorize project, then copy the contents of the configuration values into User Secrets or local.settings.json if not using Visual Studio.
-
-
 
 ## Resources
 
