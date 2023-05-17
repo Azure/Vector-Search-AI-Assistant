@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "5761799591100245240"
+      "templateHash": "3619750752843481902"
     }
   },
   "parameters": {
@@ -61,7 +61,7 @@
       "type": "string",
       "defaultValue": "Redis",
       "metadata": {
-        "description": "Git repository branch for the application source. This defaults to the [**main** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis) repository."
+        "description": "Git repository branch for the application source. This defaults to the [**Redis** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis) repository."
       }
     }
   },
