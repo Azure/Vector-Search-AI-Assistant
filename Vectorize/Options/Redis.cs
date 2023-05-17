@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,5 +10,6 @@ namespace DataCopilot.Vectorize.Options
     public class Redis
     {
         public string? ConnectionString { get; set; }
+        public ILogger? Logger { get; set; }
     }
 }

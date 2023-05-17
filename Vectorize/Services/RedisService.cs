@@ -3,6 +3,7 @@ using StackExchange.Redis;
 using DataCopilot.Vectorize.Utils;
 using DataCopilot.Vectorize.Models;
 using Microsoft.Azure.Cosmos;
+using System.Linq.Expressions;
 
 namespace DataCopilot.Vectorize.Services
 {
@@ -27,39 +28,49 @@ namespace DataCopilot.Vectorize.Services
 
         public async Task CreateRedisIndex(CosmosClient cosmosClient)
         {
-            
-            try
-            {
-                _logger.LogInformation("Checking if Redis index exists...");
-                
-                
-                RedisResult index = await _database.ExecuteAsync("FT.INFO", "embeddingIndex");
 
+            _logger.LogInformation("Checking if Redis index exists...");
+
+
+            try
+            { 
+
+                RedisResult? index = null;
+                try
+                {
+                    index = await _database.ExecuteAsync("FT.INFO", "embeddingIndex");
+                }
+                catch (RedisServerException redisX)
+                {
+                    _logger.LogInformation("Exception while checking embedding index:" + redisX.Message);
+                    //not returning - index most likely doesn't exist
+                }
                 if (index != null)
                 {
-                    _logger.LogInformation("Redis index for vectors already exists. Skipping...");
+                    _logger.LogInformation("Redis index for embeddings already exists. Skipping...");
                     return;
                 }
-                else
-                {
-                    // If index doesn't exist remove all hashes
-                    await ResetCacheAsync();
-
-                    _logger.LogInformation("Creating Redis index...");
-
-                    await _database.ExecuteAsync("FT.CREATE",
-                        "embeddingIndex", "SCHEMA", "vector", "VECTOR", "HNSW", "6", "TYPE", "FLOAT32", "DISTANCE_METRIC", "COSINE", "DIM", "1536");
 
 
-                    //Repopulate from Cosmos DB if there are any embeddings there
-                    await RestoreRedisStateFromCosmosDB(cosmosClient);
-                }
-                
+
+                // If index doesn't exist remove all hashes
+                await ResetCacheAsync();
+
+                _logger.LogInformation("Creating Redis index...");
+
+                await _database.ExecuteAsync("FT.CREATE",
+                    "embeddingIndex", "SCHEMA", "vector", "VECTOR", "HNSW", "6", "TYPE", "FLOAT32", "DISTANCE_METRIC", "COSINE", "DIM", "1536");
+
+
+                //Repopulate from Cosmos DB if there are any embeddings there
+                await RestoreRedisStateFromCosmosDB(cosmosClient);
+
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 _logger.LogError(ex.Message);
             }
+            
         }
 
         public async Task CacheVector(DocumentVector documentVector)
