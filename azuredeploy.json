@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "3538418397110398554"
+      "templateHash": "15141503292190041370"
     }
   },
   "parameters": {
@@ -386,7 +386,6 @@
         "OPENAI__ENDPOINT": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').endpoint]",
         "OPENAI__KEY": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').key1]",
         "OPENAI__EMBEDDINGSDEPLOYMENT": "[variables('openAiSettings').embeddingsModel.deployment.name]",
-        "OPENAI__COMPLETIONSDEPLOYMENT": "[variables('openAiSettings').completionsModel.deployment.name]",
         "OPENAI__MAXCONVERSATIONBYTES": "[variables('openAiSettings').maxConversationBytes]",
         "REDIS__CONNECTIONSTRING": "[format('{0}:10000,abortConnect=false,ssl=true,password={1}', reference(resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name), '2022-01-01').hostName, listKeys(resourceId('Microsoft.Cache/redisEnterprise/databases', variables('redisSettings').name, variables('redisSettings').database.name), '2022-01-01').primaryKey)]"
       },
@@ -395,7 +394,6 @@
         "[resourceId('Microsoft.Insights/components', variables('appServiceSettings').function.name)]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
-        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').completionsModel.deployment.name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]",
         "[resourceId('Microsoft.Cache/redisEnterprise', variables('redisSettings').name)]",
         "[resourceId('Microsoft.Cache/redisEnterprise/databases', variables('redisSettings').name, variables('redisSettings').database.name)]",

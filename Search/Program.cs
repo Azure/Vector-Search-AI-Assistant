@@ -91,7 +91,7 @@ static class ProgramExtensions
             else
             {
                 return new RedisService(
-                    connection: redisOptions.Value?.Connection ?? String.Empty,
+                    connectionString: redisOptions.Value?.ConnectionString ?? String.Empty,
                     logger: provider.GetRequiredService<ILogger<RedisService>>()
                 );
             }
