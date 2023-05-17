@@ -89,6 +89,27 @@ namespace Vectorize.Services
 
         }
 
+        public async Task DeleteVector(string categoryId, string id, ILogger logger)
+        {
+
+            try
+            {
+
+                var filter = Builders<BsonDocument>.Filter.And(
+                    Builders<BsonDocument>.Filter.Eq("categoryId", categoryId),
+                    Builders<BsonDocument>.Filter.Eq("_id", id));
+
+                await _collection.DeleteOneAsync(filter);
+
+            }
+            catch (Exception ex) 
+            {
+                logger.LogError(ex.Message);
+                throw;
+
+            }
+        }
+
 
 
     }
