@@ -33,8 +33,6 @@ namespace DataCopilot.Vectorize
                 containerName: "embedding",
                 Connection = "CosmosDBConnection")]IAsyncCollector<DocumentVector> output,
             [CosmosDB(
-                databaseName: "database",
-                containerName: "embedding",
                 Connection = "CosmosDBConnection")]CosmosClient cosmosClient,
             ILogger log)
         {
@@ -70,10 +68,10 @@ namespace DataCopilot.Vectorize
                 //Get the embeddings from OpenAI
                 documentVector.vector = await _openAI.GetEmbeddingsAsync(sProduct);
 
-                //Save to Cosmos DB
+                //Upsert to Cosmos DB
                 await output.AddAsync(documentVector);
 
-                //Save to Redis Cache
+                //Upsert to Redis Cache
                 await _redis.CacheVector(documentVector);
 
                 log.LogInformation("Cached embeddings for product: " + product.name);

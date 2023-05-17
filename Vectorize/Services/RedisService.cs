@@ -6,7 +6,7 @@ using Microsoft.Azure.Cosmos;
 
 namespace DataCopilot.Vectorize.Services
 {
-    // Redis Cache for Embeddings
+    
     public class RedisService : IDisposable
     {
         private readonly string _redisConnectionString;
@@ -24,59 +24,41 @@ namespace DataCopilot.Vectorize.Services
             _database = _connectionMultiplexer.GetDatabase();
         }
 
-        
-        string? _errorMessage;
-        List<string> _statusMessages = new();
-
-
-        void ClearState()
-        {
-            _errorMessage = "";
-            _statusMessages.Clear();
-        }
 
         public async Task CreateRedisIndex(CosmosClient cosmosClient)
         {
-            ClearState();
-
+            
             try
             {
                 _logger.LogInformation("Checking if Redis index exists...");
                 
+                
+                RedisResult index = await _database.ExecuteAsync("FT.INFO", "embeddingIndex");
 
-                RedisResult? index = null;
-                try
-                {
-                     index = await _database.ExecuteAsync("FT.INFO", "embeddingIndex");
-                }
-                catch (RedisServerException redisX)
-                {
-                    _logger.LogInformation("Exception while checking embedding index:" + redisX.Message);
-                    //not returning - index most likely doesn't exist
-                }
                 if (index != null)
                 {
-                    _logger.LogInformation("Redis index for embeddings already exists. Skipping...");
+                    _logger.LogInformation("Redis index for vectors already exists. Skipping...");
                     return;
                 }
+                else
+                {
+                    // If index doesn't exist remove all hashes
+                    await ResetCacheAsync();
 
-                // If index doesn't exist remove all hashes
-                await ResetCache(_logger);
+                    _logger.LogInformation("Creating Redis index...");
 
-                _logger.LogInformation("Creating Redis index...");
+                    await _database.ExecuteAsync("FT.CREATE",
+                        "embeddingIndex", "SCHEMA", "vector", "VECTOR", "HNSW", "6", "TYPE", "FLOAT32", "DISTANCE_METRIC", "COSINE", "DIM", "1536");
 
-                var _ = await _database.ExecuteAsync("FT.CREATE",
-                    "embeddingIndex", "SCHEMA", "vector", "VECTOR", "HNSW", "6", "TYPE", "FLOAT32", "DISTANCE_METRIC", "COSINE", "DIM", "1536");
-                _logger.LogInformation("Created Redis index for embeddings. Repopulating from Cosmos DB...");
 
-                //Repopulate from Cosmos DB if there are any embeddings there
-                await RestoreRedisStateFromCosmosDB(cosmosClient);
-                _logger.LogInformation("Repopulated Redis index from Cosmos DB embeddings");
+                    //Repopulate from Cosmos DB if there are any embeddings there
+                    await RestoreRedisStateFromCosmosDB(cosmosClient);
+                }
+                
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                _errorMessage = e.ToString();
-                _logger.LogError(_errorMessage);
+                _logger.LogError(ex.Message);
             }
         }
 
@@ -85,13 +67,11 @@ namespace DataCopilot.Vectorize.Services
             try
             {
                 // Perform cache operations using the cache object...
-                _logger.LogInformation("Submitting embedding to cache");
-
-                var db = _connectionMultiplexer.GetDatabase();
+                _logger.LogInformation("Submitting vector to cache");
 
                 var mem = new ReadOnlyMemory<float>(documentVector.vector);
 
-                await db.HashSetAsync(documentVector.id, new[]{
+                await _database.HashSetAsync(documentVector.id, new[]{
                     new HashEntry("vector", mem.AsBytes()),
                     new HashEntry("itemId", documentVector.itemId),
                     new HashEntry("containerName", documentVector.containerName),
@@ -99,66 +79,70 @@ namespace DataCopilot.Vectorize.Services
                 });
 
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                _errorMessage = e.ToString();
-                _logger.LogError(_errorMessage);
+                
+                _logger.LogError(ex.Message);
+            }
+        }
+
+        public async Task RemoveVector(string documentVectorId)
+        {
+            try
+            {
+                await _database.KeyDeleteAsync(documentVectorId);
+
+                _logger.LogInformation("Vector removed from Redis cache");
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
             }
         }
         
-        async Task ResetCache(ILogger log)
+        async Task ResetCacheAsync()
         {
-            ClearState();
-
+            
             try
             {
-                _logger.LogInformation("Deleting all redis keys...");
-                var db = _connectionMultiplexer.GetDatabase();
-                var _ = await db.ExecuteAsync("FLUSHDB");
-                log.LogInformation("Done.");
+                _logger.LogInformation("Reset cache. Deleting all redis keys...");
+                
+                await _database.ExecuteAsync("FLUSHDB");
+                
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                _errorMessage = e.ToString();
-                _logger.LogError(_errorMessage);
+                _logger.LogError(ex.Message);
             }
         }
 
         async Task RestoreRedisStateFromCosmosDB(CosmosClient cosmosClient)
         {
-            ClearState();
-
             
             try
             {
-                _logger.LogInformation("Processing documents...");
-                await foreach (var doc in GetAllEmbeddings(cosmosClient))
+                _logger.LogInformation("Repopulated Redis index from Cosmos DB");
+
+                var container = cosmosClient.GetContainer("database", "embedding");
+
+                using var feedIterator = container.GetItemQueryIterator<DocumentVector>("SELECT * FROM c");
+
+                while (feedIterator.HasMoreResults)
                 {
-                    await CacheVector(doc);
-                    _logger.LogInformation($"\tCached embedding for document with id '{doc.itemId}'");
+                    FeedResponse<DocumentVector> response = await feedIterator.ReadNextAsync();
+                    foreach (DocumentVector item in response)
+                    {
+                        await CacheVector(item);
+                    }
                 }
-                _logger.LogInformation("Done.");
+                
+                _logger.LogInformation("Repopulate cache complete.");
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                _errorMessage = e.ToString();
-                _logger.LogError(_errorMessage);
-            }
-        }
-
-        public async IAsyncEnumerable<DocumentVector> GetAllEmbeddings(CosmosClient cosmosClient)
-        {
-            var container = cosmosClient.GetContainer("database", "embedding");
-
-            using var feedIterator = container.GetItemQueryIterator<DocumentVector>("SELECT * FROM c");
-
-            while (feedIterator.HasMoreResults)
-            {
-                var response = await feedIterator.ReadNextAsync();
-                foreach (var item in response)
-                {
-                    yield return item;
-                }
+               
+                _logger.LogError(ex.Message);
             }
         }
 

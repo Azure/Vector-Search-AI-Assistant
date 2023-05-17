@@ -66,7 +66,7 @@ public class OpenAiService
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            return null;
+            return new float[0];
         }
     }
 }
