@@ -147,7 +147,7 @@ namespace Datacopilot.Vectorize
 
             while (feedIterator.HasMoreResults)
             {
-                
+
                 var response = await feedIterator.ReadNextAsync();
 
                 foreach (var item in response)
