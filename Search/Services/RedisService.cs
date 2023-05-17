@@ -11,70 +11,19 @@ namespace DataCopilot.Search.Services
         private readonly ConnectionMultiplexer _connectionMultiplexer;
         private readonly IDatabase _database;
         private readonly ILogger _logger;
-        private string? _errorMessage;
-        private List<string> _statusMessages = new();
 
-        public RedisService(string connection, ILogger logger)
+
+        public RedisService(string connectionString, ILogger logger)
         {
-            ArgumentException.ThrowIfNullOrEmpty(connection);
+            ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
 
-            _connectionMultiplexer = ConnectionMultiplexer.Connect(connection);
+            _connectionMultiplexer = ConnectionMultiplexer.Connect(connectionString);
             _database = _connectionMultiplexer.GetDatabase();
 
             _logger = logger;
         }
 
-        public IDatabase GetDatabase()
-        {
-            return _database;
-        }
-
-        void ClearState()
-        {
-            _errorMessage = "";
-            _statusMessages.Clear();
-        }
-
-        public async Task CreateRedisIndexAsync()
-        {
-            ClearState();
-
-            try
-            {
-                _logger.LogInformation("Checking if Redis index exists...");
-                var db = _connectionMultiplexer.GetDatabase();
-
-                RedisResult? index = null;
-
-                try
-                {
-                    index = await db.ExecuteAsync("FT.INFO", "embeddingIndex");
-                }
-                catch (RedisServerException redisX)
-                {
-                    _logger.LogInformation("Exception while checking embedding index:" + redisX.Message);
-                    //not returning - index most likely doesn't exist
-                }
-                if (index != null)
-                {
-                    _logger.LogInformation("Redis index for embeddings already exists. Skipping...");
-                    return;
-                }
-
-                _logger.LogInformation("Creating Redis index...");
-
-                var _ = await db.ExecuteAsync("FT.CREATE",
-                    "embeddingIndex", "SCHEMA", "vector", "VECTOR", "HNSW", "6", "TYPE", "FLOAT32", "DISTANCE_METRIC", "COSINE", "DIM", "1536");
-
-                _logger.LogInformation("Created Redis index for embeddings");
-            }
-            catch (Exception e)
-            {
-                _errorMessage = e.ToString();
-                _logger.LogError(_errorMessage);
-            }
-        }
 
         public async Task<List<DocumentVector>> VectorSearchAsync(float[] embeddings)
         {
@@ -84,8 +33,7 @@ namespace DataCopilot.Search.Services
 
             int maxResults = 30;
             var resultList = new List<string>(maxResults);
-            _errorMessage = "";
-
+            
 
             var memory = new ReadOnlyMemory<float>(embeddings);
 

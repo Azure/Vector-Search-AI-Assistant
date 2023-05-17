@@ -74,10 +74,18 @@ namespace Datacopilot.Vectorize
                 logger.LogInformation("Added Cosmic Sock to product");
 
             }
-            catch (Exception ex)
+            catch (CosmosException ex)
             {
-                logger.LogError(ex.Message);
-                throw;
+                //Ignore conflict errors.
+                if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    logger.LogInformation("Product Already added.");
+                }
+                else
+                {
+                    logger.LogError(ex.Message);
+                    throw;
+                }
 
             }
 
@@ -93,18 +101,37 @@ namespace Datacopilot.Vectorize
                 Container productContainer = cosmosClient.GetContainer("database", "product");
 
 
-                //Delete from Cosmos product container
-                await productContainer.DeleteItemAsync<Product>(id: GetCosmicSock.id, partitionKey: new PartitionKey(GetCosmicSock.categoryId));
+                try 
+                { 
+
+                    //Delete from Cosmos product container
+                    await productContainer.DeleteItemAsync<Product>(id: GetCosmicSock.id, partitionKey: new PartitionKey(GetCosmicSock.categoryId));
+
+                }
+                catch (CosmosException ex) 
+                {
+                    if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        logger.LogInformation("Cosmic Sock alread removed from product");
+                    }
+                    else
+                        throw;
+                
+                }
 
                 //Lookup DocumentVector Id
                 string documentVectorId = await LookupDocumentVectorId(embeddingContainer, "product", GetCosmicSock.categoryId, GetCosmicSock.id);
-                //Remove from Redis
-                await _redis.RemoveVector(documentVectorId);
-                //Then delete from embedding container
-                await embeddingContainer.DeleteItemAsync<DocumentVector>(id: documentVectorId, partitionKey: new PartitionKey(documentVectorId));
+                
+                //if this is empty then already gone from Redis and embedding container
+                if(!string.IsNullOrEmpty(documentVectorId))
+                {
+                    //Remove from Redis
+                    await _redis.RemoveVector(documentVectorId);
+                    //Then delete from embedding container
+                    await embeddingContainer.DeleteItemAsync<DocumentVector>(id: documentVectorId, partitionKey: new PartitionKey(documentVectorId));
 
-                logger.LogInformation("Removed Cosmic Sock from product");
-
+                    logger.LogInformation("Removed Cosmic Sock from product");
+                }
             }
             catch (Exception ex)
             {

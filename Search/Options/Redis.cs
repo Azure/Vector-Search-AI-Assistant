@@ -2,7 +2,7 @@
 {
     public record Redis
     {
-        public required string Connection { get; init; }
+        public required string ConnectionString { get; init; }
 
         public required ILogger Logger { get; init; }
     }
