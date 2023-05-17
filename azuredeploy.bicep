@@ -302,7 +302,7 @@ resource appServiceWebSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
     OPENAI__COMPLETIONSDEPLOYMENT: openAiCompletionsModelDeployment.name
     OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
-    REDIS__CONNECTION: '${redisEnterprise.properties.hostName}:10000,abortConnect=false,ssl=true,password=${redisEnterpriseDatabase.listKeys().primaryKey}'
+    REDIS__CONNECTIONSTRING: '${redisEnterprise.properties.hostName}:10000,abortConnect=false,ssl=true,password=${redisEnterpriseDatabase.listKeys().primaryKey}'
   }
 }
 
@@ -321,7 +321,7 @@ resource appServiceFunctionSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
     OPENAI__COMPLETIONSDEPLOYMENT: openAiCompletionsModelDeployment.name
     OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
-    REDIS__CONNECTION: '${redisEnterprise.properties.hostName}:10000,abortConnect=false,ssl=true,password=${redisEnterpriseDatabase.listKeys().primaryKey}'
+    REDIS__CONNECTIONSTRING: '${redisEnterprise.properties.hostName}:10000,abortConnect=false,ssl=true,password=${redisEnterpriseDatabase.listKeys().primaryKey}'
   }
 }
 
