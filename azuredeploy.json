@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "10904877382859962413"
+      "templateHash": "5955829575720557733"
     }
   },
   "parameters": {
@@ -492,10 +492,6 @@
     "deployedUrl": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Web/sites', variables('appServiceSettings').web.name), '2022-03-01').defaultHostName]"
-    },
-    "cosmosConnection": {
-      "type": "string",
-      "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name), '2022-08-15').connectionStrings[0].connectionString]"
     }
   }
 }

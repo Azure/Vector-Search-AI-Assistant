@@ -6,9 +6,9 @@
     "MongoDb__Connection": "",
     "MongoDb__DatabaseName": "vectordb",
     "MongoDb__CollectionName": "vectors",
-    "OpenAi__Endpoint": "",
-    "OpenAi__Key": "",
-    "OpenAi__EmbeddingsDeployment": "cosmos-vectors",
+    "OpenAi__Endpoint": "https://byocdemo-openai.openai.azure.com/",
+    "OpenAi__Key": "b76c87c5d31640599cb09d1082cbcf64",
+    "OpenAi__EmbeddingsDeployment": "byocdemo-embeddings",
     "OpenAi__MaxTokens": "8191"
   },
   "IsEncrypted": false

@@ -102,7 +102,7 @@ namespace Vectorize.Services
                 await _collection.DeleteOneAsync(filter);
 
             }
-            catch (Exception ex) 
+            catch (MongoException ex) 
             {
                 logger.LogError(ex.Message);
                 throw;

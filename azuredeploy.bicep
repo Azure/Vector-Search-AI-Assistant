@@ -401,4 +401,3 @@ resource appServiceWebInsights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 output deployedUrl string = appServiceWeb.properties.defaultHostName
-output cosmosConnection string = cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
