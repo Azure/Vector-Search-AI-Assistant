@@ -4,11 +4,11 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "CosmosDBConnection": "",
     "MongoDb__Connection": "",
-    "MongoDb__DatabaseName": "vectorsdb",
+    "MongoDb__DatabaseName": "vectordb",
     "MongoDb__CollectionName": "vectors",
     "OpenAi__Endpoint": "",
     "OpenAi__Key": "",
-    "OpenAi__EmbeddingsDeployment": "cosmos-vectors",
+    "OpenAi__EmbeddingsDeployment": "",
     "OpenAi__MaxTokens": "8191"
   },
   "IsEncrypted": false
