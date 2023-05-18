@@ -100,6 +100,26 @@ Here are some sample questions you can ask:
 - Do you have any customers from Canada? Where in Canada are they from?
 - What kinds of bikes are in your product inventory?
 
+### Real-time add and remove data
+
+The best part about starting with an operational database like Azure Cosmos DB as your source for data to be vectorized and search is that you can leverage its
+Change Feed capability to dynamically add and remove products to the vector data which is searched. This demo can demonstrate that capability as well.
+
+#### Steps to demo adding and removing data from vector search
+
+1. Start a new Chat Session in the web application.
+1. In the chat text box, type: "Can you list all of your socks?". The AI Assistant will list 5 different types of socks.
+1. Open a new browser tab, in the address bar type in `{your-app-name}-function.azurewebsites.net/api/addremovedata?action=add` replace the text in brackets with your application name, then press enter.
+1. The browser should show that the HTTP Trigger executed successfully.
+1. Return to the AI Assistant and type, ""Can you list all of your socks again?". This time you should see a new product, "Cosmic Socks, M"
+1. Return to the second browser tab and type in, `{your-app-name}-function.azurewebsites.net/api/addremovedata?action=remove` replace the text in brackets with your application name, then press enter.
+1. Open a **new** chat session and ask the same question again. This time it should show the original list of socks in the product catalog. 
+
+**Note:** Using the same chat session after adding them will sometimes result in the Cosmic Socks not being returned. Also, sometimes you have to open a new chat and ask the same question to see the new socks. The reason is that previous prompts and completions are sent to OpenAI to allow it to maintain conversational context. Because of this, it will sometimes use previous completions as data to make future ones.
+
+<p align="center">
+    <img src="img/socks.png" width="100%">
+</p>
 
 ## Clean-up
 

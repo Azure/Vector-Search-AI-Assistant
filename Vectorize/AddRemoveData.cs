@@ -77,11 +77,19 @@ namespace Vectorize
                 logger.LogInformation("Added Cosmic Sock to product");
 
             }
-            catch(Exception ex) 
+            catch (CosmosException ex)
             {
-                logger.LogError(ex.Message);
-                throw;
-            
+                //Ignore conflict errors.
+                if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    logger.LogInformation("Product Already added.");
+                }
+                else
+                {
+                    logger.LogError(ex.Message);
+                    throw;
+                }
+
             }
 
         }
@@ -89,22 +97,38 @@ namespace Vectorize
         public async Task RemoveProduct(CosmosClient cosmosClient, ILogger logger)
         {
 
+
             try
             {
-            
                 Container container = cosmosClient.GetContainer("database", "product");
 
+                //Delete from Cosmos product container
                 await container.DeleteItemAsync<Product>(id: GetCosmicSock.id, partitionKey: new PartitionKey(GetCosmicSock.categoryId));
 
-                await _mongo.DeleteVector(GetCosmicSock.categoryId, GetCosmicSock.id, logger);
+            }
+            catch (CosmosException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    logger.LogInformation("Cosmic Sock alread removed from product");
+                }
+                else
+                    throw;
 
-                logger.LogInformation("Removed Cosmic Sock from product");
+            }
+
+            try
+            {
+                    //just ignore any error
+                    await _mongo.DeleteVector(GetCosmicSock.categoryId, GetCosmicSock.id, logger);
+
+                    logger.LogInformation("Removed Cosmic Sock from product");
 
             }
             catch(Exception ex) 
             { 
                 logger.LogError(ex.Message);
-                throw;
+                //throw;
             
             }
         }
