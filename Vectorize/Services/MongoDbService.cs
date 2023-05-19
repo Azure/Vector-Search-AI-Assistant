@@ -83,7 +83,7 @@ namespace Vectorize.Services
             catch (Exception ex)
             {
                 //TODO: fix the logger. Output does not show up anywhere
-                logger.LogError(ex.Message);
+                logger.LogError($"Exception: InsertVector(): {ex.Message}");
                 throw;
             }
 
@@ -104,7 +104,7 @@ namespace Vectorize.Services
             }
             catch (MongoException ex) 
             {
-                logger.LogError(ex.Message);
+                logger.LogError($"Exception: DeleteVector(): {ex.Message}");
                 throw;
 
             }

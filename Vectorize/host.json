@@ -8,8 +8,7 @@
       }
     },
     "logLevel": {
-      "Vectorize.OpenAiService": "Information",
-      "Vectorize.MongoDbService": "Information"
+      "Vectorize": "Information"
     }
   },
   "extensions": {

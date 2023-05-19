@@ -13,7 +13,7 @@ public class OpenAiService
     private readonly int _openAIMaxTokens = default;
     private readonly ILogger _logger;
 
-    private OpenAIClient _client;
+    private readonly OpenAIClient? _client;
 
 
     public OpenAiService(string endpoint, string key, string embeddingsDeployment, string maxTokens, ILogger logger)
@@ -37,15 +37,22 @@ public class OpenAiService
             }
         };
 
-        //Use this as endpoint in configuration to use non-Azure Open AI endpoint and OpenAI model names
-        if (_openAIEndpoint.Contains("api.openai.com"))
-            _client = new OpenAIClient(_openAIKey, clientOptions);
-        else
-            _client = new(new Uri(_openAIEndpoint), new AzureKeyCredential(_openAIKey), clientOptions);
+        try
+        {
 
+            //Use this as endpoint in configuration to use non-Azure Open AI endpoint and OpenAI model names
+            if (_openAIEndpoint.Contains("api.openai.com"))
+                _client = new OpenAIClient(_openAIKey, clientOptions);
+            else
+                _client = new(new Uri(_openAIEndpoint), new AzureKeyCredential(_openAIKey), clientOptions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"OpenAIService Constructor failure: {ex.Message}");
+        }
     }
 
-    public async Task<float[]?> GetEmbeddingsAsync(dynamic data)
+    public async Task<float[]?> GetEmbeddingsAsync(dynamic data, ILogger logger)
     {
         try
         {
@@ -64,7 +71,7 @@ public class OpenAiService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message);
+            logger.LogError($"GetEmbeddingsAsync Exception: {ex.Message}");
             return null;
         }
     }
