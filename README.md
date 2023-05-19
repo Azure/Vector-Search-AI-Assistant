@@ -70,11 +70,8 @@ The provided ARM or Bicep Template will provision the following resources:
 1. Open the Resource Group for the new deployment
 1. Open the Azure OpenAI account. Navigate to `Model deployments` on left hand side.
 1. Click `+ Create`
-1. Enter the Model deployment name of `completions` (record name for later use), Model `gpt-35-turbo`, Version `0301`
+1. Enter the Model deployment name `completions`, Model `gpt-35-turbo`, Version `0301`
 1. Click Save, refresh to ensure the new model appears.
-1. Return to Resource Group, open the App Service (name ends in *-web*). Navigate to `Configuration` on left hand side.
-1. Locate `OPENAI__COMPLETIONSDEPLOYMENT`, click the pencil icon to edit, paste in the model deployment name from above.
-1. Click Save at the top so the web application can restart.
 
 
 **Note:** You must have access to Azure OpenAI service from your subscription before attempting to deploy this application.
