@@ -69,7 +69,7 @@ namespace Vectorize
                         connection: mongoOptions.Value?.Connection ?? string.Empty,
                         databaseName: mongoOptions.Value?.DatabaseName ?? string.Empty,
                         collectionName: mongoOptions.Value?.CollectionName ?? string.Empty,
-                        logger: provider.GetRequiredService<ILogger<MongoDbService>>()
+                        logger: provider.GetRequiredService<ILogger<MongoDb>>()
                     );
                 }
             });

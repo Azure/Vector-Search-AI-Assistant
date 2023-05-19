@@ -14,19 +14,19 @@ namespace Vectorize.Services
         private readonly IMongoDatabase? _database;
         private readonly string? _collectionName;
         private readonly IMongoCollection<BsonDocument>? _collection;
-        private readonly ILogger<MongoDbService>? _logger;
+        private readonly ILogger _logger;
 
-        public MongoDbService(string connection, string databaseName, string collectionName, ILogger<MongoDbService> logger)
+        public MongoDbService(string connection, string databaseName, string collectionName, ILogger logger)
         {
 
+            _logger = logger;
 
             try
-            { 
+            {
                 _client = new MongoClient(connection);
                 _database = _client.GetDatabase(databaseName);
                 _collectionName = collectionName;
                 _collection = _database.GetCollection<BsonDocument>(_collectionName);
-                _logger = logger;
 
                 string vectorIndexName = "vectorSearchIndex";
 
