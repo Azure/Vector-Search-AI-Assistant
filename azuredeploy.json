@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "8927262807017541903"
+      "templateHash": "1822879026890207610"
     }
   },
   "parameters": {
@@ -88,14 +88,14 @@
         "name": "gpt-35-turbo",
         "version": "0301",
         "deployment": {
-          "name": "[format('{0}-completions', parameters('name'))]"
+          "name": "completions"
         }
       },
       "embeddingsModel": {
         "name": "text-embedding-ada-002",
         "version": "2",
         "deployment": {
-          "name": "[format('{0}-embeddings', parameters('name'))]"
+          "name": "embeddings"
         }
       }
     },
@@ -370,7 +370,7 @@
         "OPENAI__ENDPOINT": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').endpoint]",
         "OPENAI__KEY": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').key1]",
         "OPENAI__EMBEDDINGSDEPLOYMENT": "[variables('openAiSettings').embeddingsModel.deployment.name]",
-        "OPENAI__COMPLETIONSDEPLOYMENT": "Enter Completions Model Name",
+        "OPENAI__COMPLETIONSDEPLOYMENT": "[variables('openAiSettings').completionsModel.name]",
         "OPENAI__MAXCONVERSATIONBYTES": "[variables('openAiSettings').maxConversationBytes]",
         "MONGODB__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').mongoClusterLogin, variables('mongovCoreSettings').mongoClusterPassword, variables('mongovCoreSettings').mongoClusterName)]",
         "MONGODB__DATABASENAME": "vectordb",
