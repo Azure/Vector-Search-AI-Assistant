@@ -72,7 +72,7 @@ namespace Vectorize
             try
             {
                 //Get the embeddings from OpenAI
-                customer.vector = await _openAi.GetEmbeddingsAsync(sDocument);
+                customer.vector = await _openAi.GetEmbeddingsAsync(sDocument, logger);
 
 
                 //Save to Mongo
@@ -98,7 +98,7 @@ namespace Vectorize
             try
             {
                 //Get the embeddings from OpenAI
-                salesOrder.vector = await _openAi.GetEmbeddingsAsync(sDocument);
+                salesOrder.vector = await _openAi.GetEmbeddingsAsync(sDocument, logger);
 
 
                 //Save to Mongo

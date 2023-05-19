@@ -58,7 +58,7 @@ namespace Vectorize
             try
             {
                 //Get the embeddings from OpenAI
-                product.vector = await _openAI.GetEmbeddingsAsync(sProduct);
+                product.vector = await _openAI.GetEmbeddingsAsync(sProduct, logger);
 
 
                 //Save to Mongo
