@@ -65,15 +65,6 @@ The provided ARM or Bicep Template will provision the following resources:
 1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
 1. Azure Functions. This will run on the same hosting plan as the Azure App Service.
 
-**Note:** Currently there is an issue with deploying two OpenAI models simultaneously that causes the entire deployment to fail. As a temporary workaround, this template above will only deploy the `text-emdedding-ada-002` model at deploy time. Follow the steps below to complete the deployment.
-
-1. Open the Resource Group for the new deployment
-1. Open the Azure OpenAI account. Navigate to `Model deployments` on left hand side.
-1. Click `+ Create`
-1. Enter the Model deployment name `completions`, Model `gpt-35-turbo`, Version `0301`
-1. Click Save, refresh to ensure the new model appears.
-
-
 **Note:** You must have access to Azure OpenAI service from your subscription before attempting to deploy this application.
 
 All connection information for Azure Cosmos DB and Azure OpenAI is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
