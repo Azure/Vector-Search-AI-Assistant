@@ -219,6 +219,14 @@ resource mongoFirewallRulesAllowAzure 'Microsoft.DocumentDB/mongoClusters/firewa
   }
 }
 
+resource mongoFirewallRulesAllowAll 'Microsoft.DocumentDB/mongoClusters/firewallRules@2023-03-01-preview' = {
+  parent: mongoCluster
+  name: 'allowAll'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '255.255.255.255'
+  }
+}
 
 resource openAiAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = {
   name: openAiSettings.name
@@ -305,7 +313,7 @@ resource appServiceWebSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
     OPENAI__COMPLETIONSDEPLOYMENT: 'Enter Completions Model Name'
     OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
-    MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
+    MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
     MONGODB__DATABASENAME: 'vectordb'
     MONGODB__COLLECTIONNAME: 'vectors'
     MONGODB__MAXVECTORSEARCHRESULTS: '10'
@@ -326,7 +334,7 @@ resource appServiceFunctionSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__KEY: openAiAccount.listKeys().key1
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
     OPENAI__MAXTOKENS: '8191'
-    MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
+    MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
     MONGODB__DATABASENAME: 'vectordb'
     MONGODB__COLLECTIONNAME: 'vectors'
   }
