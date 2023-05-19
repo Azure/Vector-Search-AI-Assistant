@@ -56,14 +56,14 @@ var openAiSettings = {
     name: 'gpt-35-turbo'
     version: '0301'
     deployment: {
-      name: '${name}-completions'
+      name: 'completions'
     }
   }
   embeddingsModel: {
     name: 'text-embedding-ada-002'
     version: '2'
     deployment: {
-      name: '${name}-embeddings'
+      name: 'embeddings'
     }
   }
 }
@@ -311,7 +311,7 @@ resource appServiceWebSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__ENDPOINT: openAiAccount.properties.endpoint
     OPENAI__KEY: openAiAccount.listKeys().key1
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
-    OPENAI__COMPLETIONSDEPLOYMENT: 'Enter Completions Model Name'
+    OPENAI__COMPLETIONSDEPLOYMENT: openAiSettings.completionsModel.name
     OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
     MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
     MONGODB__DATABASENAME: 'vectordb'
