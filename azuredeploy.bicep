@@ -45,14 +45,14 @@ var openAiSettings = {
     name: 'gpt-35-turbo'
     version: '0301'
     deployment: {
-      name: '${name}-completions'
+      name: 'completions'
     }
   }
   embeddingsModel: {
     name: 'text-embedding-ada-002'
     version: '2'
     deployment: {
-      name: '${name}-embeddings'
+      name: 'embeddings'
     }
   }
 }

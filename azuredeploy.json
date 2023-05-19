@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "15141503292190041370"
+      "templateHash": "825507893098952130"
     }
   },
   "parameters": {
@@ -74,14 +74,14 @@
         "name": "gpt-35-turbo",
         "version": "0301",
         "deployment": {
-          "name": "[format('{0}-completions', parameters('name'))]"
+          "name": "completions"
         }
       },
       "embeddingsModel": {
         "name": "text-embedding-ada-002",
         "version": "2",
         "deployment": {
-          "name": "[format('{0}-embeddings', parameters('name'))]"
+          "name": "embeddings"
         }
       }
     },
