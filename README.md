@@ -116,7 +116,7 @@ Change Feed capability to dynamically add and remove products to the vector data
 1. Return to the second browser tab and type in, `{your-app-name}-function.azurewebsites.net/api/addremovedata?action=remove` replace the text in brackets with your application name, then press enter.
 1. Open a **new** chat session and ask the same question again. This time it should show the original list of socks in the product catalog. 
 
-**Note:** Using the same chat session after adding them will sometimes result in the Cosmic Socks not being returned. Also, sometimes you have to open a new chat and ask the same question to see the new socks. The reason is that previous prompts and completions are sent to OpenAI to allow it to maintain conversational context. Because of this, it will sometimes use previous completions as data to make future ones.
+**Note:** Using the same chat session after adding them will sometimes result in the Cosmic Socks not being returned. If that happens, start a new chat session and ask the same question. Also, sometimes after removing the socks they will continue to be returned by the AI Assistant. If that occurs, also start a new chat session. The reason this occurs is that previous prompts and completions are sent to OpenAI to allow it to maintain conversational context. Because of this, it will sometimes use previous completions as data to make future ones.
 
 <p align="center">
     <img src="img/socks.png" width="100%">
