@@ -210,15 +210,6 @@ resource mongoCluster 'Microsoft.DocumentDB/mongoClusters@2023-03-01-preview' = 
   }
 }
 
-resource mongoFirewallRulesAllowAll 'Microsoft.DocumentDB/mongoClusters/firewallRules@2023-03-01-preview' = {
-  parent: mongoCluster
-  name: 'allowAll'
-  properties: {
-    startIpAddress: '0.0.0.0'
-    endIpAddress: '255.255.255.255'
-  }
-}
-
 resource mongoFirewallRulesAllowAzure 'Microsoft.DocumentDB/mongoClusters/firewallRules@2023-03-01-preview' = {
   parent: mongoCluster
   name: 'allowAzure'
@@ -239,21 +230,6 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = {
   properties: {
     customSubDomainName: openAiSettings.name
     publicNetworkAccess: 'Enabled'
-  }
-}
-
-resource openAiCompletionsModelDeployment 'Microsoft.CognitiveServices/accounts/deployments@2022-12-01' = {
-  parent: openAiAccount
-  name: openAiSettings.completionsModel.deployment.name
-  properties: {
-    model: {
-      format: 'OpenAI'
-      name: openAiSettings.completionsModel.name
-      version: openAiSettings.completionsModel.version
-    }
-    scaleSettings: {
-      scaleType: 'Standard'
-    }
   }
 }
 
@@ -327,7 +303,7 @@ resource appServiceWebSettings 'Microsoft.Web/sites/config@2022-03-01' = {
     OPENAI__ENDPOINT: openAiAccount.properties.endpoint
     OPENAI__KEY: openAiAccount.listKeys().key1
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
-    OPENAI__COMPLETIONSDEPLOYMENT: openAiCompletionsModelDeployment.name
+    OPENAI__COMPLETIONSDEPLOYMENT: 'Enter Completions Model Name'
     OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
     MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA256&retrywrites=false&maxIdleTimeMS=120000'
     MONGODB__DATABASENAME: 'vectordb'
