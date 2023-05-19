@@ -20,25 +20,25 @@ The application frontend is a Blazor application with Intelligent Agent UI funct
 
 This solution is composed of the following services:
 
-1.	Azure Cosmos DB - Stores the operational retail data, generated embeddings and chat prompts and completions.
+1.	Azure Cosmos DB - Stores the operational retail data, chat prompts and completions.
 1.  Azure Cosmos DB for MongoDB vCore - stores the vectorized retail data for search.
-1.	Azure Functions - Hosts a Cosmos DB trigger to generate embeddings, Cosmos DB output binding to save the embeddings and Azure Cosmos DB for MongoDB vCore.
+1.	Azure Functions - Hosts a Cosmos DB trigger to generate embeddings and Azure Cosmos DB for MongoDB vCore to save the vectors.
 1.	Azure OpenAI - Generates embeddings using the Embeddings API and chat completions using the Completion API.
 1.	Azure App Service - Hosts Intelligent Agent UX.
 
 ## Overall solution workflow
 
-There are two key elements of this solution, generating vectors and searching vectors. Vectors are generated when data is inserted into Azure Cosmos DB, then cached in Redis. Users can then ask questions using web-based chat user interface to search the cached vectorized data and return augmented data to Azure OpenAI to generate a completion back to the user.
+There are two key elements of this solution, generating vectors and searching vectors. Vectors are generated when data is inserted into Azure Cosmos DB for NoSQL, then stored along with the source operational data in Azure Cosmos DB for MongoDB vCore. Users can then ask questions using web-based chat user interface to search the vectorized data and return augmented data to Azure OpenAI to generate a completion back to the user.
 
 ### Generating vectors
 
-Vectors are generated in two Azure Functions contained in the Vectorize project, [Products](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs) and [CustomersAndOrders](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs). Vector generation starts with the data loading for this solution which loads data into Azure Cosmos DB from JSON files stored in Azure Storage. The containers in Cosmos have change feed running on them. When the data is inserted the Azure Function calls Azure OpenAI and passes the entire document to it, then returns vectorized data. This data is then saved to Redis as well as written to another container in Azure. If the Redis cache were to require reloading of the data, the Azure Function can re-cache the data from the vectorized data stored in Azure Cosmos DB.
+Vectors are generated in two Azure Functions contained in the Vectorize project, [Products](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs) and [CustomersAndOrders](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs). Vector generation starts with the data loading for this solution which loads data into Azure Cosmos DB from JSON files stored in Azure Storage. The containers in Cosmos have change feed running on them. When the data is inserted, the Azure Function calls Azure OpenAI's embedding API and passes the entire document to it. The returned vectorized data, along with the source items are saved to Azure Cosmos DB for MongoDB vCore.
 
-You can see this at work by debugging Azure Functions remotely or running locally. You can set a break point on the [GenerateProductVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs#L52), [GenerateCustomerVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L67) or [GenerateSalesOrderVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L93)
+You can see this at work by debugging Azure Functions remotely or running locally by setting a break point on [GenerateProductVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs#L52), [GenerateCustomerVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L67) or [GenerateSalesOrderVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L93)
 
 ## Searching vectors
 
-The web-based front-end for this solution provides users the means for searching the vectorized retail bike data for this solution. This work is centered around the [ChatService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Search/Services/ChatService.cs) in the Search project. In the chat UX a user starts a new chat session then types in a question. The text that is entered is sent to Azure OpenAI's embeddings API to generate vectors on the text. This is what occurs when they data is initially loaded. That vectorized text is then sent to Redis to perform a vector search on the cached data vector data. The response to this query provides  pointers for where the source data is stored in Azure Cosmos DB that includes the name of the container, the partition key value and the id value. This array of pointers is then sent to the Cosmos DB service where the data is fetched, then sent to Azure OpenAI to generate a completion which is then passed back to the user as a response.
+The web-based front-end for this solution provides users the means for searching the vectorized retail bike data for this solution. This work is centered around the [ChatService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Search/Services/ChatService.cs) in the Search project. In the chat UX a user starts a new chat session then types in a question. The text is sent to Azure OpenAI's embeddings API to generate vectors on it. The vectors are then used to perform a vector search on Azure Cosmos DB for MongoDB vCore. The query response which includes the original source data is sent to Azure OpenAI to generate a completion which is then passed back to the user as a response.
 
 You can see this at work by debugging the Azure Web App remotely or running locally. Set a break point on [GetChatCompletionAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Search/Services/ChatService.cs#L114), then step through each of the function calls to see each step in action.
 
@@ -64,6 +64,17 @@ The provided ARM or Bicep Template will provision the following resources:
 1. Azure App service. This will be configured to deploy the Search web application from **this** GitHub repository. This will work fine if no changes are made. If you want it to deploy from your forked repository, modify the Deploy To Azure button below.
 1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
 1. Azure Functions. This will run on the same hosting plan as the Azure App Service.
+
+**Note:** Currently there is an issue with deploying two OpenAI models simultaneously that causes the entire deployment to fail. As a temporary workaround, this template above will only deploy the `text-emdedding-ada-002` model at deploy time. Follow the steps below to complete the deployment.
+
+1. Open the Resource Group for the new deployment
+1. Open the Azure OpenAI account. Navigate to `Model deployments` on left hand side.
+1. Click `+ Create`
+1. Enter a Model deployment name (record name for later use), Model `gpt-35-turbo`, Version `0301`
+1. Return to Resource Group, open the App Service (name ends in *-web*). Navigate to `Configuration` on left hand side.
+1. Locate `OPENAI__EMBEDDINGSDEPLOYMENT`, click the pencil icon to edit, paste in the model deployment name from above.
+1. Click Save at the top so the web application can restart.
+
 
 **Note:** You must have access to Azure OpenAI service from your subscription before attempting to deploy this application.
 
