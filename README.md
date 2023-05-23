@@ -6,10 +6,10 @@ The scenario for this sample centers around a consumer retail "Intelligent Agent
 
 This repository has multiple versions of this solution which can be downloaded via One-Click Azure Deploy and used:
 
-For the Azure Cosmos DB for MongoDB vCore version of this solution see, https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/MongovCore
+Azure Cosmos DB for MongoDB vCore version, https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/MongovCore
 
+Redis Enterprise version, https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis
 
-For the Redis version of this solution see, https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis
 
 More versions are Coming Soon!!!
 
