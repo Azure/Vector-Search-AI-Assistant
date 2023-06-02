@@ -1,21 +1,27 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
+﻿using Azure.Search.Documents.Indexes;
 
 namespace Vectorize.Models
 {
-    
+
     public class Product
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.String)]
+        [SearchableField(IsKey = true, IsFilterable = true)]
         public string id { get; set; }
+        [SimpleField]
         public string categoryId { get; set; }
+        [SimpleField]
         public string categoryName { get; set; }
+        [SimpleField]
         public string sku { get; set; }
+        [SimpleField]
         public string name { get; set; }
+        [SimpleField]
         public string description { get; set; }
+        [SimpleField]
         public double price { get; set; }
+        [SimpleField]
         public List<Tag> tags { get; set; }
+        [FieldBuilderIgnore]
         public float[]? vector { get; set; }
 
         public Product(string id, string categoryId, string categoryName, string sku, string name, string description, double price, List<Tag> tags, float[]? vector = null)
@@ -34,8 +40,11 @@ namespace Vectorize.Models
 
     public class ProductCategory
     {
+        [SimpleField]
         public string id { get; set; }
+        [SimpleField]
         public string type { get; set; }
+        [SimpleField]
         public string name { get; set; }
 
         public ProductCategory(string id, string type, string name)
@@ -48,7 +57,9 @@ namespace Vectorize.Models
 
     public class Tag
     {
+        [SimpleField]
         public string id { get; set; }
+        [SimpleField]
         public string name { get; set; }
 
         public Tag(string id, string name)
