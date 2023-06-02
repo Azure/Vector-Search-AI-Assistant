@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Numerics;
 using System.Text.Json;
 using Azure;
 using Azure.Core.Serialization;
@@ -14,6 +15,7 @@ namespace Vectorize.Services
     public class CognitiveSearchService
     {
         private const int ModelDimensions = 1536;
+        private const string VectorFieldName = "vector";
         private readonly int _maxVectorSearchResults = default;
         private readonly SearchClient _searchClient;
         private readonly ILogger _logger;
@@ -92,7 +94,7 @@ namespace Vectorize.Services
             try
             {
                 // Perform the vector similarity search  
-                var vector = new SearchQueryVector { K = _maxVectorSearchResults, Fields = "vector", Value = embeddings };
+                var vector = new SearchQueryVector { K = _maxVectorSearchResults, Fields = VectorFieldName, Value = embeddings };
                 var searchOptions = new SearchOptions
                 {
                     Vector = vector,
@@ -113,9 +115,9 @@ namespace Vectorize.Services
                     var searchDocument = result.Document;
                     foreach (var property in searchDocument)
                     {
-                        // Exclude null properties, empty arrays/lists, and the "vectors" property.
+                        // Exclude null properties, empty arrays/lists, and the "vector" property.
                         // This helps minimize the amount of data and also eliminates fields that may only relate to other document types.
-                        if (property.Value != null && property.Key != "vector" && !IsEmptyArrayOrList(property.Value))
+                        if (property.Value != null && property.Key != VectorFieldName && !IsEmptyArrayOrList(property.Value))
                         {
                             filteredDocument[property.Key] = property.Value;
                         }
@@ -186,7 +188,7 @@ namespace Vectorize.Services
                     .Select(group => group.First())
                     .ToList();
                 allFields.Add(
-                    new SearchField("vector", SearchFieldDataType.Collection(SearchFieldDataType.Single))
+                    new SearchField(VectorFieldName, SearchFieldDataType.Collection(SearchFieldDataType.Single))
                     {
                         IsSearchable = true,
                         Dimensions = ModelDimensions,
