@@ -1,21 +1,25 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
+﻿using Azure.Search.Documents.Indexes;
 
 namespace Vectorize.Models
 {
     public class SalesOrder
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.String)]
+        [SearchableField(IsKey = true, IsFilterable = true)]
         public string id { get; set; }
+        [SimpleField]
         public string type { get; set; }
+        [SimpleField]
         public string customerId { get; set; }
+        [SimpleField]
         public string orderDate { get; set; }
+        [SimpleField]
         public string shipDate { get; set; }
+        [SimpleField]
         public List<SalesOrderDetails> details { get; set; }
+        [FieldBuilderIgnore]
         public float[]? vector { get; set; }
 
-        public SalesOrder(string id, string type, string customerId,  string orderDate, string shipDate, List<SalesOrderDetails> details, float[]? vector = null)
+        public SalesOrder(string id, string type, string customerId, string orderDate, string shipDate, List<SalesOrderDetails> details, float[]? vector = null)
         {
             this.id = id;
             this.type = type;
@@ -29,12 +33,16 @@ namespace Vectorize.Models
 
     public class SalesOrderDetails
     {
+        [SimpleField]
         public string sku { get; set; }
+        [SimpleField]
         public string name { get; set; }
+        [SimpleField]
         public double price { get; set; }
-        public int quantity { get; set; }
+        [SimpleField]
+        public double quantity { get; set; }
 
-        public SalesOrderDetails(string sku, string name, double price, int quantity)
+        public SalesOrderDetails(string sku, string name, double price, double quantity)
         {
             this.sku = sku;
             this.name = name;
