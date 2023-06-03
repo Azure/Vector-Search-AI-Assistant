@@ -1,9 +1,8 @@
-﻿using Azure.AI.OpenAI;
-using Search.Constants;
+﻿using VectorSearchAiAssistant.Service.Constants;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
 
-namespace Search.Services;
+namespace VectorSearchAiAssistant.Service.Services;
 
 public class ChatService : IChatService
 {

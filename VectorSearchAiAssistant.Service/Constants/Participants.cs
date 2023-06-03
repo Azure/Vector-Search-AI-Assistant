@@ -1,4 +1,4 @@
-namespace Search.Constants;
+namespace VectorSearchAiAssistant.Service.Constants;
 
 public enum Participants
 {
