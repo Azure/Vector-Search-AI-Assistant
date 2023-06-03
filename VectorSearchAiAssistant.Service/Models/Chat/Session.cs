@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Search.Models;
+namespace VectorSearchAiAssistant.Service.Models.Chat;
 
 public record Session
 {

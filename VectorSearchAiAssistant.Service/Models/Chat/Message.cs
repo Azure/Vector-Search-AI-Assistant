@@ -1,4 +1,4 @@
-namespace Search.Models;
+namespace VectorSearchAiAssistant.Service.Models.Chat;
 
 public record Message
 {

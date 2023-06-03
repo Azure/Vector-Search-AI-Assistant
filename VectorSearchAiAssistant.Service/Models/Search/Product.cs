@@ -1,6 +1,6 @@
 ﻿using Azure.Search.Documents.Indexes;
 
-namespace Vectorize.Models
+namespace VectorSearchAiAssistant.Service.Models.Search
 {
 
     public class Product

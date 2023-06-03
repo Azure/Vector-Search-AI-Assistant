@@ -8,19 +8,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.Cosmos;
-using Vectorize.Models;
-using Vectorize.Services;
+using VectorSearchAiAssistant.Service.Models.Search;
+using VectorSearchAiAssistant.Service.Interfaces;
 
 namespace Vectorize
 {
     public class AddRemoveData
     {
 
-        private readonly MongoDbService _mongo;
+        private readonly ICognitiveSearchServiceManagement _cognitiveSearchService;
 
-        public AddRemoveData(MongoDbService mongo)
+        public AddRemoveData(ICognitiveSearchServiceManagement cognitiveSearchService)
         {
-            _mongo = mongo;
+            _cognitiveSearchService = cognitiveSearchService;
         }
 
 
@@ -110,7 +110,7 @@ namespace Vectorize
             {
                 if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    logger.LogInformation("Cosmic Sock alread removed from product");
+                    logger.LogInformation("Cosmic Sock already removed from product");
                 }
                 else
                     throw;
@@ -120,7 +120,7 @@ namespace Vectorize
             try
             {
                     //just ignore any error
-                    await _mongo.DeleteVector(GetCosmicSock.categoryId, GetCosmicSock.id, logger);
+                    await _cognitiveSearchService.DeleteVector(GetCosmicSock, logger);
 
                     logger.LogInformation("Removed Cosmic Sock from product");
 

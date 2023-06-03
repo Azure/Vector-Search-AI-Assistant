@@ -1,23 +1,21 @@
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
 using Newtonsoft.Json.Linq;
-using Vectorize.Models;
-using Vectorize.Services;
+using VectorSearchAiAssistant.Service.Interfaces;
+using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace Vectorize
 {
     public class CustomersAndOrders
     {
 
-        private readonly OpenAiService _openAi;
-        private readonly MongoDbService _mongo;
+        private readonly IOpenAiService _openAiService;
+        private readonly ICognitiveSearchServiceManagement _cognitiveSearchService;
 
-        public CustomersAndOrders(OpenAiService openAI, MongoDbService mongo)
+        public CustomersAndOrders(IOpenAiService openAiService, ICognitiveSearchServiceManagement cognitiveSearchService)
         {
-            _openAi = openAI;
-            _mongo = mongo;
+            _openAiService = openAiService;
+            _cognitiveSearchService = cognitiveSearchService;
         }
 
         [FunctionName("CustomersAndOrders")]
@@ -38,7 +36,7 @@ namespace Vectorize
                 logger.LogInformation("Generating embeddings for " + input.Count + " Customers and Sales Orders");
 
 
-                //using dynamic type as this container has two different entities
+                // Using dynamic type as this container has two different entities
 
                 foreach (dynamic item in input)
                 {
@@ -66,19 +64,18 @@ namespace Vectorize
 
         public async Task GenerateCustomerVectors(Customer customer, ILogger logger)
         {
-            //Serialize the object to send to OpenAI
-            string sDocument = JObject.FromObject(customer).ToString();
+            // Serialize the object to send to OpenAI
+            var sDocument = JObject.FromObject(customer).ToString();
 
             try
             {
-                //Get the embeddings from OpenAI
-                customer.vector = await _openAi.GetEmbeddingsAsync(sDocument, logger);
+                // Get the embeddings from OpenAI
+                var (vector, responseTokens) = await _openAiService.GetEmbeddingsAsync(sDocument);
+                
+                customer.vector = vector;
 
-
-                //Save to Mongo
-                BsonDocument bsonDocument = customer.ToBsonDocument();
-                await _mongo.InsertVector(bsonDocument, logger);
-
+                // Save to Cognitive Search
+                await _cognitiveSearchService.InsertVector(customer, logger);
 
                 logger.LogInformation($"Saved vector for customer: {customer.firstName} {customer.lastName} ");
 
@@ -92,19 +89,17 @@ namespace Vectorize
 
         public async Task GenerateSalesOrderVectors(SalesOrder salesOrder, ILogger logger)
         {
-            //Serialize the object to send to OpenAI
-            string sDocument = JObject.FromObject(salesOrder).ToString();
+            // Serialize the object to send to OpenAI
+            var sDocument = JObject.FromObject(salesOrder).ToString();
 
             try
             {
-                //Get the embeddings from OpenAI
-                salesOrder.vector = await _openAi.GetEmbeddingsAsync(sDocument, logger);
+                // Get the embeddings from OpenAI
+                var(vector, responseTokens) = await _openAiService.GetEmbeddingsAsync(sDocument);
+                salesOrder.vector = vector;
 
-
-                //Save to Mongo
-                BsonDocument bsonDocument = salesOrder.ToBsonDocument();
-                await _mongo.InsertVector(bsonDocument, logger);
-
+                // Save to Cognitive Search
+                await _cognitiveSearchService.InsertVector(salesOrder, logger);
 
                 logger.LogInformation($"Saved vector for sales order id: {salesOrder.id} and customer id: {salesOrder.customerId} ");
 
