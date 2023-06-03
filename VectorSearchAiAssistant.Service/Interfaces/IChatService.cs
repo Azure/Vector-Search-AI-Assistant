@@ -1,6 +1,6 @@
 ﻿using VectorSearchAiAssistant.Service.Models.Chat;
 
-namespace Search.Services;
+namespace VectorSearchAiAssistant.Service.Interfaces;
 
 public interface IChatService
 {
