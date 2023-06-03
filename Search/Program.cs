@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Search.Services;
 using VectorSearchAiAssistant.Service.Services;
 using VectorSearchAiAssistant.Service.Interfaces;
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.RegisterConfiguration();
 builder.Services.AddRazorPages();
+builder.Services.AddLogging();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Services.AddServerSideBlazor();
@@ -103,6 +105,12 @@ static class ProgramExtensions
                 );
             }
         });
+        //services.AddSingleton<IChatService, ChatService>((provider) => new ChatService(
+        //    cosmosDbService: provider.GetRequiredService<ICosmosDbService>(),
+        //    openAiService: provider.GetRequiredService<IOpenAiService>(),
+        //    cognitiveSearchService: provider.GetRequiredService<ICognitiveSearchServiceQueries>(),
+        //    logger: provider.GetRequiredService<ILogger<ChatService>>()
+        //));
         services.AddSingleton<ChatService>();
     }
 }

@@ -5,7 +5,7 @@ using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace Search.Services;
 
-public class ChatService
+public class ChatService : IChatService
 {
     /// <summary>
     /// All data is cached in the _sessions List object.
@@ -15,16 +15,14 @@ public class ChatService
     private readonly ICosmosDbService _cosmosDbService;
     private readonly IOpenAiService _openAiService;
     private readonly ICognitiveSearchServiceQueries _cognitiveSearchService;
-    private readonly ILogger _logger;
     private readonly int _maxConversationBytes;
 
     public ChatService(ICosmosDbService cosmosDbService, IOpenAiService openAiService,
-        ICognitiveSearchServiceQueries cognitiveSearchService, ILogger logger)
+        ICognitiveSearchServiceQueries cognitiveSearchService)
     {
         _cosmosDbService = cosmosDbService;
         _openAiService = openAiService;
         _cognitiveSearchService = cognitiveSearchService;
-        _logger = logger;
 
         _maxConversationBytes = openAiService.MaxConversationBytes;
 
@@ -131,7 +129,7 @@ public class ChatService
 
 
         //Do vector search on prompt embeddings, return list of documents
-        string retrievedDocuments = await _cognitiveSearchService.VectorSearchAsync(promptVectors, _logger);
+        string retrievedDocuments = await _cognitiveSearchService.VectorSearchAsync(promptVectors);
 
 
         //Retrieve conversation, including latest prompt.

@@ -4,7 +4,7 @@ namespace VectorSearchAiAssistant.Service.Interfaces;
 
 public interface ICognitiveSearchServiceManagement
 {
-    Task InsertVector(object document, ILogger logger);
-    Task InsertVectors(IEnumerable<object> documents, ILogger logger);
-    Task DeleteVector(object document, ILogger logger);
+    Task InsertVector(object document);
+    Task InsertVectors(IEnumerable<object> documents);
+    Task DeleteVector(object document);
 }

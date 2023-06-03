@@ -17,12 +17,14 @@ namespace VectorSearchAiAssistant.Service.Services
         private const int ModelDimensions = 1536;
         private const string VectorFieldName = "vector";
         private readonly int _maxVectorSearchResults = default;
+        private readonly ILogger _logger;
         private readonly SearchClient _searchClient;
 
         public CognitiveSearchService(string azureSearchAdminKey, string azureSearchServiceEndpoint,
             string azureSearchIndexName, string maxVectorSearchResults, ILogger logger)
         {
             _maxVectorSearchResults = int.TryParse(maxVectorSearchResults, out _maxVectorSearchResults) ? _maxVectorSearchResults : 10;
+            _logger = logger;
 
             // Define client options to use camelCase when serializing property names.
             var options = new SearchClientOptions()
@@ -41,51 +43,51 @@ namespace VectorSearchAiAssistant.Service.Services
             // If the Azure Cognitive Search index does not exists, create the index.
             try
             {
-                CreateIndexAsync(indexClient, azureSearchIndexName, true, logger).Wait();
+                CreateIndexAsync(indexClient, azureSearchIndexName, true).Wait();
             }
             catch (Exception ex)
             {
-                logger.LogError("Azure Cognitive Search index creation failure: " + ex.Message);
+                _logger.LogError("Azure Cognitive Search index creation failure: " + ex.Message);
                 throw;
             }
         }
 
-        public async Task InsertVector(object document, ILogger logger)
+        public async Task InsertVector(object document)
         {
-            await InsertVectors(new[] { document }, logger);
+            await InsertVectors(new[] { document });
         }
 
-        public async Task InsertVectors(IEnumerable<object> documents, ILogger logger)
+        public async Task InsertVectors(IEnumerable<object> documents)
         {
             try
             {
                 await _searchClient.IndexDocumentsAsync(IndexDocumentsBatch.Upload(documents));
-                logger.LogInformation("Inserted new vectors into Cognitive Search");
+                _logger.LogInformation("Inserted new vectors into Cognitive Search");
             }
             catch (Exception ex)
             {
                 //TODO: fix the logger. Output does not show up anywhere
-                logger.LogError($"Exception: InsertVectors(): {ex.Message}");
+                _logger.LogError($"Exception: InsertVectors(): {ex.Message}");
                 throw;
             }
         }
 
-        public async Task DeleteVector(object document, ILogger logger)
+        public async Task DeleteVector(object document)
         {
             try
             {
                 await _searchClient.DeleteDocumentsAsync(new[] { document });
-                logger.LogInformation("Deleted vector from Cognitive Search");
+                _logger.LogInformation("Deleted vector from Cognitive Search");
             }
             catch (Exception ex)
             {
                 //TODO: fix the logger. Output does not show up anywhere
-                logger.LogError($"Exception: DeleteVector(): {ex.Message}");
+                _logger.LogError($"Exception: DeleteVector(): {ex.Message}");
                 throw;
             }
         }
 
-        public async Task<string> VectorSearchAsync(float[] embeddings, ILogger logger)
+        public async Task<string> VectorSearchAsync(float[] embeddings)
         {
             var retDocs = new List<string>();
 
@@ -128,12 +130,12 @@ namespace VectorSearchAiAssistant.Service.Services
                     retDocs.Add(JsonSerializer.Serialize(filteredDocument, serializerOptions));
                 }
                 resultDocuments = string.Join(Environment.NewLine + "-", retDocs);
-                logger.LogInformation($"Total Results: {count}");
+                _logger.LogInformation($"Total Results: {count}");
 
             }
             catch (Exception ex)
             {
-                logger.LogError($"There was an error conducting a vector search: {ex.Message}");
+                _logger.LogError($"There was an error conducting a vector search: {ex.Message}");
             }
 
             return resultDocuments;
@@ -157,7 +159,7 @@ namespace VectorSearchAiAssistant.Service.Services
         }
 
         internal async Task CreateIndexAsync(SearchIndexClient indexClient, string indexName,
-            bool onlyCreateIfNotExists, ILogger logger)
+            bool onlyCreateIfNotExists)
         {
             if (onlyCreateIfNotExists)
             {
@@ -165,7 +167,7 @@ namespace VectorSearchAiAssistant.Service.Services
                 {
                     if (string.Equals(result.ToLower(), indexName.ToLower(), StringComparison.InvariantCultureIgnoreCase))
                     {
-                        logger.LogInformation($"The {indexName} index already exists; skipping index creation.");
+                        _logger.LogInformation($"The {indexName} index already exists; skipping index creation.");
                         return;
                     }
                 }
@@ -208,11 +210,11 @@ namespace VectorSearchAiAssistant.Service.Services
                 };
 
                 await indexClient.CreateIndexAsync(searchIndex);
-                logger.LogInformation($"Created the {indexName} index.");
+                _logger.LogInformation($"Created the {indexName} index.");
             }
             catch (Exception e)
             {
-                logger.LogError($"An error occurred while trying to build the {indexName} index: {e}");
+                _logger.LogError($"An error occurred while trying to build the {indexName} index: {e}");
                 throw;
             }
         }

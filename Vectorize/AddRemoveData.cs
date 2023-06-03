@@ -120,7 +120,7 @@ namespace Vectorize
             try
             {
                     //just ignore any error
-                    await _cognitiveSearchService.DeleteVector(GetCosmicSock, logger);
+                    await _cognitiveSearchService.DeleteVector(GetCosmicSock);
 
                     logger.LogInformation("Removed Cosmic Sock from product");
 
