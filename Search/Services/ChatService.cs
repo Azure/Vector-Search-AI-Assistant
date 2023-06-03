@@ -1,6 +1,7 @@
 ﻿using Azure.AI.OpenAI;
 using Search.Constants;
-using Search.Models;
+using VectorSearchAiAssistant.Service.Interfaces;
+using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace Search.Services;
 
@@ -11,16 +12,19 @@ public class ChatService
     /// </summary>
     private static List<Session> _sessions = new();
 
-    private readonly CosmosDbService _cosmosDbService;
-    private readonly OpenAiService _openAiService;
-    private readonly MongoDbService _mongoDbService;
+    private readonly ICosmosDbService _cosmosDbService;
+    private readonly IOpenAiService _openAiService;
+    private readonly ICognitiveSearchServiceQueries _cognitiveSearchService;
+    private readonly ILogger _logger;
     private readonly int _maxConversationBytes;
 
-    public ChatService(CosmosDbService cosmosDbService, OpenAiService openAiService, MongoDbService mongoDbService)
+    public ChatService(ICosmosDbService cosmosDbService, IOpenAiService openAiService,
+        ICognitiveSearchServiceQueries cognitiveSearchService, ILogger logger)
     {
         _cosmosDbService = cosmosDbService;
         _openAiService = openAiService;
-        _mongoDbService = mongoDbService;
+        _cognitiveSearchService = cognitiveSearchService;
+        _logger = logger;
 
         _maxConversationBytes = openAiService.MaxConversationBytes;
 
@@ -122,12 +126,12 @@ public class ChatService
 
 
         //Get embeddings for user prompt.
-        (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(sessionId, userPrompt);
+        (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(userPrompt, sessionId);
 
 
 
         //Do vector search on prompt embeddings, return list of documents
-        string retrievedDocuments = await _mongoDbService.VectorSearchAsync(promptVectors);
+        string retrievedDocuments = await _cognitiveSearchService.VectorSearchAsync(promptVectors, _logger);
 
 
         //Retrieve conversation, including latest prompt.

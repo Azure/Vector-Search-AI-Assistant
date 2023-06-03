@@ -1,25 +1,23 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using Vectorize.Services;
-using Vectorize.Models;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.IO;
+using VectorSearchAiAssistant.Service.Interfaces;
+using VectorSearchAiAssistant.Service.Models.Search;
+using System.Numerics;
 
 namespace Vectorize
 {
     public class Products
     {
 
-        private readonly OpenAiService _openAI;
-        private readonly MongoDbService _mongo;
+        private readonly IOpenAiService _openAiService;
+        private readonly ICognitiveSearchServiceManagement _cognitiveSearchService;
 
-        public Products(OpenAiService openAi, MongoDbService mongoDb) 
-        { 
-            _mongo = mongoDb;
-            _openAI = openAi;
-        
+        public Products(IOpenAiService openAiService, ICognitiveSearchServiceManagement cognitiveSearchService) 
+        {
+            _openAiService = openAiService;
+            _cognitiveSearchService = cognitiveSearchService;
         }
 
         [FunctionName("Products")]
@@ -34,12 +32,9 @@ namespace Vectorize
             ILogger logger)
         {
 
-           
-
             if (input != null && input.Count > 0)
             {
                 logger.LogInformation("Generating embeddings for " + input.Count + " products");
-                
 
                 foreach (Product item in input)
                 {
@@ -51,19 +46,17 @@ namespace Vectorize
 
         public async Task GenerateProductVector(Product product, ILogger logger)
         {
-            //Serialize the product object to send to OpenAI
-            string sProduct = JObject.FromObject(product).ToString();
-
+            // Serialize the product object to send to OpenAI
+            var sProduct = JObject.FromObject(product).ToString();
             
             try
             {
-                //Get the embeddings from OpenAI
-                product.vector = await _openAI.GetEmbeddingsAsync(sProduct, logger);
+                // Get the embeddings from OpenAI
+                var(vector, responseTokens) = await _openAiService.GetEmbeddingsAsync(sProduct);
+                product.vector = vector;
 
-
-                //Save to Mongo
-                BsonDocument bsonProduct = product.ToBsonDocument();
-                await _mongo.InsertVector(bsonProduct, logger);
+                // Save to Cognitive Search
+                await _cognitiveSearchService.InsertVector(product, logger);
 
                 logger.LogInformation("Saved vector for product: " + product.name);
             }

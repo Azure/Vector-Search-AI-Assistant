@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Numerics;
 using System.Text.Json;
 using Azure;
 using Azure.Core.Serialization;
@@ -8,21 +7,23 @@ using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
-using Vectorize.Models;
+using VectorSearchAiAssistant.Service.Interfaces;
+using VectorSearchAiAssistant.Service.Models.Search;
 
-namespace Vectorize.Services
+namespace VectorSearchAiAssistant.Service.Services
 {
-    public class CognitiveSearchService
+    public class CognitiveSearchService : ICognitiveSearchServiceManagement, ICognitiveSearchServiceQueries
     {
         private const int ModelDimensions = 1536;
         private const string VectorFieldName = "vector";
         private readonly int _maxVectorSearchResults = default;
         private readonly SearchClient _searchClient;
-        private readonly ILogger _logger;
 
         public CognitiveSearchService(string azureSearchAdminKey, string azureSearchServiceEndpoint,
-            string azureSearchIndexName, ILogger logger)
+            string azureSearchIndexName, string maxVectorSearchResults, ILogger logger)
         {
+            _maxVectorSearchResults = int.TryParse(maxVectorSearchResults, out _maxVectorSearchResults) ? _maxVectorSearchResults : 10;
+
             // Define client options to use camelCase when serializing property names.
             var options = new SearchClientOptions()
             {
@@ -36,7 +37,6 @@ namespace Vectorize.Services
             var searchCredential = new AzureKeyCredential(azureSearchAdminKey);
             var indexClient = new SearchIndexClient(new Uri(azureSearchServiceEndpoint), searchCredential, options);
             _searchClient = indexClient.GetSearchClient(azureSearchIndexName);
-            _logger = logger;
 
             // If the Azure Cognitive Search index does not exists, create the index.
             try

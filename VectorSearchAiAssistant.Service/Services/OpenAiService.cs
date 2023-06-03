@@ -1,28 +1,21 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
 using Azure.Core;
-using Search.Components;
-using Search.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Net;
-using System.Net.Http.Headers;
+using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
+using VectorSearchAiAssistant.Service.Interfaces;
 
-namespace Search.Services;
+namespace VectorSearchAiAssistant.Service.Services;
 
-/// <summary>
-/// Service to access Azure OpenAI.
-/// </summary>
-public class OpenAiService
+public class OpenAiService : IOpenAiService
 {
     private readonly string _embeddingsModelOrDeployment = string.Empty;
     private readonly string _completionsModelOrDeployment = string.Empty;
     private readonly int _maxConversationBytes = default;
+    private readonly int _openAIMaxTokens = default;
     private readonly ILogger _logger;
-    private readonly OpenAIClient _client;    
 
-
+    private readonly OpenAIClient? _client;
 
     //System prompts to send with user prompts to instruct the model for chat session
     private readonly string _systemPrompt = @"
@@ -45,7 +38,6 @@ public class OpenAiService
     private readonly string _summarizePrompt = @"
         Summarize this prompt in one or two words to use as a label in a button on a web page. Output words only." + Environment.NewLine;
 
-
     /// <summary>
     /// Gets the maximum number of tokens to limit chat conversation length.
     /// </summary>
@@ -53,6 +45,7 @@ public class OpenAiService
     {
         get => _maxConversationBytes;
     }
+
 
     /// <summary>
     /// Creates a new instance of the service.
@@ -81,7 +74,7 @@ public class OpenAiService
 
         _logger = logger;
 
-        OpenAIClientOptions options = new OpenAIClientOptions()
+        var options = new OpenAIClientOptions()
         {
             Retry =
             {
@@ -91,46 +84,48 @@ public class OpenAiService
             }
         };
 
-        //Use this as endpoint in configuration to use non-Azure Open AI endpoint and OpenAI model names
-        if (endpoint.Contains("api.openai.com"))
-            _client = new OpenAIClient(key, options);
-        else
-            _client = new(new Uri(endpoint), new AzureKeyCredential(key), options);
-        
-
+        try
+        {
+            //Use this as endpoint in configuration to use non-Azure Open AI endpoint and OpenAI model names
+            if (endpoint.Contains("api.openai.com"))
+                _client = new OpenAIClient(key, options);
+            else
+                _client = new(new Uri(endpoint), new AzureKeyCredential(key), options);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"OpenAIService Constructor failure: {ex.Message}");
+        }
     }
 
     /// <summary>
     /// Sends a prompt to the deployed OpenAI embeddings model and returns an array of vectors as a response.
     /// </summary>
+    /// <param name="input">The input for which to create embeddings.</param>
     /// <param name="sessionId">Chat session identifier for the current conversation.</param>
-    /// <param name="prompt">Prompt message to generated embeddings on.</param>
     /// <returns>Response from the OpenAI model as an array of vectors along with tokens for the prompt and response.</returns>
-    public async Task<(float[] response, int responseTokens)> GetEmbeddingsAsync(string sessionId, string input)
+    public async Task<(float[] response, int responseTokens)> GetEmbeddingsAsync(dynamic input, string sessionId)
     {
-
-        //await HttpRequestAsync(input);
-
-        float[] embedding = new float[0];
-        int responseTokens = 0;
+        var responseTokens = 0;
 
         try
         {
-            EmbeddingsOptions options = new EmbeddingsOptions(input)
+            var options = new EmbeddingsOptions(input)
             {
-                Input = input,
-                User = sessionId
+                Input = input
             };
-
+            if (!string.IsNullOrWhiteSpace(sessionId))
+            {
+                options.User = sessionId;
+            }
 
             var response = await _client.GetEmbeddingsAsync(_embeddingsModelOrDeployment, options);
 
-
-            Embeddings embeddings = response.Value;
+            var embeddings = response.Value;
 
             responseTokens = embeddings.Usage.TotalTokens;
 
-            embedding = embeddings.Data[0].Embedding.ToArray();
+            var embedding = embeddings.Data[0].Embedding.ToArray();
 
             return (
                 response: embedding,
@@ -140,9 +135,19 @@ public class OpenAiService
         {
             _logger.LogError(ex.Message);
             return (
-                response: embedding,
+                response: Array.Empty<float>(),
                 responseTokens);
         }
+    }
+
+    /// <summary>
+    /// Sends a prompt to the deployed OpenAI embeddings model and returns an array of vectors as a response.
+    /// </summary>
+    /// <param name="input">The input for which to create embeddings.</param>
+    /// <returns>Response from the OpenAI model as an array of vectors along with tokens for the prompt and response.</returns>
+    public async Task<(float[] response, int responseTokens)> GetEmbeddingsAsync(dynamic input)
+    {
+        return await GetEmbeddingsAsync(input, null);
     }
 
     /// <summary>
@@ -156,9 +161,9 @@ public class OpenAiService
 
         try
         {
-        
-            ChatMessage systemMessage = new ChatMessage(ChatRole.System, _systemPromptRetailAssistant + documents);
-            ChatMessage userMessage = new ChatMessage(ChatRole.User, userPrompt);
+
+            var systemMessage = new ChatMessage(ChatRole.System, _systemPromptRetailAssistant + documents);
+            var userMessage = new ChatMessage(ChatRole.User, userPrompt);
 
 
             ChatCompletionsOptions options = new()
@@ -176,10 +181,10 @@ public class OpenAiService
                 PresencePenalty = 0
             };
 
-            Response<ChatCompletions> completionsResponse = await _client.GetChatCompletionsAsync(_completionsModelOrDeployment, options);
-        
+            var completionsResponse = await _client.GetChatCompletionsAsync(_completionsModelOrDeployment, options);
 
-            ChatCompletions completions = completionsResponse.Value;
+
+            var completions = completionsResponse.Value;
 
             return (
                 response: completions.Choices[0].Message.Content,
@@ -188,11 +193,11 @@ public class OpenAiService
             );
 
         }
-        catch ( Exception ex ) 
-        { 
-        
+        catch (Exception ex)
+        {
+
             _logger.LogError(ex.Message);
-        
+
         }
 
         return ("", 0, 0);
@@ -207,8 +212,8 @@ public class OpenAiService
     public async Task<string> SummarizeAsync(string sessionId, string userPrompt)
     {
 
-        ChatMessage systemMessage = new ChatMessage(ChatRole.System, _summarizePrompt);
-        ChatMessage userMessage = new ChatMessage(ChatRole.User, userPrompt);
+        var systemMessage = new ChatMessage(ChatRole.System, _summarizePrompt);
+        var userMessage = new ChatMessage(ChatRole.User, userPrompt);
 
         ChatCompletionsOptions options = new()
         {
@@ -224,13 +229,13 @@ public class OpenAiService
             PresencePenalty = 0
         };
 
-        Response<ChatCompletions> completionsResponse = await _client.GetChatCompletionsAsync(_completionsModelOrDeployment, options);
+        var completionsResponse = await _client.GetChatCompletionsAsync(_completionsModelOrDeployment, options);
 
-        ChatCompletions completions = completionsResponse.Value;
-        string output = completions.Choices[0].Message.Content;
+        var completions = completionsResponse.Value;
+        var output = completions.Choices[0].Message.Content;
 
         //Remove all non-alpha numeric characters (Turbo has a habit of putting things in quotes even when you tell it not to
-        string summary = Regex.Replace(output, @"[^a-zA-Z0-9\s]", "");
+        var summary = Regex.Replace(output, @"[^a-zA-Z0-9\s]", "");
 
         return summary;
     }

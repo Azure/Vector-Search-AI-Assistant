@@ -1,7 +1,8 @@
-using Search.Options;
-using Search.Services;
 using Microsoft.Extensions.Options;
-using MongoDB.Driver;
+using Search.Services;
+using VectorSearchAiAssistant.Service.Services;
+using VectorSearchAiAssistant.Service.Interfaces;
+using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,13 +40,13 @@ static class ProgramExtensions
         builder.Services.AddOptions<OpenAi>()
             .Bind(builder.Configuration.GetSection(nameof(OpenAi)));
 
-        builder.Services.AddOptions<MongoDb>()
-            .Bind(builder.Configuration.GetSection(nameof(MongoDb)));
+        builder.Services.AddOptions<CognitiveSearch>()
+            .Bind(builder.Configuration.GetSection(nameof(CognitiveSearch)));
     }
 
     public static void RegisterServices(this IServiceCollection services)
     {
-        services.AddSingleton<CosmosDbService, CosmosDbService>((provider) =>
+        services.AddSingleton<ICosmosDbService, CosmosDbService>((provider) =>
         {
             var cosmosDbOptions = provider.GetRequiredService<IOptions<CosmosDb>>();
             if (cosmosDbOptions is null)
@@ -63,7 +64,7 @@ static class ProgramExtensions
                 );
             }
         });
-        services.AddSingleton<OpenAiService, OpenAiService>((provider) =>
+        services.AddSingleton<IOpenAiService, OpenAiService>((provider) =>
         {
             var openAiOptions = provider.GetRequiredService<IOptions<OpenAi>>();
             if (openAiOptions is null)
@@ -82,21 +83,23 @@ static class ProgramExtensions
                 );
             }
         });
-        services.AddSingleton<MongoDbService, MongoDbService>((provider) =>
+        services.AddSingleton<ICognitiveSearchServiceQueries, CognitiveSearchService>((provider) =>
         {
-            var mongoDbOptions = provider.GetRequiredService<IOptions<MongoDb>>();
-            if (mongoDbOptions is null)
+            var cognitiveSearchOptions = provider.GetRequiredService<IOptions<CognitiveSearch>>();
+
+            if (cognitiveSearchOptions is null)
             {
-                throw new ArgumentException($"{nameof(IOptions<MongoDb>)} was not resolved through dependency injection.");
+                throw new ArgumentException($"{nameof(IOptions<CognitiveSearch>)} was not resolved through dependency injection.");
             }
             else
             {
-                return new MongoDbService(
-                    connection: mongoDbOptions.Value?.Connection?? String.Empty,
-                    databaseName: mongoDbOptions.Value?.DatabaseName ?? String.Empty,
-                    collectionName: mongoDbOptions.Value?.CollectionName ?? String.Empty,
-                    maxVectorSearchResults: mongoDbOptions.Value?.MaxVectorSearchResults ?? String.Empty,
-                    logger: provider.GetRequiredService<ILogger<MongoDbService>>()
+                return new CognitiveSearchService
+                (
+                    azureSearchAdminKey: cognitiveSearchOptions.Value?.AdminKey ?? string.Empty,
+                    azureSearchServiceEndpoint: cognitiveSearchOptions.Value?.Endpoint ?? string.Empty,
+                    azureSearchIndexName: cognitiveSearchOptions.Value?.IndexName ?? string.Empty,
+                    maxVectorSearchResults: cognitiveSearchOptions.Value?.MaxVectorSearchResults ?? string.Empty,
+                    logger: provider.GetRequiredService<ILogger<CognitiveSearch>>()
                 );
             }
         });
