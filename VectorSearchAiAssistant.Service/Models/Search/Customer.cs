@@ -1,6 +1,6 @@
 ﻿using Azure.Search.Documents.Indexes;
 
-namespace VectorSearchAiAssistant.Service.Models.Search
+namespace code.Models
 {
     public class Customer
     {
@@ -24,7 +24,7 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         public string creationDate { get; set; }
         [SimpleField]
         public List<CustomerAddress> addresses { get; set; }
-        [SimpleField]
+        [SimpleField(IsHidden = true)]
         public Password password { get; set; }
         [SimpleField]
         public double salesOrderCount { get; set; }
@@ -54,9 +54,9 @@ namespace VectorSearchAiAssistant.Service.Models.Search
 
     public class Password
     {
-        [SimpleField]
+        [SimpleField(IsHidden = true)]
         public string hash { get; set; }
-        [SimpleField]
+        [SimpleField(IsHidden = true)]
         public string salt { get; set; }
 
         public Password(string hash, string salt)
