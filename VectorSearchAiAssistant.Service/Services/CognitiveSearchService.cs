@@ -41,15 +41,15 @@ namespace VectorSearchAiAssistant.Service.Services
             _searchClient = indexClient.GetSearchClient(azureSearchIndexName);
 
             // If the Azure Cognitive Search index does not exists, create the index.
-            try
-            {
-                CreateIndexAsync(indexClient, azureSearchIndexName, true).Wait();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Azure Cognitive Search index creation failure: " + ex.Message);
-                throw;
-            }
+            //try
+            //{
+            //    CreateIndexAsync(indexClient, azureSearchIndexName, true).Wait();
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError("Azure Cognitive Search index creation failure: " + ex.Message);
+            //    throw;
+            //}
         }
 
         public async Task InsertVector(object document)
@@ -161,22 +161,22 @@ namespace VectorSearchAiAssistant.Service.Services
         internal async Task CreateIndexAsync(SearchIndexClient indexClient, string indexName,
             bool onlyCreateIfNotExists)
         {
-            if (onlyCreateIfNotExists)
-            {
-                await foreach (var result in indexClient.GetIndexNamesAsync())
-                {
-                    if (string.Equals(result.ToLower(), indexName.ToLower(), StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        _logger.LogInformation($"The {indexName} index already exists; skipping index creation.");
-                        return;
-                    }
-                }
-            }
-
-            var vectorSearchConfigName = "vector-config";
-
             try
             {
+                if (onlyCreateIfNotExists)
+                {
+                    await foreach (var result in indexClient.GetIndexNamesAsync())
+                    {
+                        if (string.Equals(result.ToLower(), indexName.ToLower(), StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            _logger.LogInformation($"The {indexName} index already exists; skipping index creation.");
+                            return;
+                        }
+                    }
+                }
+
+                var vectorSearchConfigName = "vector-config";
+                
                 var fieldBuilder = new FieldBuilder();
                 var customerFields = fieldBuilder.Build(typeof(Customer));
                 var productFields = fieldBuilder.Build(typeof(Product));
