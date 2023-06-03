@@ -56,7 +56,7 @@ namespace Vectorize
                 product.vector = vector;
 
                 // Save to Cognitive Search
-                await _cognitiveSearchService.InsertVector(product, logger);
+                await _cognitiveSearchService.InsertVector(product);
 
                 logger.LogInformation("Saved vector for product: " + product.name);
             }

@@ -75,7 +75,7 @@ namespace Vectorize
                 customer.vector = vector;
 
                 // Save to Cognitive Search
-                await _cognitiveSearchService.InsertVector(customer, logger);
+                await _cognitiveSearchService.InsertVector(customer);
 
                 logger.LogInformation($"Saved vector for customer: {customer.firstName} {customer.lastName} ");
 
@@ -99,7 +99,7 @@ namespace Vectorize
                 salesOrder.vector = vector;
 
                 // Save to Cognitive Search
-                await _cognitiveSearchService.InsertVector(salesOrder, logger);
+                await _cognitiveSearchService.InsertVector(salesOrder);
 
                 logger.LogInformation($"Saved vector for sales order id: {salesOrder.id} and customer id: {salesOrder.customerId} ");
 
