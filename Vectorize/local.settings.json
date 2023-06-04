@@ -1,15 +1,21 @@
 {
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "CosmosDBConnection": "",
-    "CognitiveSearch__Endpoint": "https://cog-search-vector.search.windows.net",
-    "CognitiveSearch__AdminKey": "ysWJwgzjnS0HR3mK7Pws1daXhGgnhlX1KAZIdtTa6hAzSeAhzk5z",
+    "CosmosDb__Endpoint": "",
+    "CosmosDb__Key": "",
+    "CosmosDb__Database": "database",
+    "CosmosDb__Containers": "completions, customer, product",
+    "CognitiveSearch__Endpoint": "",
+    "CognitiveSearch__AdminKey": "",
     "CognitiveSearch__IndexName": "vector-index",
     "CognitiveSearch__MaxVectorSearchResults": "10",
     "OpenAi__Endpoint": "",
     "OpenAi__Key": "",
-    "OpenAi__EmbeddingsDeployment": "",
+    "OpenAi__EmbeddingsDeployment": "embeddings",
+    "OpenAi__CompletionsDeployment": "completions",
+    "OpenAi__MaxConversationBytes": "2000",
     "OpenAi__MaxTokens": "8191"
   },
   "IsEncrypted": false

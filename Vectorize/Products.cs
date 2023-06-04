@@ -1,10 +1,8 @@
-using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using MongoDB.Bson;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Search;
-using System.Numerics;
+using Microsoft.Azure.Functions.Worker;
 
 namespace Vectorize
 {
@@ -13,14 +11,17 @@ namespace Vectorize
 
         private readonly IOpenAiService _openAiService;
         private readonly ICognitiveSearchServiceManagement _cognitiveSearchService;
+        private readonly ILogger _logger;
 
-        public Products(IOpenAiService openAiService, ICognitiveSearchServiceManagement cognitiveSearchService) 
+        public Products(IOpenAiService openAiService, ICognitiveSearchServiceManagement cognitiveSearchService,
+            ILoggerFactory loggerFactory)
         {
             _openAiService = openAiService;
             _cognitiveSearchService = cognitiveSearchService;
+            _logger = loggerFactory.CreateLogger<Products>();
         }
 
-        [FunctionName("Products")]
+        [Function("Products")]
         public async Task Run(
             [CosmosDBTrigger(
                 databaseName: "database",
@@ -28,23 +29,22 @@ namespace Vectorize
                 StartFromBeginning = true,
                 Connection = "CosmosDBConnection",
                 LeaseContainerName = "leases",
-                CreateLeaseContainerIfNotExists = true)]IReadOnlyList<Product> input,
-            ILogger logger)
+                CreateLeaseContainerIfNotExists = true)]IReadOnlyList<Product> input)
         {
 
             if (input != null && input.Count > 0)
             {
-                logger.LogInformation("Generating embeddings for " + input.Count + " products");
+                _logger.LogInformation("Generating embeddings for " + input.Count + " products");
 
-                foreach (Product item in input)
+                foreach (var item in input)
                 {
-                    await GenerateProductVector(item, logger);
+                    await GenerateProductVector(item);
                 }
                 
             }
         }
 
-        public async Task GenerateProductVector(Product product, ILogger logger)
+        public async Task GenerateProductVector(Product product)
         {
             // Serialize the product object to send to OpenAI
             var sProduct = JObject.FromObject(product).ToString();
@@ -58,11 +58,11 @@ namespace Vectorize
                 // Save to Cognitive Search
                 await _cognitiveSearchService.InsertVector(product);
 
-                logger.LogInformation("Saved vector for product: " + product.name);
+                _logger.LogInformation("Saved vector for product: " + product.name);
             }
             catch (Exception x)
             {
-                logger.LogError("Exception while generating vector for [" + product.name + "]: " + x.Message);
+                _logger.LogError("Exception while generating vector for [" + product.name + "]: " + x.Message);
             }
 
         }

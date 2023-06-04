@@ -3,6 +3,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using VectorSearchAiAssistant.Service.Models.Chat;
 using VectorSearchAiAssistant.Service.Interfaces;
+using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -12,6 +13,8 @@ namespace VectorSearchAiAssistant.Service.Services
     public class CosmosDbService : ICosmosDbService
     {
         private readonly Container _completions;
+        private readonly Container _customer;
+        private readonly Container _product;
         private readonly Database _database;
         private readonly Dictionary<string, Container> _containers;
         private readonly ILogger _logger;
@@ -58,16 +61,15 @@ namespace VectorSearchAiAssistant.Service.Services
 
             foreach (string containerName in containers)
             {
-
                 Container? container = database?.GetContainer(containerName.Trim()) ??
-                                       throw new ArgumentException(
-                                           "Unable to connect to existing Azure Cosmos DB container or database.");
+                                       throw new ArgumentException("Unable to connect to existing Azure Cosmos DB container or database.");
 
-                _containers.Add(containerName, container);
+                _containers.Add(containerName.Trim(), container);
             }
 
-            //Treating this one differently
             _completions = _containers["completions"];
+            _customer = _containers["customer"];
+            _product = _containers["product"];
         }
 
         /// <summary>
@@ -209,6 +211,57 @@ namespace VectorSearchAiAssistant.Service.Services
             }
 
             await batch.ExecuteAsync();
+        }
+
+        /// <summary>
+        /// Inserts a product into the product container.
+        /// </summary>
+        /// <param name="product">Product item to create.</param>
+        /// <returns>Newly created product item.</returns>
+        public async Task<Product> InsertProductAsync(Product product)
+        {
+            try
+            {
+                return await _product.CreateItemAsync(product);
+            }
+            catch (CosmosException ex)
+            {
+                // Ignore conflict errors.
+                if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    _logger.LogInformation("Product Already added.");
+                }
+                else
+                {
+                    _logger.LogError(ex.Message);
+                    throw;
+                }
+                return product;
+            }
+        }
+
+        /// <summary>
+        /// Deletes a product by its Id and category (its partition key).
+        /// </summary>
+        /// <param name="productId">The Id of the product to delete.</param>
+        /// <param name="categoryId">The category Id of the product to delete.</param>
+        /// <returns></returns>
+        public async Task DeleteProduct(string productId, string categoryId)
+        {
+            try
+            {
+                // Delete from Cosmos product container
+                await _product.DeleteItemAsync<Product>(id: productId, partitionKey: new PartitionKey(categoryId));
+            }
+            catch (CosmosException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    _logger.LogInformation("The product has already been removed.");
+                }
+                else
+                    throw;
+            }
         }
 
         /// <summary>
