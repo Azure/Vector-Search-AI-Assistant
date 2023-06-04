@@ -1,4 +1,5 @@
 ﻿using VectorSearchAiAssistant.Service.Models.Chat;
+using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Interfaces;
 
@@ -49,6 +50,21 @@ public interface ICosmosDbService
     /// </summary>
     /// <param name="sessionId">Chat session identifier used to flag messages and sessions for deletion.</param>
     Task DeleteSessionAndMessagesAsync(string sessionId);
+
+    /// <summary>
+    /// Inserts a product into the product container.
+    /// </summary>
+    /// <param name="product">Product item to create.</param>
+    /// <returns>Newly created product item.</returns>
+    Task<Product> InsertProductAsync(Product product);
+
+    /// <summary>
+    /// Deletes a product by its Id and category (its partition key).
+    /// </summary>
+    /// <param name="productId">The Id of the product to delete.</param>
+    /// <param name="categoryId">The category Id of the product to delete.</param>
+    /// <returns></returns>
+    Task DeleteProduct(string productId, string categoryId);
 
     /// <summary>
     /// Reads all documents retrieved by Vector Search.

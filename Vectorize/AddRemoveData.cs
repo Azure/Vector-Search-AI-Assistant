@@ -1,15 +1,11 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Functions.Worker.Http;
 using VectorSearchAiAssistant.Service.Models.Search;
 using VectorSearchAiAssistant.Service.Interfaces;
+using System.Net;
 
 namespace Vectorize
 {
@@ -17,21 +13,23 @@ namespace Vectorize
     {
 
         private readonly ICognitiveSearchServiceManagement _cognitiveSearchService;
+        private readonly ICosmosDbService _cosmosDbService;
+        private readonly ILogger _logger;
 
-        public AddRemoveData(ICognitiveSearchServiceManagement cognitiveSearchService)
+        public AddRemoveData(ICognitiveSearchServiceManagement cognitiveSearchService, ICosmosDbService cosmosDbService,
+            ILoggerFactory loggerFactory)
         {
             _cognitiveSearchService = cognitiveSearchService;
+            _cosmosDbService = cosmosDbService;
+            _logger = loggerFactory.CreateLogger<AddRemoveData>();
         }
 
 
-        [FunctionName("AddRemoveData")]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            [CosmosDB(
-                Connection = "CosmosDBConnection")]CosmosClient cosmosClient,
-            ILogger logger)
+        [Function("AddRemoveData")]
+        public async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequestData req)
         {
-            logger.LogInformation("C# HTTP trigger function processed a request.");
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             string? action = req.Query["action"];
 
@@ -40,11 +38,11 @@ namespace Vectorize
 
                 if (action == "add")
                 {
-                    await AddProduct(cosmosClient, logger);
+                    await AddProduct();
                 }
                 else if (action == "remove")
                 {
-                    await RemoveProduct(cosmosClient, logger);
+                    await RemoveProduct();
 
                 }
                 else
@@ -52,84 +50,46 @@ namespace Vectorize
                     throw new Exception("Bad Request: Missing value for action in query string, add or remove");
                 }
 
-                string responseMessage = "HTTP trigger function executed successfully.";
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
-                return new OkObjectResult(responseMessage);
+                await response.WriteStringAsync("HTTP trigger function executed successfully.");
+
+                return response;
             }
-            catch (Exception ex) 
-            { 
-             
-                return new BadRequestObjectResult(ex);
-            
+            catch (Exception ex)
+            {
+                var response = req.CreateResponse(HttpStatusCode.BadRequest);
+                await response.WriteAsJsonAsync(ex);
+                return response;
+
             }
         }
 
-        public async Task AddProduct(CosmosClient cosmosClient, ILogger logger) 
+        public async Task AddProduct() 
         {
 
-            try
-            {
+            await _cosmosDbService.InsertProductAsync(GetCosmicSock);
 
-                Container container = cosmosClient.GetContainer("database", "product");
-
-                await container.CreateItemAsync(GetCosmicSock);
-
-                logger.LogInformation("Added Cosmic Sock to product");
-
-            }
-            catch (CosmosException ex)
-            {
-                //Ignore conflict errors.
-                if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    logger.LogInformation("Product Already added.");
-                }
-                else
-                {
-                    logger.LogError(ex.Message);
-                    throw;
-                }
-
-            }
-
+            _logger.LogInformation("Added Cosmic Sock to product");
         }
 
-        public async Task RemoveProduct(CosmosClient cosmosClient, ILogger logger)
+        public async Task RemoveProduct()
         {
-
-
-            try
-            {
-                Container container = cosmosClient.GetContainer("database", "product");
-
-                //Delete from Cosmos product container
-                await container.DeleteItemAsync<Product>(id: GetCosmicSock.id, partitionKey: new PartitionKey(GetCosmicSock.categoryId));
-
-            }
-            catch (CosmosException ex)
-            {
-                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    logger.LogInformation("Cosmic Sock already removed from product");
-                }
-                else
-                    throw;
-
-            }
+            await _cosmosDbService.DeleteProduct(GetCosmicSock.id, GetCosmicSock.categoryId);
 
             try
             {
                     //just ignore any error
                     await _cognitiveSearchService.DeleteVector(GetCosmicSock);
 
-                    logger.LogInformation("Removed Cosmic Sock from product");
+                    _logger.LogInformation("Removed Cosmic Sock from product");
 
             }
             catch(Exception ex) 
             { 
-                logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 //throw;
-            
             }
         }
 

@@ -1,4 +1,4 @@
-using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using VectorSearchAiAssistant.Service.Interfaces;
@@ -11,14 +11,17 @@ namespace Vectorize
 
         private readonly IOpenAiService _openAiService;
         private readonly ICognitiveSearchServiceManagement _cognitiveSearchService;
+        private readonly ILogger _logger;
 
-        public CustomersAndOrders(IOpenAiService openAiService, ICognitiveSearchServiceManagement cognitiveSearchService)
+        public CustomersAndOrders(IOpenAiService openAiService, ICognitiveSearchServiceManagement cognitiveSearchService,
+            ILoggerFactory loggerFactory)
         {
             _openAiService = openAiService;
             _cognitiveSearchService = cognitiveSearchService;
+            _logger = loggerFactory.CreateLogger<CustomersAndOrders>();
         }
 
-        [FunctionName("CustomersAndOrders")]
+        [Function("CustomersAndOrders")]
         public async Task Run(
             [CosmosDBTrigger(
                 databaseName: "database",
@@ -26,43 +29,38 @@ namespace Vectorize
                 StartFromBeginning = true,
                 Connection = "CosmosDBConnection",
                 LeaseContainerName = "leases",
-                CreateLeaseContainerIfNotExists = true)]IReadOnlyList<JObject> input,
-            ILogger logger)
+                CreateLeaseContainerIfNotExists = true)]IReadOnlyList<JObject> input)
         {
 
             if (input != null && input.Count > 0)
             {
 
-                logger.LogInformation("Generating embeddings for " + input.Count + " Customers and Sales Orders");
-
+                _logger.LogInformation("Generating embeddings for " + input.Count + " Customers and Sales Orders");
 
                 // Using dynamic type as this container has two different entities
-
                 foreach (dynamic item in input)
                 {
                     if (item.type == "customer")
                     {
                         Customer customer = item.ToObject<Customer>();
-                        await GenerateCustomerVectors(customer, logger);
+                        await GenerateCustomerVectors(customer);
                     }
 
                     else if (item.type == "salesOrder")
                     {
                         SalesOrder salesOrder = item.ToObject<SalesOrder>();
-                        await GenerateSalesOrderVectors(salesOrder, logger);
+                        await GenerateSalesOrderVectors(salesOrder);
 
                     }
                     else
                     {
-                        logger.LogError($"Unsupported entity saved in customer container: {item.type}");
+                        _logger.LogError($"Unsupported entity saved in customer container: {item.type}");
                     }
-
                 }
-                
             }
         }
 
-        public async Task GenerateCustomerVectors(Customer customer, ILogger logger)
+        public async Task GenerateCustomerVectors(Customer customer)
         {
             // Serialize the object to send to OpenAI
             var sDocument = JObject.FromObject(customer).ToString();
@@ -77,17 +75,17 @@ namespace Vectorize
                 // Save to Cognitive Search
                 await _cognitiveSearchService.InsertVector(customer);
 
-                logger.LogInformation($"Saved vector for customer: {customer.firstName} {customer.lastName} ");
+                _logger.LogInformation($"Saved vector for customer: {customer.firstName} {customer.lastName} ");
 
             }
             catch (Exception x)
             {
-                logger.LogError($"Exception while generating vector for customer: {customer.firstName} {customer.lastName}" + x.Message);
+                _logger.LogError($"Exception while generating vector for customer: {customer.firstName} {customer.lastName}" + x.Message);
             }
 
         }
 
-        public async Task GenerateSalesOrderVectors(SalesOrder salesOrder, ILogger logger)
+        public async Task GenerateSalesOrderVectors(SalesOrder salesOrder)
         {
             // Serialize the object to send to OpenAI
             var sDocument = JObject.FromObject(salesOrder).ToString();
@@ -101,12 +99,12 @@ namespace Vectorize
                 // Save to Cognitive Search
                 await _cognitiveSearchService.InsertVector(salesOrder);
 
-                logger.LogInformation($"Saved vector for sales order id: {salesOrder.id} and customer id: {salesOrder.customerId} ");
+                _logger.LogInformation($"Saved vector for sales order id: {salesOrder.id} and customer id: {salesOrder.customerId} ");
 
             }
             catch (Exception x)
             {
-                logger.LogError($"Exception while generating vector for sales order id: {salesOrder.id} and customer id: {salesOrder.customerId}" + x.Message);
+                _logger.LogError($"Exception while generating vector for sales order id: {salesOrder.id} and customer id: {salesOrder.customerId}" + x.Message);
             }
 
         }
