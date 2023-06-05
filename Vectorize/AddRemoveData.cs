@@ -60,7 +60,7 @@ namespace Vectorize
             catch (Exception ex)
             {
                 var response = req.CreateResponse(HttpStatusCode.BadRequest);
-                await response.WriteAsJsonAsync(ex);
+                await response.WriteStringAsync(ex.ToString());
                 return response;
 
             }
