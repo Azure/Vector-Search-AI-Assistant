@@ -60,7 +60,7 @@ var host = new HostBuilder()
 
         });
 
-        s.AddSingleton<IVectorDatabaseServiceManagement, VectorDatabaseService>((provider) =>
+        s.AddSingleton<IVectorDatabaseServiceManagement, CognitiveSearchService>((provider) =>
         {
             var cognitiveSearchOptions = provider.GetRequiredService<IOptions<CognitiveSearch>>();
 
@@ -70,7 +70,7 @@ var host = new HostBuilder()
             }
             else
             {
-                return new VectorDatabaseService
+                return new CognitiveSearchService
                 (
                     azureSearchAdminKey: cognitiveSearchOptions.Value?.AdminKey ?? string.Empty,
                     azureSearchServiceEndpoint: cognitiveSearchOptions.Value?.Endpoint ?? string.Empty,

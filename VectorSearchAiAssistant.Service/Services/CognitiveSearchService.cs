@@ -13,7 +13,7 @@ using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
-    public class VectorDatabaseService : IVectorDatabaseServiceManagement, IVectorDatabaseServiceQueries
+    public class CognitiveSearchService : IVectorDatabaseServiceManagement, IVectorDatabaseServiceQueries
     {
         private const int ModelDimensions = 1536;
         private const string VectorFieldName = "vector";
@@ -21,7 +21,7 @@ namespace VectorSearchAiAssistant.Service.Services
         private readonly ILogger _logger;
         private readonly SearchClient _searchClient;
 
-        public VectorDatabaseService(string azureSearchAdminKey, string azureSearchServiceEndpoint,
+        public CognitiveSearchService(string azureSearchAdminKey, string azureSearchServiceEndpoint,
             string azureSearchIndexName, string maxVectorSearchResults, ILogger logger)
         {
             _maxVectorSearchResults = int.TryParse(maxVectorSearchResults, out _maxVectorSearchResults) ? _maxVectorSearchResults : 10;
