@@ -13,15 +13,15 @@ public class ChatService : IChatService
 
     private readonly ICosmosDbService _cosmosDbService;
     private readonly IOpenAiService _openAiService;
-    private readonly ICognitiveSearchServiceQueries _cognitiveSearchService;
+    private readonly IVectorDatabaseServiceQueries _vectorDatabaseService;
     private readonly int _maxConversationBytes;
 
     public ChatService(ICosmosDbService cosmosDbService, IOpenAiService openAiService,
-        ICognitiveSearchServiceQueries cognitiveSearchService)
+        IVectorDatabaseServiceQueries vectorDatabaseService)
     {
         _cosmosDbService = cosmosDbService;
         _openAiService = openAiService;
-        _cognitiveSearchService = cognitiveSearchService;
+        _vectorDatabaseService = vectorDatabaseService;
 
         _maxConversationBytes = openAiService.MaxConversationBytes;
 
@@ -128,7 +128,7 @@ public class ChatService : IChatService
 
 
         //Do vector search on prompt embeddings, return list of documents
-        string retrievedDocuments = await _cognitiveSearchService.VectorSearchAsync(promptVectors);
+        string retrievedDocuments = await _vectorDatabaseService.VectorSearchAsync(promptVectors);
 
 
         //Retrieve conversation, including latest prompt.

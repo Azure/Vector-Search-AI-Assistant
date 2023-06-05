@@ -2,7 +2,7 @@
 
 namespace VectorSearchAiAssistant.Service.Interfaces;
 
-public interface ICognitiveSearchServiceManagement
+public interface IVectorDatabaseServiceManagement
 {
     Task InsertVector(object document);
     Task InsertVectors(IEnumerable<object> documents);

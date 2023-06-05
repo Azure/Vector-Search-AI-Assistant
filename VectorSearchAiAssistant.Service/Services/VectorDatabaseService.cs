@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Reflection;
 using System.Text.Json;
 using Azure;
 using Azure.Core.Serialization;
@@ -12,7 +13,7 @@ using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
-    public class CognitiveSearchService : ICognitiveSearchServiceManagement, ICognitiveSearchServiceQueries
+    public class VectorDatabaseService : IVectorDatabaseServiceManagement, IVectorDatabaseServiceQueries
     {
         private const int ModelDimensions = 1536;
         private const string VectorFieldName = "vector";
@@ -20,7 +21,7 @@ namespace VectorSearchAiAssistant.Service.Services
         private readonly ILogger _logger;
         private readonly SearchClient _searchClient;
 
-        public CognitiveSearchService(string azureSearchAdminKey, string azureSearchServiceEndpoint,
+        public VectorDatabaseService(string azureSearchAdminKey, string azureSearchServiceEndpoint,
             string azureSearchIndexName, string maxVectorSearchResults, ILogger logger)
         {
             _maxVectorSearchResults = int.TryParse(maxVectorSearchResults, out _maxVectorSearchResults) ? _maxVectorSearchResults : 10;
@@ -76,8 +77,24 @@ namespace VectorSearchAiAssistant.Service.Services
         {
             try
             {
-                await _searchClient.DeleteDocumentsAsync(new[] { document });
-                _logger.LogInformation("Deleted vector from Cognitive Search");
+                var objectType = document.GetType();
+                var properties = objectType.GetProperties();
+
+                foreach (var property in properties)
+                {
+                    var searchableAttribute = property.GetCustomAttribute<SearchableFieldAttribute>();
+                    if (searchableAttribute != null && searchableAttribute.IsKey)
+                    {
+                        var propertyName = property.Name;
+                        var propertyValue = property.GetValue(document);
+
+                        Console.WriteLine($"Found key property: {propertyName}, Value: {propertyValue}");
+                        await _searchClient.DeleteDocumentsAsync(propertyName, new[] { propertyValue?.ToString() });
+
+                        _logger.LogInformation("Deleted vector from Cognitive Search");
+                        return;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -165,13 +182,10 @@ namespace VectorSearchAiAssistant.Service.Services
             {
                 if (onlyCreateIfNotExists)
                 {
-                    await foreach (var result in indexClient.GetIndexNamesAsync())
+                    if (await indexClient.GetIndexAsync(indexName) != null)
                     {
-                        if (string.Equals(result.ToLower(), indexName.ToLower(), StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            _logger.LogInformation($"The {indexName} index already exists; skipping index creation.");
-                            return;
-                        }
+                        _logger.LogInformation($"The {indexName} index already exists; skipping index creation.");
+                        return;
                     }
                 }
 

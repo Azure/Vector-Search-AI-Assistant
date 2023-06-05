@@ -2,7 +2,7 @@
 
 namespace VectorSearchAiAssistant.Service.Interfaces;
 
-public interface ICognitiveSearchServiceQueries
+public interface IVectorDatabaseServiceQueries
 {
     Task<string> VectorSearchAsync(float[] embeddings);
 }
