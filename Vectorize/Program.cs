@@ -76,7 +76,9 @@ var host = new HostBuilder()
                     azureSearchServiceEndpoint: cognitiveSearchOptions.Value?.Endpoint ?? string.Empty,
                     azureSearchIndexName: cognitiveSearchOptions.Value?.IndexName ?? string.Empty,
                     maxVectorSearchResults: cognitiveSearchOptions.Value?.MaxVectorSearchResults ?? string.Empty,
-                    logger: provider.GetRequiredService<ILogger<CognitiveSearch>>()
+                    logger: provider.GetRequiredService<ILogger<CognitiveSearch>>(),
+                    // Create the Cognitive Services index if it doesn't exist.
+                    createIndexIfNotExists: true
                 );
             }
         });
