@@ -99,7 +99,10 @@ static class ProgramExtensions
                     azureSearchServiceEndpoint: cognitiveSearchOptions.Value?.Endpoint ?? string.Empty,
                     azureSearchIndexName: cognitiveSearchOptions.Value?.IndexName ?? string.Empty,
                     maxVectorSearchResults: cognitiveSearchOptions.Value?.MaxVectorSearchResults ?? string.Empty,
-                    logger: provider.GetRequiredService<ILogger<CognitiveSearch>>()
+                    logger: provider.GetRequiredService<ILogger<CognitiveSearch>>(),
+                    // Explicitly setting createIndexIfNotExists value to false because the Blazor app freezes and
+                    // does not render the UI when the service attempts to check if the index exists.
+                    createIndexIfNotExists:false
                 );
             }
         });

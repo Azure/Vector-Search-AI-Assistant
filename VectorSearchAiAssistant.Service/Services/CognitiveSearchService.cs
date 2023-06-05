@@ -22,7 +22,7 @@ namespace VectorSearchAiAssistant.Service.Services
         private readonly SearchClient _searchClient;
 
         public CognitiveSearchService(string azureSearchAdminKey, string azureSearchServiceEndpoint,
-            string azureSearchIndexName, string maxVectorSearchResults, ILogger logger)
+            string azureSearchIndexName, string maxVectorSearchResults, ILogger logger, bool createIndexIfNotExists = false)
         {
             _maxVectorSearchResults = int.TryParse(maxVectorSearchResults, out _maxVectorSearchResults) ? _maxVectorSearchResults : 10;
             _logger = logger;
@@ -41,16 +41,17 @@ namespace VectorSearchAiAssistant.Service.Services
             var indexClient = new SearchIndexClient(new Uri(azureSearchServiceEndpoint), searchCredential, options);
             _searchClient = indexClient.GetSearchClient(azureSearchIndexName);
 
+            if (!createIndexIfNotExists) return;
             // If the Azure Cognitive Search index does not exists, create the index.
-            //try
-            //{
-            //    CreateIndexAsync(indexClient, azureSearchIndexName, true).Wait();
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError("Azure Cognitive Search index creation failure: " + ex.Message);
-            //    throw;
-            //}
+            try
+            {
+                CreateIndexAsync(indexClient, azureSearchIndexName, true).Wait();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Azure Cognitive Search index creation failure: " + ex.Message);
+                throw;
+            }
         }
 
         public async Task InsertVector(object document)
