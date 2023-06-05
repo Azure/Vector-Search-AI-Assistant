@@ -11,6 +11,7 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults(builder =>
     {
         builder.Services.AddLogging();
+        
 
         builder.Services.AddOptions<OpenAi>()
             .Configure<IConfiguration>((settings, configuration) =>
@@ -29,6 +30,10 @@ var host = new HostBuilder()
             {
                 configuration.GetSection(nameof(CosmosDb)).Bind(settings);
             });
+    })
+    .ConfigureAppConfiguration(con =>
+    {
+        con.AddUserSecrets<Program>(optional: true, reloadOnChange: false);
     })
     .ConfigureServices(s =>
     {
