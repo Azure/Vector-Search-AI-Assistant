@@ -12,14 +12,14 @@ namespace Vectorize
     public class AddRemoveData
     {
 
-        private readonly ICognitiveSearchServiceManagement _cognitiveSearchService;
+        private readonly IVectorDatabaseServiceManagement _vectorDatabaseService;
         private readonly ICosmosDbService _cosmosDbService;
         private readonly ILogger _logger;
 
-        public AddRemoveData(ICognitiveSearchServiceManagement cognitiveSearchService, ICosmosDbService cosmosDbService,
+        public AddRemoveData(IVectorDatabaseServiceManagement vectorDatabaseService, ICosmosDbService cosmosDbService,
             ILoggerFactory loggerFactory)
         {
-            _cognitiveSearchService = cognitiveSearchService;
+            _vectorDatabaseService = vectorDatabaseService;
             _cosmosDbService = cosmosDbService;
             _logger = loggerFactory.CreateLogger<AddRemoveData>();
         }
@@ -81,7 +81,7 @@ namespace Vectorize
             try
             {
                     //just ignore any error
-                    await _cognitiveSearchService.DeleteVector(GetCosmicSock);
+                    await _vectorDatabaseService.DeleteVector(GetCosmicSock);
 
                     _logger.LogInformation("Removed Cosmic Sock from product");
 

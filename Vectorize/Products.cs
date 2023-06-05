@@ -10,14 +10,14 @@ namespace Vectorize
     {
 
         private readonly IOpenAiService _openAiService;
-        private readonly ICognitiveSearchServiceManagement _cognitiveSearchService;
+        private readonly IVectorDatabaseServiceManagement _vectorDatabaseService;
         private readonly ILogger _logger;
 
-        public Products(IOpenAiService openAiService, ICognitiveSearchServiceManagement cognitiveSearchService,
+        public Products(IOpenAiService openAiService, IVectorDatabaseServiceManagement vectorDatabaseService,
             ILoggerFactory loggerFactory)
         {
             _openAiService = openAiService;
-            _cognitiveSearchService = cognitiveSearchService;
+            _vectorDatabaseService = vectorDatabaseService;
             _logger = loggerFactory.CreateLogger<Products>();
         }
 
@@ -56,7 +56,7 @@ namespace Vectorize
                 product.vector = vector;
 
                 // Save to Cognitive Search
-                await _cognitiveSearchService.InsertVector(product);
+                await _vectorDatabaseService.InsertVector(product);
 
                 _logger.LogInformation("Saved vector for product: " + product.name);
             }

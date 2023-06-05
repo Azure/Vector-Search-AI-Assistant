@@ -13,14 +13,14 @@ namespace Vectorize
     {
 
         private readonly IOpenAiService _openAiService;
-        private readonly ICognitiveSearchServiceManagement _cognitiveSearchService;
+        private readonly IVectorDatabaseServiceManagement _vectorDatabaseService;
         private readonly ILogger _logger;
 
-        public CustomersAndOrders(IOpenAiService openAiService, ICognitiveSearchServiceManagement cognitiveSearchService,
+        public CustomersAndOrders(IOpenAiService openAiService, IVectorDatabaseServiceManagement vectorDatabaseService,
             ILoggerFactory loggerFactory)
         {
             _openAiService = openAiService;
-            _cognitiveSearchService = cognitiveSearchService;
+            _vectorDatabaseService = vectorDatabaseService;
             _logger = loggerFactory.CreateLogger<CustomersAndOrders>();
         }
 
@@ -82,7 +82,7 @@ namespace Vectorize
                 customer.vector = vector;
 
                 // Save to Cognitive Search
-                await _cognitiveSearchService.InsertVector(customer);
+                await _vectorDatabaseService.InsertVector(customer);
 
                 _logger.LogInformation($"Saved vector for customer: {customer.firstName} {customer.lastName} ");
 
@@ -106,7 +106,7 @@ namespace Vectorize
                 salesOrder.vector = vector;
 
                 // Save to Cognitive Search
-                await _cognitiveSearchService.InsertVector(salesOrder);
+                await _vectorDatabaseService.InsertVector(salesOrder);
 
                 _logger.LogInformation($"Saved vector for sales order id: {salesOrder.id} and customer id: {salesOrder.customerId} ");
 

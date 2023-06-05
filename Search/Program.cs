@@ -83,7 +83,7 @@ static class ProgramExtensions
                 );
             }
         });
-        services.AddSingleton<ICognitiveSearchServiceQueries, CognitiveSearchService>((provider) =>
+        services.AddSingleton<IVectorDatabaseServiceQueries, VectorDatabaseService>((provider) =>
         {
             var cognitiveSearchOptions = provider.GetRequiredService<IOptions<CognitiveSearch>>();
 
@@ -93,7 +93,7 @@ static class ProgramExtensions
             }
             else
             {
-                return new CognitiveSearchService
+                return new VectorDatabaseService
                 (
                     azureSearchAdminKey: cognitiveSearchOptions.Value?.AdminKey ?? string.Empty,
                     azureSearchServiceEndpoint: cognitiveSearchOptions.Value?.Endpoint ?? string.Empty,
