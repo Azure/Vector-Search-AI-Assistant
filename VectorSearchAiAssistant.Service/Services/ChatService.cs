@@ -116,33 +116,33 @@ public class ChatService : IChatService
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        //Retrieve conversation, including latest prompt.
-        //If you put this after the vector search it doesn't take advantage of previous information given so harder to chain prompts together.
-        //However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
-        //string conversation = GetChatSessionConversation(sessionId, userPrompt);
+        // Retrieve conversation, including latest prompt.
+        // If you put this after the vector search it doesn't take advantage of previous information given so harder to chain prompts together.
+        // However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
+        // string conversation = GetChatSessionConversation(sessionId, userPrompt);
 
 
-        //Get embeddings for user prompt.
+        // Get embeddings for user prompt.
         (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(userPrompt, sessionId);
 
 
 
-        //Do vector search on prompt embeddings, return list of documents
+        // Do vector search on prompt embeddings, return list of documents
         string retrievedDocuments = await _vectorDatabaseService.VectorSearchAsync(promptVectors);
 
 
-        //Retrieve conversation, including latest prompt.
+        // Retrieve conversation, including latest prompt.
         string conversation = GetChatSessionConversation(sessionId, userPrompt);
 
 
 
-        //Generate the completion to return to the user
+        // Generate the completion to return to the user
         (string completion, int promptTokens, int responseTokens) = await _openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
 
 
-        //Add to prompt and completion to cache, then persist in Cosmos as transaction 
-        Message promptMessage = new Message(sessionId, nameof(Participants.User), promptTokens, userPrompt);
-        Message completionMessage = new Message(sessionId, nameof(Participants.Assistant), responseTokens, completion);        
+        // Add to prompt and completion to cache, then persist in Cosmos as transaction 
+        var promptMessage = new Message(sessionId, nameof(Participants.User), promptTokens, userPrompt, promptVectors);
+        var completionMessage = new Message(sessionId, nameof(Participants.Assistant), responseTokens, completion, null);        
         await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage);
 
 
@@ -165,7 +165,7 @@ public class ChatService : IChatService
 
         List<Message> messages = _sessions[index].Messages;
 
-        //Start at the end of the list and work backwards
+        // Start at the end of the list and work backwards
         for (int i = messages.Count - 1; i >= 0; i--)
         {
 
@@ -179,10 +179,10 @@ public class ChatService : IChatService
 
         }
 
-        //Invert the chat messages to put back into chronological order and output as string.        
+        // Invert the chat messages to put back into chronological order and output as string.        
         string conversation = string.Join(Environment.NewLine, conversationBuilder.Reverse<string>());
 
-        //Add the current userPrompt
+        // Add the current userPrompt
         conversation += Environment.NewLine + userPrompt;
 
         return conversation;
@@ -206,7 +206,7 @@ public class ChatService : IChatService
     /// </summary>
     private async Task<Message> AddPromptMessageAsync(string sessionId, string promptText)
     {
-        Message promptMessage = new(sessionId, nameof(Participants.User), default, promptText);
+        Message promptMessage = new(sessionId, nameof(Participants.User), default, promptText, null);
 
         int index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
@@ -225,12 +225,12 @@ public class ChatService : IChatService
         int index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
 
-        //Add prompt and completion to the cache
+        // Add prompt and completion to the cache
         _sessions[index].AddMessage(promptMessage);
         _sessions[index].AddMessage(completionMessage);
 
 
-        //Update session cache with tokens used
+        // Update session cache with tokens used
         _sessions[index].TokensUsed += promptMessage.Tokens;
         _sessions[index].TokensUsed += completionMessage.Tokens;
 
