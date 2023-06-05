@@ -1,3 +1,6 @@
+using System.Dynamic;
+using System.Reflection.Metadata;
+using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -29,7 +32,7 @@ namespace Vectorize
                 StartFromBeginning = true,
                 Connection = "CosmosDBConnection",
                 LeaseContainerName = "leases",
-                CreateLeaseContainerIfNotExists = true)]IReadOnlyList<JObject> input)
+                CreateLeaseContainerIfNotExists = true)]IReadOnlyList<JsonDocument> input)
         {
 
             if (input != null && input.Count > 0)
@@ -38,23 +41,29 @@ namespace Vectorize
                 _logger.LogInformation("Generating embeddings for " + input.Count + " Customers and Sales Orders");
 
                 // Using dynamic type as this container has two different entities
-                foreach (dynamic item in input)
+                foreach (var item in input)
                 {
-                    if (item.type == "customer")
+                    var type = "";
+                    using (var doc = JsonDocument.Parse(item.RootElement.GetRawText()))
                     {
-                        Customer customer = item.ToObject<Customer>();
+                        var obj = doc.RootElement.GetProperty("type");
+                        type = obj.GetString();
+                    }
+                    
+                    if (type == "customer")
+                    {
+                        var customer = JsonSerializer.Deserialize<Customer>(item.RootElement.GetRawText());
                         await GenerateCustomerVectors(customer);
                     }
-
-                    else if (item.type == "salesOrder")
+                    else if (type == "salesOrder")
                     {
-                        SalesOrder salesOrder = item.ToObject<SalesOrder>();
+                        var salesOrder = JsonSerializer.Deserialize<SalesOrder>(item.RootElement.GetRawText());
                         await GenerateSalesOrderVectors(salesOrder);
 
                     }
                     else
                     {
-                        _logger.LogError($"Unsupported entity saved in customer container: {item.type}");
+                        _logger.LogError($"Unsupported entity saved in customer container: {type}");
                     }
                 }
             }
