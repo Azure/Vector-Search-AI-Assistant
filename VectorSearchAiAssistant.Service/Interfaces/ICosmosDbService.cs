@@ -33,6 +33,13 @@ public interface ICosmosDbService
     Task<Message> InsertMessageAsync(Message message);
 
     /// <summary>
+    /// Updates an existing chat message.
+    /// </summary>
+    /// <param name="message">Chat message item to update.</param>
+    /// <returns>Revised chat message item.</returns>
+    Task<Message> UpdateMessageAsync(Message message);
+
+    /// <summary>
     /// Updates an existing chat session.
     /// </summary>
     /// <param name="session">Chat session item to update.</param>
