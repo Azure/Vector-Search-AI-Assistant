@@ -40,6 +40,15 @@ public interface ICosmosDbService
     Task<Message> UpdateMessageAsync(Message message);
 
     /// <summary>
+    /// Updates a message's rating through a patch operation.
+    /// </summary>
+    /// <param name="id">The message id.</param>
+    /// <param name="sessionId">The message's partition key (session id).</param>
+    /// <param name="rating">The rating to replace.</param>
+    /// <returns>Revised chat message item.</returns>
+    Task<Message> UpdateMessageRatingAsync(string id, string sessionId, bool? rating);
+
+    /// <summary>
     /// Updates an existing chat session.
     /// </summary>
     /// <param name="session">Chat session item to update.</param>
