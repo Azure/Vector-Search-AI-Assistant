@@ -1,4 +1,5 @@
-﻿using VectorSearchAiAssistant.Service.Constants;
+﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+using VectorSearchAiAssistant.Service.Constants;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
 
@@ -141,8 +142,8 @@ public class ChatService : IChatService
 
 
         // Add to prompt and completion to cache, then persist in Cosmos as transaction 
-        var promptMessage = new Message(sessionId, nameof(Participants.User), promptTokens, userPrompt, promptVectors);
-        var completionMessage = new Message(sessionId, nameof(Participants.Assistant), responseTokens, completion, null);        
+        var promptMessage = new Message(sessionId, nameof(Participants.User), promptTokens, userPrompt, promptVectors, null);
+        var completionMessage = new Message(sessionId, nameof(Participants.Assistant), responseTokens, completion, null, null);        
         await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage);
 
 
@@ -206,7 +207,7 @@ public class ChatService : IChatService
     /// </summary>
     private async Task<Message> AddPromptMessageAsync(string sessionId, string promptText)
     {
-        Message promptMessage = new(sessionId, nameof(Participants.User), default, promptText, null);
+        Message promptMessage = new(sessionId, nameof(Participants.User), default, promptText, null, null);
 
         int index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
@@ -237,5 +238,21 @@ public class ChatService : IChatService
 
         await _cosmosDbService.UpsertSessionBatchAsync(promptMessage, completionMessage, _sessions[index]);
 
+    }
+
+    /// <summary>
+    /// Rate an assistant message. This can be used to discover useful AI responses for training, discoverability, and other benefits down the road.
+    /// </summary>
+    public async Task<Message> RateMessageAsync(Message message, bool? rating)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        if (message.Sender != nameof(Participants.Assistant))
+        {
+            throw new Exception("Only assistant messages can be rated");
+        }
+
+        message.Rating = rating;
+
+        return await _cosmosDbService.UpdateMessageAsync(message);
     }
 }

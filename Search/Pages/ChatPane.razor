@@ -116,6 +116,31 @@
                                     }
                                     @html
                                 </div>
+                                @if (msg.Sender == nameof(Participants.Assistant))
+                                {
+                                    <div class="rating-buttons mt-2">
+                                        @if (msg.Rating is null)
+                                        {
+                                            <button class="btn btn-link text-success" @onclick="() => RateMessage(msg.Id, true)">
+                                                <i class="bi bi-hand-thumbs-up"></i> Like
+                                            </button>
+                                            <button class="btn btn-link text-danger" @onclick="() => RateMessage(msg.Id, false)">
+                                                <i class="bi bi-hand-thumbs-down"></i> Dislike
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <div class="undo-container">
+                                                <span class="badge rounded-pill @(msg.Rating.Value ? "bg-success" : "bg-danger")">
+                                                    @(msg.Rating.Value ? "Liked" : "Disliked")
+                                                </span>
+                                                <button class="btn btn-link text-secondary" @onclick="() => UndoRating(msg.Id)" data-bs-toggle="tooltip" data-bs-placement="top" title="Undo Rating">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </div>
                         }
                     </div>
@@ -200,6 +225,24 @@
         }
 
         _loadingComplete = true;
+    }
+
+    private async Task RateMessage(string messageId, bool rating)
+    {
+        var message = _messagesInChat?.FirstOrDefault(m => m.Id == messageId);
+        if (message != null)
+        {
+            message = await chatService.RateMessageAsync(message, rating);
+        }
+    }
+
+    private async Task UndoRating(string messageId)
+    {
+        var message = _messagesInChat?.FirstOrDefault(m => m.Id == messageId);
+        if (message != null)
+        {
+            message = await chatService.RateMessageAsync(message, null);
+        }
     }
 
     public void ChangeCurrentChatSession(Session session)

@@ -146,6 +146,21 @@ namespace VectorSearchAiAssistant.Service.Services
         }
 
         /// <summary>
+        /// Updates an existing chat message.
+        /// </summary>
+        /// <param name="message">Chat message item to update.</param>
+        /// <returns>Revised chat message item.</returns>
+        public async Task<Message> UpdateMessageAsync(Message message)
+        {
+            PartitionKey partitionKey = new(message.SessionId);
+            return await _completions.ReplaceItemAsync(
+                item: message,
+                id: message.Id,
+                partitionKey: partitionKey
+            );
+        }
+
+        /// <summary>
         /// Updates an existing chat session.
         /// </summary>
         /// <param name="session">Chat session item to update.</param>

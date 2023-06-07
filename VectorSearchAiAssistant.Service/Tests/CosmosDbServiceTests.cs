@@ -59,8 +59,8 @@ namespace VectorSearchAiAssistant.Service.Tests
             const string sessionId = "93c578d9-d039-4b31-96b5-8992cb40e96d";
             var expectedMessages = new List<Message>
             {
-                new Message(sessionId, "User", 1536, "What kind of socks do you have available?", null),
-                new Message(sessionId, "Assistant", 26, "We have two types of socks available: Racing Socks and Mountain Bike Socks. Both are available in sizes L and M.", null),
+                new Message(sessionId, "User", 1536, "What kind of socks do you have available?", null, null),
+                new Message(sessionId, "Assistant", 26, "We have two types of socks available: Racing Socks and Mountain Bike Socks. Both are available in sizes L and M.", null, null),
             };
             _cosmosDbServiceMock.Setup(s => s.GetSessionMessagesAsync(sessionId))
                 .ReturnsAsync(expectedMessages);

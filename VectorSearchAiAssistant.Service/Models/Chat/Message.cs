@@ -24,10 +24,12 @@ public record Message
     public int? Tokens { get; set; }
     [SimpleField]
     public string Text { get; set; }
+    [SimpleField]
+    public bool? Rating { get; set; }
     [FieldBuilderIgnore]
     public float[]? Vector { get; set; }
 
-    public Message(string sessionId, string sender, int? tokens, string text, float[]? vector)
+    public Message(string sessionId, string sender, int? tokens, string text, float[]? vector, bool? rating)
     {
         Id = Guid.NewGuid().ToString();
         Type = nameof(Message);
@@ -36,6 +38,7 @@ public record Message
         Tokens = tokens ?? 0;
         TimeStamp = DateTime.UtcNow;
         Text = text;
+        Rating = rating;
         Vector = vector;
     }
 }

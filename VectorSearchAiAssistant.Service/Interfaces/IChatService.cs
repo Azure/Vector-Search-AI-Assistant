@@ -35,4 +35,9 @@ public interface IChatService
     Task<string> GetChatCompletionAsync(string? sessionId, string userPrompt);
 
     Task<string> SummarizeChatSessionNameAsync(string? sessionId, string prompt);
+
+    /// <summary>
+    /// Rate an assistant message. This can be used to discover useful AI responses for training, discoverability, and other benefits down the road.
+    /// </summary>
+    Task<Message> RateMessageAsync(Message message, bool? rating);
 }
