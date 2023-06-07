@@ -243,16 +243,11 @@ public class ChatService : IChatService
     /// <summary>
     /// Rate an assistant message. This can be used to discover useful AI responses for training, discoverability, and other benefits down the road.
     /// </summary>
-    public async Task<Message> RateMessageAsync(Message message, bool? rating)
+    public async Task<Message> RateMessageAsync(string id, string sessionId, bool? rating)
     {
-        ArgumentNullException.ThrowIfNull(message);
-        if (message.Sender != nameof(Participants.Assistant))
-        {
-            throw new Exception("Only assistant messages can be rated");
-        }
+        ArgumentNullException.ThrowIfNull(id);
+        ArgumentNullException.ThrowIfNull(sessionId);
 
-        message.Rating = rating;
-
-        return await _cosmosDbService.UpdateMessageAsync(message);
+        return await _cosmosDbService.UpdateMessageRatingAsync(id, sessionId, rating);
     }
 }
