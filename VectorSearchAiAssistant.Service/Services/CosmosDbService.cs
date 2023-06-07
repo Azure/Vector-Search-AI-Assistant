@@ -161,6 +161,26 @@ namespace VectorSearchAiAssistant.Service.Services
         }
 
         /// <summary>
+        /// Updates a message's rating through a patch operation.
+        /// </summary>
+        /// <param name="id">The message id.</param>
+        /// <param name="sessionId">The message's partition key (session id).</param>
+        /// <param name="rating">The rating to replace.</param>
+        /// <returns>Revised chat message item.</returns>
+        public async Task<Message> UpdateMessageRatingAsync(string id, string sessionId, bool? rating)
+        {
+            var response = await _completions.PatchItemAsync<Message>(
+                id: id,
+                partitionKey: new PartitionKey(sessionId),
+                patchOperations: new[]
+                {
+                    PatchOperation.Replace("/rating", rating),
+                }
+            );
+            return response.Resource;
+        }
+
+        /// <summary>
         /// Updates an existing chat session.
         /// </summary>
         /// <param name="session">Chat session item to update.</param>

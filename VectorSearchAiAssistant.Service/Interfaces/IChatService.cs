@@ -39,5 +39,5 @@ public interface IChatService
     /// <summary>
     /// Rate an assistant message. This can be used to discover useful AI responses for training, discoverability, and other benefits down the road.
     /// </summary>
-    Task<Message> RateMessageAsync(Message message, bool? rating);
+    Task<Message> RateMessageAsync(string id, string sessionId, bool? rating);
 }
