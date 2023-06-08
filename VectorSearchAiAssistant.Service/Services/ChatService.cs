@@ -8,11 +8,6 @@ namespace VectorSearchAiAssistant.Service.Services;
 
 public class ChatService : IChatService
 {
-    /// <summary>
-    /// All data is cached in the _sessions List object.
-    /// </summary>
-    private static List<Session> _sessions = new();
-
     private readonly ICosmosDbService _cosmosDbService;
     private readonly IOpenAiService _openAiService;
     private readonly IVectorDatabaseServiceQueries _vectorDatabaseService;
@@ -26,7 +21,6 @@ public class ChatService : IChatService
         _vectorDatabaseService = vectorDatabaseService;
 
         _maxConversationBytes = openAiService.MaxConversationBytes;
-        //_sessions = GetAllChatSessionsAsync().Result;
     }
 
     /// <summary>
@@ -34,79 +28,44 @@ public class ChatService : IChatService
     /// </summary>
     public async Task<List<Session>> GetAllChatSessionsAsync()
     {
-        return _sessions = await _cosmosDbService.GetSessionsAsync();
+        return await _cosmosDbService.GetSessionsAsync();
     }
 
     /// <summary>
     /// Returns the chat messages to display on the main web page when the user selects a chat from the left-hand nav
     /// </summary>
-    public async Task<List<Message>> GetChatSessionMessagesAsync(string? sessionId)
+    public async Task<List<Message>> GetChatSessionMessagesAsync(string sessionId)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
-
-        List<Message> chatMessages;
-
-        if (_sessions.Count == 0)
-        {
-            return Enumerable.Empty<Message>().ToList();
-        }
-
-        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
-
-        if (_sessions[index].Messages.Count == 0)
-        {
-            // Messages are not cached, go read from database
-            chatMessages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
-
-            // Cache results
-            _sessions[index].Messages = chatMessages;
-        }
-        else
-        {
-            // Load from cache
-            chatMessages = _sessions[index].Messages;
-        }
-
-        return chatMessages;
+        return await _cosmosDbService.GetSessionMessagesAsync(sessionId);
     }
 
     /// <summary>
     /// User creates a new Chat Session.
     /// </summary>
-    public async Task CreateNewChatSessionAsync()
+    public async Task<Session> CreateNewChatSessionAsync()
     {
         Session session = new();
-
-        _sessions.Add(session);
-
-        await _cosmosDbService.InsertSessionAsync(session);
+        return await _cosmosDbService.InsertSessionAsync(session);
     }
 
     /// <summary>
-    /// Rename the Chat Ssssion from "New Chat" to the summary provided by OpenAI
+    /// Rename the Chat Session from "New Chat" to the summary provided by OpenAI
     /// </summary>
-    public async Task RenameChatSessionAsync(string? sessionId, string newChatSessionName)
+    public async Task<Session> RenameChatSessionAsync(string sessionId, string newChatSessionName)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
+        ArgumentException.ThrowIfNullOrEmpty(newChatSessionName);
 
-        int index = _sessions.FindIndex(s => s.SessionId == sessionId);
-
-        _sessions[index].Name = newChatSessionName;
-
-        await _cosmosDbService.UpdateSessionAsync(_sessions[index]);
+        return await _cosmosDbService.UpdateSessionNameAsync(sessionId, newChatSessionName);
     }
 
     /// <summary>
     /// User deletes a chat session
     /// </summary>
-    public async Task DeleteChatSessionAsync(string? sessionId)
+    public async Task DeleteChatSessionAsync(string sessionId)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
-
-        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
-
-        _sessions.RemoveAt(index);
-
         await _cosmosDbService.DeleteSessionAndMessagesAsync(sessionId);
     }
 
@@ -130,7 +89,8 @@ public class ChatService : IChatService
         var retrievedDocuments = await _vectorDatabaseService.VectorSearchAsync(promptVectors);
 
         // Retrieve conversation, including latest prompt.
-        var conversation = GetChatSessionConversation(sessionId, userPrompt);
+        var messages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
+        var conversation = GetChatSessionConversation(messages, userPrompt);
 
         // Generate the completion to return to the user
         (string completion, int promptTokens, int responseTokens) = await _openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
@@ -146,14 +106,10 @@ public class ChatService : IChatService
     /// <summary>
     /// Get current conversation from newest to oldest up to max conversation tokens and add to the prompt
     /// </summary>
-    private string GetChatSessionConversation(string sessionId, string userPrompt)
+    private string GetChatSessionConversation(List<Message> messages, string userPrompt)
     {
         int? bytesUsed = 0;
         var conversationBuilder = new List<string>();
-
-        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
-
-        var messages = _sessions[index].Messages;
 
         // Start at the end of the list and work backwards
         for (var i = messages.Count - 1; i >= 0; i--)
@@ -193,10 +149,6 @@ public class ChatService : IChatService
     {
         Message promptMessage = new(sessionId, nameof(Participants.User), default, promptText, null, null);
 
-        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
-
-        _sessions[index].AddMessage(promptMessage);
-
         return await _cosmosDbService.InsertMessageAsync(promptMessage);
     }
 
@@ -207,17 +159,13 @@ public class ChatService : IChatService
     private async Task AddPromptCompletionMessagesAsync(string sessionId, Message promptMessage, Message completionMessage)
     {
 
-        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
-
-        // Add prompt and completion to the cache
-        _sessions[index].AddMessage(promptMessage);
-        _sessions[index].AddMessage(completionMessage);
+        var session = await _cosmosDbService.GetSessionAsync(sessionId);
 
         // Update session cache with tokens used
-        _sessions[index].TokensUsed += promptMessage.Tokens;
-        _sessions[index].TokensUsed += completionMessage.Tokens;
+        session.TokensUsed += promptMessage.Tokens;
+        session.TokensUsed += completionMessage.Tokens;
 
-        await _cosmosDbService.UpsertSessionBatchAsync(promptMessage, completionMessage, _sessions[index]);
+        await _cosmosDbService.UpsertSessionBatchAsync(promptMessage, completionMessage,session);
     }
 
     /// <summary>
