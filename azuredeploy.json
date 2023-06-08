@@ -50,20 +50,6 @@
         "description": "Specifies the SKU for the Azure OpenAI resource. Defaults to **S0**"
       }
     },
-    "mongoDbUserName": {
-      "type": "string",
-      "metadata": {
-        "description": "MongoDb vCore user Name. No dashes."
-      }
-    },
-    "mongoDbPassword": {
-      "type": "securestring",
-      "maxLength": 256,
-      "minLength": 8,
-      "metadata": {
-        "description": "MongoDb vCore password. 8-256 characters, 3 of the following: lower case, upper case, numeric, symbol."
-      }
-    },
     "appGitRepository": {
       "type": "string",
       "defaultValue": "https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git",
@@ -73,7 +59,7 @@
     },
     "appGetRepositoryBranch": {
       "type": "string",
-      "defaultValue": "MongovCore",
+      "defaultValue": "cognitive-search-vector",
       "metadata": {
         "description": "Git repository branch for the application source. This defaults to the [**MongovCore** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/MongovCore) repository."
       }
@@ -114,10 +100,9 @@
       "name": "[format('{0}-cosmos-nosql', parameters('name'))]",
       "databaseName": "database"
     },
-    "mongovCoreSettings": {
-      "mongoClusterName": "[format('{0}-mongo', parameters('name'))]",
-      "mongoClusterLogin": "[parameters('mongoDbUserName')]",
-      "mongoClusterPassword": "[parameters('mongoDbPassword')]"
+    "cognitiveSearchSettings": {
+      "name": "[format('{0}-cog-search', parameters('name'))]",
+      "sku": "basic"
     },
     "cosmosContainers": {
       "embeddingContainer": {
@@ -231,48 +216,29 @@
       ]
     },
     {
-      "type": "Microsoft.DocumentDB/mongoClusters",
-      "apiVersion": "2023-03-01-preview",
-      "name": "[variables('mongovCoreSettings').mongoClusterName]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "administratorLogin": "[variables('mongovCoreSettings').mongoClusterLogin]",
-        "administratorLoginPassword": "[variables('mongovCoreSettings').mongoClusterPassword]",
-        "serverVersion": "5.0",
-        "nodeGroupSpecs": [
-          {
-            "kind": "Shard",
-            "sku": "M30",
-            "diskSizeGB": 128,
-            "enableHa": false,
-            "nodeCount": 1
-          }
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.DocumentDB/mongoClusters/firewallRules",
-      "apiVersion": "2023-03-01-preview",
-      "name": "[format('{0}/{1}', variables('mongovCoreSettings').mongoClusterName, 'allowAzure')]",
-      "properties": {
-        "startIpAddress": "0.0.0.0",
-        "endIpAddress": "0.0.0.0"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongovCoreSettings').mongoClusterName)]"
-      ]
-    },
-    {
-      "type": "Microsoft.DocumentDB/mongoClusters/firewallRules",
-      "apiVersion": "2023-03-01-preview",
-      "name": "[format('{0}/{1}', variables('mongovCoreSettings').mongoClusterName, 'allowAll')]",
-      "properties": {
-        "startIpAddress": "0.0.0.0",
-        "endIpAddress": "255.255.255.255"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongovCoreSettings').mongoClusterName)]"
-      ]
+        "type": "Microsoft.Search/searchServices",
+        "apiVersion": "2022-09-01",
+        "name": "[variables('cognitiveSearchSettings').name]",
+        "location": "[parameters('location')]",
+        "sku": {
+            "name": "[variables('cognitiveSearchSettings').sku]"
+        },
+        "properties": {
+            "replicaCount": 1,
+            "partitionCount": 1,
+            "hostingMode": "default",
+            "publicNetworkAccess": "Enabled",
+            "networkRuleSet": {
+                "ipRules": []
+            },
+            "encryptionWithCmk": {
+                "enforcement": "Unspecified"
+            },
+            "disableLocalAuth": false,
+            "authOptions": {
+                "apiKeyOnly": {}
+            }
+        }
     },
     {
       "type": "Microsoft.CognitiveServices/accounts",
@@ -381,6 +347,10 @@
       "kind": "string",
       "properties": {
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', variables('appServiceSettings').web.name), '2020-02-02').InstrumentationKey]",
+        "COGNITIVESEARCH__ENDPOINT": "[reference(resourceId('Microsoft.Search/searchServices', variables('cognitiveSearchSettings').name), '2022-09-01').endpoint]",
+        "COGNITIVESEARCH__ADMINKEY": "[listKeys(resourceId('Microsoft.Search/searchServices', variables('cognitiveSearchSettings').name), '2022-09-01').primaryKey]",
+        "COGNITIVESEARCH__INDEXNAME": "vector-index",
+        "COGNITIVESEARCH__MAXVECTORSEARCHRESULTS": "10",
         "COSMOSDB__ENDPOINT": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name), '2022-08-15').documentEndpoint]",
         "COSMOSDB__KEY": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name), '2022-08-15').primaryMasterKey]",
         "COSMOSDB__DATABASE": "[variables('cosmosDbSettings').databaseName]",
@@ -389,11 +359,7 @@
         "OPENAI__KEY": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').key1]",
         "OPENAI__EMBEDDINGSDEPLOYMENT": "[variables('openAiSettings').embeddingsModel.deployment.name]",
         "OPENAI__COMPLETIONSDEPLOYMENT": "[variables('openAiSettings').completionsModel.deployment.name]",
-        "OPENAI__MAXCONVERSATIONBYTES": "[variables('openAiSettings').maxConversationBytes]",
-        "MONGODB__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').mongoClusterLogin, variables('mongovCoreSettings').mongoClusterPassword, variables('mongovCoreSettings').mongoClusterName)]",
-        "MONGODB__DATABASENAME": "vectordb",
-        "MONGODB__COLLECTIONNAME": "vectors",
-        "MONGODB__MAXVECTORSEARCHRESULTS": "10"
+        "OPENAI__MAXCONVERSATIONBYTES": "[variables('openAiSettings').maxConversationBytes]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('appServiceSettings').web.name)]",
@@ -402,7 +368,8 @@
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').completionsModel.deployment.name)]",
-        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]"
+        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]",
+        "[resourceId('Microsoft.Search/searchServices', variables('cognitiveSearchSettings').name)]"
       ]
     },
     {
@@ -415,14 +382,14 @@
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', variables('appServiceSettings').function.name), '2020-02-02').ConnectionString]",
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+        "COGNITIVESEARCH__ENDPOINT": "[reference(resourceId('Microsoft.Search/searchServices', variables('cognitiveSearchSettings').name), '2022-09-01').endpoint]",
+        "COGNITIVESEARCH__ADMINKEY": "[listKeys(resourceId('Microsoft.Search/searchServices', variables('cognitiveSearchSettings').name), '2022-09-01').primaryKey]",
+        "COGNITIVESEARCH__INDEXNAME": "vector-index",
         "CosmosDBConnection": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name), '2022-08-15').connectionStrings[0].connectionString]",
         "OPENAI__ENDPOINT": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').endpoint]",
         "OPENAI__KEY": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '2022-12-01').key1]",
         "OPENAI__EMBEDDINGSDEPLOYMENT": "[variables('openAiSettings').embeddingsModel.deployment.name]",
-        "OPENAI__MAXTOKENS": "8191",
-        "MONGODB__CONNECTION": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000', variables('mongovCoreSettings').mongoClusterLogin, variables('mongovCoreSettings').mongoClusterPassword, variables('mongovCoreSettings').mongoClusterName)]",
-        "MONGODB__DATABASENAME": "vectordb",
-        "MONGODB__COLLECTIONNAME": "vectors"
+        "OPENAI__MAXTOKENS": "8191"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', variables('appServiceSettings').function.name)]",
@@ -430,7 +397,8 @@
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
         "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]",
-        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}fnstorage', parameters('name')))]"
+        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}fnstorage', parameters('name')))]",
+        "[resourceId('Microsoft.Search/searchServices', variables('cognitiveSearchSettings').name)]"
       ]
     },
     {
