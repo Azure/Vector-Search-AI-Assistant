@@ -26,7 +26,7 @@ public class ChatService : IChatService
         _vectorDatabaseService = vectorDatabaseService;
 
         _maxConversationBytes = openAiService.MaxConversationBytes;
-        _sessions = GetAllChatSessionsAsync().Result;
+        //_sessions = GetAllChatSessionsAsync().Result;
     }
 
     /// <summary>
