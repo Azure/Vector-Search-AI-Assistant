@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using VectorSearchAiAssistant.Service.Constants;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
@@ -25,7 +26,7 @@ public class ChatService : IChatService
         _vectorDatabaseService = vectorDatabaseService;
 
         _maxConversationBytes = openAiService.MaxConversationBytes;
-
+        _sessions = GetAllChatSessionsAsync().Result;
     }
 
     /// <summary>
@@ -43,14 +44,14 @@ public class ChatService : IChatService
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        List<Message> chatMessages = new();
+        List<Message> chatMessages;
 
         if (_sessions.Count == 0)
         {
             return Enumerable.Empty<Message>().ToList();
         }
 
-        int index = _sessions.FindIndex(s => s.SessionId == sessionId);
+        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
         if (_sessions[index].Messages.Count == 0)
         {
@@ -79,7 +80,6 @@ public class ChatService : IChatService
         _sessions.Add(session);
 
         await _cosmosDbService.InsertSessionAsync(session);
-
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public class ChatService : IChatService
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        int index = _sessions.FindIndex(s => s.SessionId == sessionId);
+        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
         _sessions.RemoveAt(index);
 
@@ -126,26 +126,19 @@ public class ChatService : IChatService
         // Get embeddings for user prompt.
         (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(userPrompt, sessionId);
 
-
-
         // Do vector search on prompt embeddings, return list of documents
-        string retrievedDocuments = await _vectorDatabaseService.VectorSearchAsync(promptVectors);
-
+        var retrievedDocuments = await _vectorDatabaseService.VectorSearchAsync(promptVectors);
 
         // Retrieve conversation, including latest prompt.
-        string conversation = GetChatSessionConversation(sessionId, userPrompt);
-
-
+        var conversation = GetChatSessionConversation(sessionId, userPrompt);
 
         // Generate the completion to return to the user
         (string completion, int promptTokens, int responseTokens) = await _openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
-
 
         // Add to prompt and completion to cache, then persist in Cosmos as transaction 
         var promptMessage = new Message(sessionId, nameof(Participants.User), promptTokens, userPrompt, promptVectors, null);
         var completionMessage = new Message(sessionId, nameof(Participants.Assistant), responseTokens, completion, null, null);        
         await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage);
-
 
         return completion;
     }
@@ -155,47 +148,38 @@ public class ChatService : IChatService
     /// </summary>
     private string GetChatSessionConversation(string sessionId, string userPrompt)
     {
-
         int? bytesUsed = 0;
+        var conversationBuilder = new List<string>();
 
-        List<string> conversationBuilder = new List<string>();
+        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
-
-        int index = _sessions.FindIndex(s => s.SessionId == sessionId);
-
-
-        List<Message> messages = _sessions[index].Messages;
+        var messages = _sessions[index].Messages;
 
         // Start at the end of the list and work backwards
-        for (int i = messages.Count - 1; i >= 0; i--)
+        for (var i = messages.Count - 1; i >= 0; i--)
         {
-
             bytesUsed += messages[i].Text.Length;
 
             if (bytesUsed > _maxConversationBytes)
                 break;
 
-            
             conversationBuilder.Add(messages[i].Text);
-
         }
 
         // Invert the chat messages to put back into chronological order and output as string.        
-        string conversation = string.Join(Environment.NewLine, conversationBuilder.Reverse<string>());
+        var conversation = string.Join(Environment.NewLine, conversationBuilder.Reverse<string>());
 
         // Add the current userPrompt
         conversation += Environment.NewLine + userPrompt;
 
         return conversation;
-
-
     }
 
     public async Task<string> SummarizeChatSessionNameAsync(string? sessionId, string prompt)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        string response = await _openAiService.SummarizeAsync(sessionId, prompt);
+        var response = await _openAiService.SummarizeAsync(sessionId, prompt);
 
         await RenameChatSessionAsync(sessionId, response);
 
@@ -209,7 +193,7 @@ public class ChatService : IChatService
     {
         Message promptMessage = new(sessionId, nameof(Participants.User), default, promptText, null, null);
 
-        int index = _sessions.FindIndex(s => s.SessionId == sessionId);
+        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
         _sessions[index].AddMessage(promptMessage);
 
@@ -223,21 +207,17 @@ public class ChatService : IChatService
     private async Task AddPromptCompletionMessagesAsync(string sessionId, Message promptMessage, Message completionMessage)
     {
 
-        int index = _sessions.FindIndex(s => s.SessionId == sessionId);
-
+        var index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
         // Add prompt and completion to the cache
         _sessions[index].AddMessage(promptMessage);
         _sessions[index].AddMessage(completionMessage);
 
-
         // Update session cache with tokens used
         _sessions[index].TokensUsed += promptMessage.Tokens;
         _sessions[index].TokensUsed += completionMessage.Tokens;
 
-
         await _cosmosDbService.UpsertSessionBatchAsync(promptMessage, completionMessage, _sessions[index]);
-
     }
 
     /// <summary>
