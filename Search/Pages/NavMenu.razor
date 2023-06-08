@@ -1,6 +1,6 @@
 ﻿@using Search.Constants
 @using VectorSearchAiAssistant.Service.Interfaces
-@inject IChatService chatService
+@inject IChatManager chatManager
 
 
 <div class="h-100 d-flex flex-column" style="min-width: 275px;">
@@ -58,9 +58,9 @@
                                     <div class="card-footer d-flex align-items-between">
                                         <span class="flex-grow-1"></span>
                                         <div class="align-items-between">
-                                        <span class="me-2 badge rounded-pill bg-light" >
-                                            Tokens Used: @session.TokensUsed
-                                        </span>
+                                            <span class="me-2 badge rounded-pill bg-light">
+                                                Tokens Used: @session.TokensUsed
+                                            </span>
                                         </div>
                                         <div class="btn-group" role="group">
                                             <button type="button" class="btn btn-sm btn-link text-light" @onclick="@(e => OpenInput(session.SessionId,session.Name))">
@@ -86,9 +86,9 @@
 @if (_deletePopUpOpen)
 {
     <Confirmation Caption="Delete a Chat"
-        Message="@_popUpText"
-        OnClose="@OnConfirmationClose"
-        Type="Confirmation.Category.DeleteNot">
+              Message="@_popUpText"
+              OnClose="@OnConfirmationClose"
+              Type="Confirmation.Category.DeleteNot">
     </Confirmation>
 }
 
@@ -96,9 +96,9 @@
 @if (_renamePopUpOpen)
 {
     <Input Caption="Rename a Chat"
-        Value="@_popUpText"
-        OnClose="@OnInputClose" >
-    </Input>
+       Value="@_popUpText"
+       OnClose="@OnInputClose">
+        </Input>
 }
 
 
@@ -165,7 +165,7 @@
 
     private async Task OnConfirmationClose(bool isOk)
     {
-        bool updateCurrentChat=false;
+        bool updateCurrentChat = false;
 
         if (CurrentSession is not null & _sessionId == CurrentSession?.SessionId)
             updateCurrentChat = true;
@@ -173,7 +173,7 @@
         if (isOk)
         {
             _deletePopUpOpen = false;
-            await chatService.DeleteChatSessionAsync(_sessionId);
+            await chatManager.DeleteChatSessionAsync(_sessionId);
 
             _deletePopUpOpen = false;
 
@@ -212,7 +212,7 @@
 
     private async Task OnInputClose(string newName)
     {
-        if (newName!="")
+        if (newName != "")
         {
             bool updateCurrentChat = false;
 
@@ -221,7 +221,7 @@
                 updateCurrentChat = true;
             }
 
-            await chatService.RenameChatSessionAsync(_sessionId, newName);
+            await chatManager.RenameChatSessionAsync(_sessionId, newName);
 
             _renamePopUpOpen = false;
 
@@ -244,7 +244,7 @@
 
     private async Task NewChat()
     {
-        await chatService.CreateNewChatSessionAsync();
+        await chatManager.CreateNewChatSessionAsync();
 
         if (ChatSessions.Count == 1)
         {
@@ -262,7 +262,7 @@
 
         _loadingComplete = false;
 
-        ChatSessions = await chatService.GetAllChatSessionsAsync();
+        ChatSessions = await chatManager.GetAllChatSessionsAsync();
         if (CurrentSession is not null && ChatSessions is not null & ChatSessions?.Count > 0)
         {
             var match = ChatSessions?.FirstOrDefault();
@@ -293,7 +293,7 @@
             CurrentSession.Name = string.Empty;
 
             if (ChatSessions is not null & ChatSessions?.Count > 0)
-            {   
+            {
                 var match = ChatSessions?.FirstOrDefault();
                 if (match is not null)
                 {
@@ -301,7 +301,7 @@
                     CurrentSession.Name = match.Name;
                     CurrentSession.TokensUsed = match.TokensUsed;
                 }
-            }            
+            }
         }
 
         await OnChatClicked.InvokeAsync(CurrentSession);
@@ -314,7 +314,7 @@
         if (ChatSessions is null) return 0;
 
         if (CurrentSession is null)
-           CurrentSession = new Session();
+            CurrentSession = new Session();
 
         CurrentSession.SessionId = _sessionId;
         CurrentSession.Name = sessionName;

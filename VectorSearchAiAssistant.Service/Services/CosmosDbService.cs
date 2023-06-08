@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using VectorSearchAiAssistant.Service.Models.Chat;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Search;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -91,6 +92,17 @@ namespace VectorSearchAiAssistant.Service.Services
             }
 
             return output;
+        }
+
+        /// <summary>
+        /// Performs a point read to retrieve a single chat session item.
+        /// </summary>
+        /// <returns>The chat session item.</returns>
+        public async Task<Session> GetSessionAsync(string id)
+        {
+            return await _completions.ReadItemAsync<Session>(
+                id: id,
+                partitionKey: new PartitionKey(id));
         }
 
         /// <summary>
@@ -196,6 +208,25 @@ namespace VectorSearchAiAssistant.Service.Services
         }
 
         /// <summary>
+        /// Updates a session's name through a patch operation.
+        /// </summary>
+        /// <param name="id">The session id.</param>
+        /// <param name="name">The session's new name.</param>
+        /// <returns>Revised chat session item.</returns>
+        public async Task<Session> UpdateSessionNameAsync(string id, string name)
+        {
+            var response = await _completions.PatchItemAsync<Session>(
+                id: id,
+                partitionKey: new PartitionKey(id),
+                patchOperations: new[]
+                {
+                    PatchOperation.Set("/name", name),
+                }
+            );
+            return response.Resource;
+        }
+
+        /// <summary>
         /// Batch create or update chat messages and session.
         /// </summary>
         /// <param name="messages">Chat message and session items to create or replace.</param>
@@ -207,7 +238,7 @@ namespace VectorSearchAiAssistant.Service.Services
             }
 
             PartitionKey partitionKey = new(messages.First().SessionId);
-            TransactionalBatch batch = _completions.CreateTransactionalBatch(partitionKey);
+            var batch = _completions.CreateTransactionalBatch(partitionKey);
             foreach (var message in messages)
             {
                 batch.UpsertItem(
@@ -228,15 +259,15 @@ namespace VectorSearchAiAssistant.Service.Services
 
             // TODO: await container.DeleteAllItemsByPartitionKeyStreamAsync(partitionKey);
 
-            QueryDefinition query = new QueryDefinition("SELECT c.id FROM c WHERE c.sessionId = @sessionId")
+            var query = new QueryDefinition("SELECT c.id FROM c WHERE c.sessionId = @sessionId")
                 .WithParameter("@sessionId", sessionId);
 
-            FeedIterator<Message> response = _completions.GetItemQueryIterator<Message>(query);
+            var response = _completions.GetItemQueryIterator<Message>(query);
 
-            TransactionalBatch batch = _completions.CreateTransactionalBatch(partitionKey);
+            var batch = _completions.CreateTransactionalBatch(partitionKey);
             while (response.HasMoreResults)
             {
-                FeedResponse<Message> results = await response.ReadNextAsync();
+                var results = await response.ReadNextAsync();
                 foreach (var item in results)
                 {
                     batch.DeleteItem(
