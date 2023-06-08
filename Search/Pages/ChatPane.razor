@@ -232,7 +232,7 @@
         var message = _messagesInChat?.FirstOrDefault(m => m.Id == messageId);
         if (message != null)
         {
-            message = await chatService.RateMessageAsync(message, rating);
+            message = await chatService.RateMessageAsync(message.Id, message.SessionId, rating);
         }
     }
 
@@ -241,7 +241,7 @@
         var message = _messagesInChat?.FirstOrDefault(m => m.Id == messageId);
         if (message != null)
         {
-            message = await chatService.RateMessageAsync(message, null);
+            message = await chatService.RateMessageAsync(message.Id, message.SessionId, null);
         }
     }
 
