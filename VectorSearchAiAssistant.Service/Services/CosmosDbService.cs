@@ -174,7 +174,7 @@ namespace VectorSearchAiAssistant.Service.Services
                 partitionKey: new PartitionKey(sessionId),
                 patchOperations: new[]
                 {
-                    PatchOperation.Replace("/rating", rating),
+                    PatchOperation.Set("/rating", rating),
                 }
             );
             return response.Resource;
