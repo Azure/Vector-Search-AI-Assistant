@@ -184,7 +184,7 @@
     private static event EventHandler<Session>? _onMessagePosted;
     private bool _loadingComplete;
 
-	async private Task ToggleNavMenu()
+	private async Task ToggleNavMenu()
     {
         await OnNavBarVisibilityUpdated.InvokeAsync();
     }
@@ -232,7 +232,8 @@
         var message = _messagesInChat?.FirstOrDefault(m => m.Id == messageId);
         if (message != null)
         {
-            message = await chatService.RateMessageAsync(message.Id, message.SessionId, rating);
+            await chatService.RateMessageAsync(message.Id, message.SessionId, rating);
+            message.Rating = rating;
         }
     }
 
@@ -241,7 +242,8 @@
         var message = _messagesInChat?.FirstOrDefault(m => m.Id == messageId);
         if (message != null)
         {
-            message = await chatService.RateMessageAsync(message.Id, message.SessionId, null);
+            await chatService.RateMessageAsync(message.Id, message.SessionId, null);
+            message.Rating = null;
         }
     }
 
