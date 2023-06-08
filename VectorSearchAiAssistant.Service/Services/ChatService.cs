@@ -24,7 +24,7 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// Returns list of chat session ids and names for left-hand nav to bind to (display Name and ChatSessionId as hidden)
+    /// Returns list of chat session ids and names.
     /// </summary>
     public async Task<List<Session>> GetAllChatSessionsAsync()
     {
@@ -32,7 +32,7 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// Returns the chat messages to display on the main web page when the user selects a chat from the left-hand nav
+    /// Returns the chat messages related to an existing session.
     /// </summary>
     public async Task<List<Message>> GetChatSessionMessagesAsync(string sessionId)
     {
@@ -41,7 +41,7 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// User creates a new Chat Session.
+    /// Creates a new chat session.
     /// </summary>
     public async Task<Session> CreateNewChatSessionAsync()
     {
@@ -50,7 +50,7 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// Rename the Chat Session from "New Chat" to the summary provided by OpenAI
+    /// Rename the chat session from its default (eg., "New Chat") to the summary provided by OpenAI.
     /// </summary>
     public async Task<Session> RenameChatSessionAsync(string sessionId, string newChatSessionName)
     {
@@ -61,7 +61,7 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// User deletes a chat session
+    /// Delete a chat session and related messages.
     /// </summary>
     public async Task DeleteChatSessionAsync(string sessionId)
     {
@@ -70,7 +70,7 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// Receive a prompt from a user, Vectorize it from _openAIService Get a completion from _openAiService
+    /// Receive a prompt from a user, vectorize it from the OpenAI service, and get a completion from the OpenAI service.
     /// </summary>
     public async Task<string> GetChatCompletionAsync(string? sessionId, string userPrompt)
     {
@@ -104,7 +104,7 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// Get current conversation from newest to oldest up to max conversation tokens and add to the prompt
+    /// Get current conversation from newest to oldest up to max conversation tokens and add to the prompt.
     /// </summary>
     private string GetChatSessionConversation(List<Message> messages, string userPrompt)
     {
@@ -131,6 +131,9 @@ public class ChatService : IChatService
         return conversation;
     }
 
+    /// <summary>
+    /// Generate a name for a chat message, based on the passed in prompt.
+    /// </summary>
     public async Task<string> SummarizeChatSessionNameAsync(string? sessionId, string prompt)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
@@ -143,7 +146,7 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// Add user prompt to the chat session message list object and insert into the data service.
+    /// Add a new user prompt to the chat session and insert into the data service.
     /// </summary>
     private async Task<Message> AddPromptMessageAsync(string sessionId, string promptText)
     {
@@ -158,7 +161,6 @@ public class ChatService : IChatService
     /// </summary>
     private async Task AddPromptCompletionMessagesAsync(string sessionId, Message promptMessage, Message completionMessage)
     {
-
         var session = await _cosmosDbService.GetSessionAsync(sessionId);
 
         // Update session cache with tokens used
