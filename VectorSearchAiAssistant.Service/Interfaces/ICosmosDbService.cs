@@ -19,6 +19,12 @@ public interface ICosmosDbService
     Task<List<Message>> GetSessionMessagesAsync(string sessionId);
 
     /// <summary>
+    /// Performs a point read to retrieve a single chat session item.
+    /// </summary>
+    /// <returns>The chat session item.</returns>
+    Task<Session> GetSessionAsync(string id);
+
+    /// <summary>
     /// Creates a new chat session.
     /// </summary>
     /// <param name="session">Chat session item to create.</param>
@@ -54,6 +60,14 @@ public interface ICosmosDbService
     /// <param name="session">Chat session item to update.</param>
     /// <returns>Revised created chat session item.</returns>
     Task<Session> UpdateSessionAsync(Session session);
+
+    /// <summary>
+    /// Updates a session's name through a patch operation.
+    /// </summary>
+    /// <param name="id">The session id.</param>
+    /// <param name="name">The session's new name.</param>
+    /// <returns>Revised chat session item.</returns>
+    Task<Session> UpdateSessionNameAsync(string id, string name);
 
     /// <summary>
     /// Batch create or update chat messages and session.

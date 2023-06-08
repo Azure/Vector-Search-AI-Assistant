@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Search.Helpers;
 using VectorSearchAiAssistant.Service.Services;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
@@ -107,5 +108,6 @@ static class ProgramExtensions
             }
         });
         services.AddSingleton<IChatService, ChatService>();
+        services.AddSingleton<IChatManager, ChatManager>();
     }
 }
