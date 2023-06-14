@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chat-service-web-api.fullname" . }}
+  labels:
+    {{- include "chat-service-web-api.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "chat-service-web-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "chat-service-web-api.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "chat-service-web-api.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: ASPNETCORE_URLS
+            value: http://+:{{ .Values.service.port }}
+          - name: CognitiveSearch__AdminKey
+            value: {{ .Values.cognitiveSearch.adminKey }}
+          - name: CognitiveSearch__Endpoint
+            value: {{ .Values.cognitiveSearch.endpoint }}
+          - name: CognitiveSearch__IndexName
+            value: {{ .Values.cognitiveSearch.indexName }}
+          - name: CognitiveSearch__MaxVectorSearchResults
+            value: {{ .Values.cognitiveSearch.maxVectorSearchResults | quote }}
+          - name: CosmosDb__Containers
+            value: {{ .Values.cosmosDb.containers }}
+          - name: CosmosDb__Database
+            value: {{ .Values.cosmosDb.database }}
+          - name: CosmosDb__Endpoint
+            value: {{ .Values.cosmosDb.endpoint }}
+          - name: CosmosDb__Key
+            valueFrom:
+              secretKeyRef:
+                key: key
+                name: {{ include "chat-service-web-api.fullname" . }}-cosmosdb-secret
+          - name: OpenAi__CompletionsDeployment
+            value: {{ .Values.openAi.completionsDeployment }}
+          - name: OpenAi__EmbeddingsDeployment
+            value: {{ .Values.openAi.embeddingsDeployment }}
+          - name: OpenAi__Endpoint
+            value: {{ .Values.openAi.endpoint }}
+          - name: OpenAi__Key
+            valueFrom:
+              secretKeyRef:
+                key: key
+                name: {{ include "chat-service-web-api.fullname" . }}-openai-secret
+          - name: OpenAi__MaxConversationBytes
+            value: {{ .Values.openAi.maxConversationBytes | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
