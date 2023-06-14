@@ -1,96 +1,71 @@
+{{- $name := include "chat-service-web-api.fullname" . -}}
+{{- $cfgname := printf "%s-%s" "cfg" $name -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "chat-service-web-api.fullname" . }}
+  name: {{ template "chat-service-web-api.fullname" . }}
   labels:
-    {{- include "chat-service-web-api.labels" . | nindent 4 }}
+    app: {{ template "chat-service-web-api.name" . }}
+    chart: {{ template "chat-service-web-api.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
-      {{- include "chat-service-web-api.selectorLabels" . | nindent 6 }}
+      app: {{ template "chat-service-web-api.name" . }}
+      release: {{ .Release.Name }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "chat-service-web-api.selectorLabels" . | nindent 8 }}
+        app: {{ template "chat-service-web-api.name" . }}
+        release: {{ .Release.Name }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{ if .Values.serviceaccount -}}
+      serviceAccountName: {{ .Values.serviceaccount }}
+      {{ if .Values.imagePullSecrets -}}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+      {{ range .Values.imagePullSecrets -}}
+        - name: {{ .name }}
+      {{- end -}}
       {{- end }}
-      serviceAccountName: {{ include "chat-service-web-api.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-          - name: ASPNETCORE_URLS
-            value: http://+:{{ .Values.service.port }}
-          - name: CognitiveSearch__AdminKey
-            value: {{ .Values.cognitiveSearch.adminKey }}
-          - name: CognitiveSearch__Endpoint
-            value: {{ .Values.cognitiveSearch.endpoint }}
-          - name: CognitiveSearch__IndexName
-            value: {{ .Values.cognitiveSearch.indexName }}
-          - name: CognitiveSearch__MaxVectorSearchResults
-            value: {{ .Values.cognitiveSearch.maxVectorSearchResults | quote }}
-          - name: CosmosDb__Containers
-            value: {{ .Values.cosmosDb.containers }}
-          - name: CosmosDb__Database
-            value: {{ .Values.cosmosDb.database }}
-          - name: CosmosDb__Endpoint
-            value: {{ .Values.cosmosDb.endpoint }}
-          - name: CosmosDb__Key
-            valueFrom:
-              secretKeyRef:
-                key: key
-                name: {{ include "chat-service-web-api.fullname" . }}-cosmosdb-secret
-          - name: OpenAi__CompletionsDeployment
-            value: {{ .Values.openAi.completionsDeployment }}
-          - name: OpenAi__EmbeddingsDeployment
-            value: {{ .Values.openAi.embeddingsDeployment }}
-          - name: OpenAi__Endpoint
-            value: {{ .Values.openAi.endpoint }}
-          - name: OpenAi__Key
-            valueFrom:
-              secretKeyRef:
-                key: key
-                name: {{ include "chat-service-web-api.fullname" . }}-openai-secret
-          - name: OpenAi__MaxConversationBytes
-            value: {{ .Values.openAi.maxConversationBytes | quote }}
+          {{- if .Values.env.values -}}
+          {{- range .Values.env.values }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+          {{- end -}}
+          {{- end -}}
+          {{- if .Values.env.configmap -}}
+          {{- range .Values.env.configmap }}
+            - name: {{ .name }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $cfgname }}
+                  key: {{ .name }}
+          {{- end -}}
+          {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: 80
               protocol: TCP
-          # livenessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
-          # readinessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+
