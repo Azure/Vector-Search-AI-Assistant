@@ -1,25 +1,25 @@
 services:
   api:
-#    network_mode: host
     build:
       context: ./
       dockerfile: ./ChatServiceWebApi/Dockerfile
     ports:
-    - "5000:5000"
+    - "80:80"
     environment:
-      DOTNET_URLS: http://+:5000
-      CognitiveSearch__AdminKey: 'ysWJwgzjnS0HR3mK7Pws1daXhGgnhlX1KAZIdtTa6hAzSeAhzk5z'
+      DOTNET_URLS: http://+:80
+      ASPNETCORE_ENVIRONMENT: Production
+      CognitiveSearch__AdminKey: ''
       CognitiveSearch__Endpoint: 'https://cog-search-vector.search.windows.net'
       CognitiveSearch__IndexName: 'vector-index'
       CognitiveSearch__MaxVectorSearchResults: '10'
       CosmosDb__Containers: 'completions, customer, product'
       CosmosDb__Database: 'database'
       CosmosDb__Endpoint: 'https://bhm7vnpxv6irq-cosmos-nosql.documents.azure.com:443/'
-      CosmosDb__Key: 'yaK9eiSSQJjK6SPNg6bx8zas27Oj2OEVZ93WJyU55bBazCAqt7TRvYtdAHfSVGxkfzhRYiLhG0ceACDbCY6ryA=='
+      CosmosDb__Key: '=='
       OpenAi__CompletionsDeployment: 'completions'
       OpenAi__EmbeddingsDeployment: 'embeddings'
       OpenAi__Endpoint: 'https://bhm7vnpxv6irq-openai.openai.azure.com/'
-      OpenAi__Key: 'b3990195e52c4545a6f3a085590d9d56'
+      OpenAi__Key: ''
       OpenAi__MaxConversationBytes: '2000'
       Logging__Loglevel__Default: 'Debug'
       Logging__Loglevel__Microsoft__AspNetCore: 'Debug'

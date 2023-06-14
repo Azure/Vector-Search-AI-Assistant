@@ -1,9 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "chat-service-web-api.fullname" . }}
+  name: ttweb
   labels:
-    {{- include "chat-service-web-api.labels" . | nindent 4 }}
+    app: {{ template "chat-service-web-api.name" . }}
+    chart: {{ template "chat-service-web-api.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +15,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "chat-service-web-api.selectorLabels" . | nindent 4 }}
+    app: {{ template "chat-service-web-api.name" . }}
+    release: {{ .Release.Name }}
