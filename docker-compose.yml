@@ -23,3 +23,23 @@ services:
       OpenAi__MaxConversationBytes: '2000'
       Logging__Loglevel__Default: 'Debug'
       Logging__Loglevel__Microsoft__AspNetCore: 'Debug'
+  web:
+    build:
+      context: ./
+      dockerfile: ./Search/Dockerfile
+    ports:
+    - "8080:80"
+    environment:
+      DOTNET_URLS: http://+:80
+      ASPNETCORE_ENVIRONMENT: Production
+      CosmosDb__Containers: 'completions, customer, product'
+      CosmosDb__Database: 'database'
+      CosmosDb__Endpoint: 'https://bhm7vnpxv6irq-cosmos-nosql.documents.azure.com:443/'
+      CosmosDb__Key: ''
+      OpenAi__CompletionsDeployment: 'completions'
+      OpenAi__EmbeddingsDeployment: 'embeddings'
+      OpenAi__Endpoint: 'https://bhm7vnpxv6irq-openai.openai.azure.com/'
+      OpenAi__Key: ''
+      OpenAi__MaxConversationBytes: '2000'
+      Logging__Loglevel__Default: 'Debug'
+      Logging__Loglevel__Microsoft__AspNetCore: 'Debug'
