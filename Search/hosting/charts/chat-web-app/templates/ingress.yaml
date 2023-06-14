@@ -1,13 +1,13 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "chat-service-web-api.fullname" . -}}
+{{- $fullName := include "chat-web-app.fullname" . -}}
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    app: {{ template "chat-service-web-api.name" . }}
-    chart: {{ template "chat-service-web-api.chart" . }}
+    app: {{ template "chat-web-app.name" . }}
+    chart: {{ template "chat-web-app.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 {{- with .Values.ingress.annotations }}
