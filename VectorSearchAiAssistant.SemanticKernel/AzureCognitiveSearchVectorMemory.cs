@@ -371,9 +371,9 @@ namespace VectorSearchAiAssistant.SemanticKernel
 
             return new MemoryRecordMetadata(
                 isReference: false,
-                id: data.Document["id"].ToString(),
-                text: data.Document["name"].ToString(),
-                description: data.Document["description"].ToString(),
+                id: filteredDocument["id"].ToString(),
+                text: string.Empty,
+                description: string.Empty,
                 externalSourceName: string.Empty,
                 additionalMetadata: JsonSerializer.Serialize(filteredDocument, new JsonSerializerOptions { WriteIndented = false }));
         }
