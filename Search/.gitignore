@@ -355,4 +355,4 @@ MigrationBackup/
 
 values.dev.yaml
 
-**/launchSettings.json
+**launchSettings.json
