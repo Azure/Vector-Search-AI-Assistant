@@ -96,7 +96,7 @@ public class ChatService : IChatService
         var conversation = GetChatSessionConversation(messages, userPrompt);
 
         // Generate the completion to return to the user
-        //(string completion, int promptTokens, int responseTokens) = await _openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
+        //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAs ync(sessionId, conversation, retrievedDocuments);
         string completion = await _ragService.GetResponse(userPrompt);
         // TODO: Extract token counts from SemanticKernel
         var promptTokens = 0;
