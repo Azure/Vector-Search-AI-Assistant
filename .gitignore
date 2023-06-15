@@ -361,3 +361,5 @@ __blobstorage__/bb49451b-5984-491a-bf47-800ae14ce60f
 /Search/Properties/ServiceDependencies/bhm7vnpxv6irq-web - Web Deploy/profile.arm.json
 /Vectorize/Properties/serviceDependencies.bhm7vnpxv6irq-vectorize - Zip Deploy.json
 /Vectorize/Properties/serviceDependencies.json
+
+docker-compose.dev.yml
