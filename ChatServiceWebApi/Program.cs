@@ -21,6 +21,9 @@ namespace ChatServiceWebApi
             builder.Services.AddOptions<CognitiveSearch>()
                 .Bind(builder.Configuration.GetSection(nameof(CognitiveSearch)));
 
+            builder.Services.AddOptions<SemanticKernelRAGServiceSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI"));
+
             builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>((provider) =>
             {
                 var cosmosDbOptions = provider.GetRequiredService<IOptions<CosmosDb>>();
@@ -81,7 +84,9 @@ namespace ChatServiceWebApi
                     );
                 }
             });
+            builder.Services.AddSingleton<IRAGService, SemanticKernelRAGService>();
             builder.Services.AddSingleton<IChatService, ChatService>();
+
             builder.Services.AddScoped<ChatEndpoints>();
 
             // Add services to the container.

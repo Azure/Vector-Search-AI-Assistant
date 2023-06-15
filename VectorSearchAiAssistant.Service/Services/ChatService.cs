@@ -11,14 +11,17 @@ public class ChatService : IChatService
     private readonly ICosmosDbService _cosmosDbService;
     private readonly IOpenAiService _openAiService;
     private readonly IVectorDatabaseServiceQueries _vectorDatabaseService;
+    private readonly IRAGService _ragService;
     private readonly int _maxConversationBytes;
 
     public ChatService(ICosmosDbService cosmosDbService, IOpenAiService openAiService,
-        IVectorDatabaseServiceQueries vectorDatabaseService)
+        IVectorDatabaseServiceQueries vectorDatabaseService,
+        IRAGService ragService)
     {
         _cosmosDbService = cosmosDbService;
         _openAiService = openAiService;
         _vectorDatabaseService = vectorDatabaseService;
+        _ragService = ragService;
 
         _maxConversationBytes = openAiService.MaxConversationBytes;
     }
@@ -93,7 +96,11 @@ public class ChatService : IChatService
         var conversation = GetChatSessionConversation(messages, userPrompt);
 
         // Generate the completion to return to the user
-        (string completion, int promptTokens, int responseTokens) = await _openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
+        //(string completion, int promptTokens, int responseTokens) = await _openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
+        string completion = await _ragService.GetResponse(userPrompt);
+        // TODO: Extract token counts from SemanticKernel
+        var promptTokens = 0;
+        var responseTokens = 0;
 
         // Add to prompt and completion to cache, then persist in Cosmos as transaction 
         var promptMessage = new Message(sessionId, nameof(Participants.User), promptTokens, userPrompt, promptVectors, null);
