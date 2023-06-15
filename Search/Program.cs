@@ -43,6 +43,9 @@ static class ProgramExtensions
 
         builder.Services.AddOptions<CognitiveSearch>()
             .Bind(builder.Configuration.GetSection(nameof(CognitiveSearch)));
+
+        builder.Services.AddOptions<SemanticKernelRAGServiceSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI"));
     }
 
     public static void RegisterServices(this IServiceCollection services)
@@ -107,6 +110,7 @@ static class ProgramExtensions
                 );
             }
         });
+        services.AddSingleton<IRAGService, SemanticKernelRAGService>();
         services.AddSingleton<IChatService, ChatService>();
         services.AddSingleton<IChatManager, ChatManager>();
     }
