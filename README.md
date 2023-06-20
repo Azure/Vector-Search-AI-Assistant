@@ -8,27 +8,31 @@ The scenario for this sample centers around a consumer retail "Intelligent Agent
 
 RAG is an aconymn for Retrival Augmentmented Generation, a fancy term that essentially means retrieving additional data to provide to a large language model to use when generating a response (completion) to a user's question(prompt). The data can be any kind of text. However, there is a limit to how much text can be sent due to the limit of [tokens for each model](https://platform.openai.com/docs/models/overview) that can be consumed in a single request/response from Azure OpenAI. This solution will highlight these challenges and provide an example of how we addressed it.
 
-## Solution Architecture
 
-The solution architecture is represented by this diagram:
-
-<p align="center">
-    <img src="img/architecture.png" width="100%">
-</p>
+## Solution User Experience
 
 The application frontend is a Blazor application with Intelligent Agent UI functionality:
+
+The application includes a left-hand nav that contains individual chat sessions. In a normal retail environment, users would only be able to see their own session but we've included them all here. The chat session includes a count of all of the tokens consumed in each session. When the user types a question and hits enter the service queries the vector data, then sends the response to Azure OpenAI which then generates a completion which is the displayed to the user. The first question also triggers the chat session to be named with whatever the user is asking about. Users can rename a chat if they like or delete it. The chat session displays all of the tokens consumed for that session. Each message in the chat also includes a token count. The `Prompt Tokens` are the tokens used in the call to Azure OpenAI. The Assistant tokens are the ones used to generate the completion text.
 
 <p align="center">
     <img src="img/ui.png" width="100%">
 </p>
 
+## Solution Architecture
+
+The solution architecture is represented by this diagram:
 This solution is composed of the following services:
 
-1.	Azure Cosmos DB - Stores the operational retail data, chat prompts and completions.
 1.  Azure Cosmos DB for MongoDB vCore - Stores the operational retail data, chat prompts and completions as well as the vectorized retail data for search.
-1.	Azure Functions - Hosts two HTTP triggers, `Ingest And Vectorize` imports and vectorizes data. A second HTTP trigger, `Add Remove Data` is used to add aand remove a product from the product catalog.
-1.	Azure OpenAI - Generates vectors using the Embeddings API on the `text-embedding-ada-002` model and chat completions using the Completion API on the `gpt-3.5-turbo` model.
+1.	Azure Functions - Hosts two HTTP triggers, `Ingest And Vectorize` imports and vectorizes data. A second HTTP trigger, `Add Remove Data` is used to add and remove a product from the product catalog.
 1.	Azure App Service - Hosts the Intelligent Agent web application.
+1.	Azure OpenAI - Generates vectors using the Embeddings API on the `text-embedding-ada-002` model and chat completions using the Completion API on the `gpt-3.5-turbo` model.
+
+
+<p align="center">
+    <img src="img/architecture.png" width="100%">
+</p>
 
 ## Overall solution workflow
 
@@ -64,7 +68,7 @@ In a vector search solution, the filter predicate for any query is an array of v
 
 The vector search is the key function in this solution and is done against the Azure Cosmos DB for MongoDB vCore database in this solution. The function itself is rather simple and only takes and array of vectors with which to do the search. You can see the vector search at work by debugging the Azure Web App remotely or running locally. Set a break point on [VectorSearchAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCorev2/Search/Services/MongoDbService.cs#L105), then step through each line to see how of the function calls to see the search and returned data.
 
-### Building the prompt and token management
+### Token management
 
 One of the more challenging aspects to building RAG Pattern solutions is manging the tokens to stay within the maximum number of tokens that can be consumed in a single request (prompt) and response (completion). It's possible to build a prompt that consumes all of the tokens in the requests and leaves too few to produce a useful response. It's also possible to generate an exception from the Azure OpenAI service if the request itself is over the token limit. You will need a way to measure token usage before sending the request. This is handled in the [BuildPromptAndData()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCorev2/Search/Services/ChatService.cs#L169) function in the Chat Service. This function uses a third party nuget package called, [SharpToken](https://github.com/dmitry-brazhenko/SharpToken) which is a .NET wrapper around [OpenAI's tiktoken](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb) which is an open source tokenizer. The utility takes text and generates an array of vectors. The number of elements in the array represent the number of tokens that will be consumed. It can also do the reverse and take an array of vectors and output text. In our function here we first generate the vectors on the data returned from our vector search, then if necessary, reduce the amount of data by calculating the number of vectors we can safely pass in our request to Azure OpenAI. Here is the flow of this function.
 
@@ -73,7 +77,7 @@ One of the more challenging aspects to building RAG Pattern solutions is manging
 1. Calculate if the amount of tokens used by the `search results` plus the `user prompt` plus the `conversation` + `completion` is greater than what the model will accept. If it is greater, then calculate how much to reduce the amount of data and `Decode` the vector array we generated from the search results, back into text.
 1. Finally, return the text from our search results as well as the number of tokens for the last User Prompt (this will get stored a bit later).
 
-### Generate our completion
+### Generate the completion
 
 We're finally at the most critical part of this entire solution, generating a chat completion from Azure OpenAI using one of its [GPT models](https://platform.openai.com/docs/guides/gpt) wherein the Azure OpenAI service will take in all of the data we've gathered up to this point, then generate a response or completion which the user will see. All of this happens in the [OpenAiService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCorev2/Search/Services/OpenAiService.cs) in the [GetChatCompletionAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCorev2/Search/Services/OpenAiService.cs#L155) function. 
 
@@ -120,7 +124,7 @@ All connection information for Azure Cosmos DB and Azure OpenAI is zero-touch an
 
 The data for this solution must be loaded and vectorized once it has been deployed. This process takes approximately 5-10 minutes to complete. Follow the steps below.
 
-1. Open a browser so you can watch Azure Functions processing the data by navigating to each of the Azure Functions in the portal. **Note:** you will need to enable Applicatoin Insights for the Azure Functions in the portal when first accessing the Functions Logs. You can also just monitor the web page for when the data has been processed. When the Function is complete it will write, *Ingest and Vectorize HTTP trigger function executed successfully.* on the page.
+1. Open a browser so you can watch Azure Functions processing the data by navigating to each of the Azure Functions in the portal by navigating to the Log stream tab in the Monitoring section on the left hand side of the page. **Note:** you will need to enable Application Insights for the Azure Functions in the portal when first accessing the Functions Logs. 
 1. To start the data load and vector generation, open a new browser tab, in the address bar type in `{your-app-name}-function.azurewebsites.net/api/ingestandvectorize`
 
 
