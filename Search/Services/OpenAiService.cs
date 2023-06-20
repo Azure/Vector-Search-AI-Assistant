@@ -1,12 +1,6 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
 using Azure.Core;
-using Search.Components;
-using Search.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Net;
-using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 
 namespace Search.Services;
@@ -18,7 +12,8 @@ public class OpenAiService
 {
     private readonly string _embeddingsModelOrDeployment = string.Empty;
     private readonly string _completionsModelOrDeployment = string.Empty;
-    private readonly int _maxConversationBytes = default;
+    private readonly int _maxConversationTokens = default;
+    private readonly int _maxCompletionTokens = default;
     private readonly ILogger _logger;
     private readonly OpenAIClient _client;    
 
@@ -47,11 +42,18 @@ public class OpenAiService
 
 
     /// <summary>
-    /// Gets the maximum number of tokens to limit chat conversation length.
+    /// Gets the maximum number of tokens from the conversation to send as part of the user prompt.
     /// </summary>
-    public int MaxConversationBytes
+    public int MaxConversationTokens
     {
-        get => _maxConversationBytes;
+        get => 100;// MaxConversationPromptTokens;
+    }
+    /// <summary>
+    /// Gets the maximum number of tokens that can be used in generating the completion.
+    /// </summary>
+    public int MaxCompletionTokens
+    {
+        get => _maxCompletionTokens; 
     }
 
     /// <summary>
@@ -67,17 +69,19 @@ public class OpenAiService
     /// <remarks>
     /// This constructor will validate credentials and create a HTTP client instance.
     /// </remarks>
-    public OpenAiService(string endpoint, string key, string embeddingsDeployment, string completionsDeployment, string maxConversationBytes, ILogger logger)
+    public OpenAiService(string endpoint, string key, string embeddingsDeployment, string completionsDeployment, string maxCompletionTokens, string maxConversationTokens, ILogger logger)
     {
-        //ArgumentException.ThrowIfNullOrEmpty(endpoint);
+        ArgumentException.ThrowIfNullOrEmpty(endpoint);
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentException.ThrowIfNullOrEmpty(embeddingsDeployment);
         ArgumentException.ThrowIfNullOrEmpty(completionsDeployment);
-        ArgumentException.ThrowIfNullOrEmpty(maxConversationBytes);
+        ArgumentException.ThrowIfNullOrEmpty(maxConversationTokens);
+        ArgumentException.ThrowIfNullOrEmpty(maxCompletionTokens);
 
         _embeddingsModelOrDeployment = embeddingsDeployment;
         _completionsModelOrDeployment = completionsDeployment;
-        _maxConversationBytes = int.TryParse(maxConversationBytes, out _maxConversationBytes) ? _maxConversationBytes : 2000;
+        _maxConversationTokens = int.TryParse(maxConversationTokens, out _maxConversationTokens) ? _maxConversationTokens : 100;
+        _maxCompletionTokens = int.TryParse(maxCompletionTokens, out _maxCompletionTokens) ? _maxCompletionTokens : 500;
 
         _logger = logger;
 
@@ -109,8 +113,6 @@ public class OpenAiService
     public async Task<(float[] response, int responseTokens)> GetEmbeddingsAsync(string sessionId, string input)
     {
 
-        //await HttpRequestAsync(input);
-
         float[] embedding = new float[0];
         int responseTokens = 0;
 
@@ -129,19 +131,18 @@ public class OpenAiService
             Embeddings embeddings = response.Value;
 
             responseTokens = embeddings.Usage.TotalTokens;
-
             embedding = embeddings.Data[0].Embedding.ToArray();
 
             return (
-                response: embedding,
+                embedding,
                 responseTokens);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message);
-            return (
-                response: embedding,
-                responseTokens);
+            string message = $"OpenAiService.GetEmbeddingsAsync(): {ex.Message}";
+            _logger.LogError(message);
+            throw;
+            
         }
     }
 
@@ -169,6 +170,7 @@ public class OpenAiService
                     systemMessage,
                     userMessage
                 },
+                MaxTokens = _maxCompletionTokens,
                 User = sessionId,
                 Temperature = 0.5f, //0.3f,
                 NucleusSamplingFactor = 0.95f, //0.5f,
@@ -189,13 +191,13 @@ public class OpenAiService
 
         }
         catch ( Exception ex ) 
-        { 
-        
-            _logger.LogError(ex.Message);
-        
-        }
+        {
 
-        return ("", 0, 0);
+            string message = $"OpenAiService.GetChatCompletionAsync(): {ex.Message}";
+            _logger.LogError(message);
+            throw;
+
+        }
     }
 
     /// <summary>
@@ -229,7 +231,7 @@ public class OpenAiService
         ChatCompletions completions = completionsResponse.Value;
         string output = completions.Choices[0].Message.Content;
 
-        //Remove all non-alpha numeric characters (Turbo has a habit of putting things in quotes even when you tell it not to
+        //Remove all non-alpha numeric characters (Turbo has a habit of putting things in quotes even when you tell it not to)
         string summary = Regex.Replace(output, @"[^a-zA-Z0-9\s]", "");
 
         return summary;

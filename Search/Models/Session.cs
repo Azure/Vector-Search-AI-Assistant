@@ -1,26 +1,24 @@
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
 namespace Search.Models;
 
 public record Session
 {
-    /// <summary>
-    /// Unique identifier
-    /// </summary>
+    [BsonId]
+    [BsonRepresentation(BsonType.String)]
     public string Id { get; set; }
 
     public string Type { get; set; }
 
-    /// <summary>
-    /// Partition key
-    /// </summary>
     public string SessionId { get; set; }
 
     public int? TokensUsed { get; set; }
 
     public string Name { get; set; }
 
-    [JsonIgnore]
+    [BsonIgnore]
     public List<Message> Messages { get; set; }
 
     public Session()

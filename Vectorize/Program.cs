@@ -1,28 +1,25 @@
-﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Vectorize.Services;
-using Vectorize.Options;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using Vectorize.Options;
+using Vectorize.Services;
 
-[assembly: FunctionsStartup(typeof(Vectorize.Startup))]
 
-namespace Vectorize
-{
-    public class Startup: FunctionsStartup
-    {
-        public override void Configure(IFunctionsHostBuilder builder)
+
+    var host = new HostBuilder()
+        .ConfigureFunctionsWorkerDefaults(builder =>
         {
 
             builder.Services.AddLogging();
-                
+
 
             builder.Services.AddOptions<OpenAi>()
-                 .Configure<IConfiguration>((settings, configuration) =>
-                 {
-                     configuration.GetSection(nameof(OpenAi)).Bind(settings);
-                 });
+                    .Configure<IConfiguration>((settings, configuration) =>
+                    {
+                        configuration.GetSection(nameof(OpenAi)).Bind(settings);
+                    });
 
 
 
@@ -32,8 +29,15 @@ namespace Vectorize
                     configuration.GetSection(nameof(MongoDb)).Bind(settings);
                 });
 
+        })
+        .ConfigureAppConfiguration(con =>
+        {
+            con.AddUserSecrets<Program>(optional: true, reloadOnChange: true);
+        })
+        .ConfigureServices(s =>
+        {
 
-            builder.Services.AddSingleton<OpenAiService, OpenAiService>((provider) =>
+            s.AddSingleton<OpenAiService, OpenAiService>((provider) =>
             {
                 var openAiOptions = provider.GetRequiredService<IOptions<OpenAi>>();
 
@@ -55,11 +59,11 @@ namespace Vectorize
 
             });
 
-            builder.Services.AddSingleton<MongoDbService, MongoDbService>((provider) =>
+            s.AddSingleton<MongoDbService, MongoDbService>((provider) =>
             {
                 var mongoOptions = provider.GetRequiredService<IOptions<MongoDb>>();
 
-                if(mongoOptions is null)
+                if (mongoOptions is null)
                 {
                     throw new ArgumentException($"{nameof(IOptions<MongoDb>)} was not resolved through dependency injection.");
                 }
@@ -72,10 +76,11 @@ namespace Vectorize
                         collectionNames: mongoOptions.Value?.CollectionNames ?? string.Empty,
                         openAiService: provider.GetRequiredService<OpenAiService>(),
                         logger: provider.GetRequiredService<ILogger<MongoDb>>()
-                    ); ;
+                    );
                 }
             });
 
-        }
-    }
-}
+        })
+        .Build();
+
+    host.Run();
