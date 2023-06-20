@@ -114,14 +114,14 @@ The provided ARM or Bicep Template will provision the following resources:
 
 All connection information for Azure Cosmos DB and Azure OpenAI is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2FVectorSearchAiAssistant%2FMongovCorev2%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2FVectorSearchAiAssistant%2Fmongovcorev2%2Fazuredeploy.json)
 
 ### Initial data load
 
 The data for this solution must be loaded and vectorized once it has been deployed. This process takes approximately 5-10 minutes to complete. Follow the steps below.
 
 1. Open a browser so you can watch Azure Functions processing the data by navigating to each of the Azure Functions in the portal. **Note:** you will need to enable Applicatoin Insights for the Azure Functions in the portal when first accessing the Functions Logs. You can also just monitor the web page for when the data has been processed. When the Function is complete it will write, *Ingest and Vectorize HTTP trigger function executed successfully.* on the page.
-1. To start the data load and vector generation, open a new browser tab, in the address bar type in `{your-app-name}-function.azurewebsites.net/api/ingestandvectorize
+1. To start the data load and vector generation, open a new browser tab, in the address bar type in `{your-app-name}-function.azurewebsites.net/api/ingestandvectorize`
 
 
 <p align="center">
