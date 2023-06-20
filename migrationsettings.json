@@ -1,25 +1,16 @@
 {
   "Source": "JSON",
-  "Sink": "Cosmos-nosql",
+  "Sink": "mongodb",
   "Operations": [
     {
       "SourceSettings": {
         "FilePath": "https://cosmosdbcosmicworks.blob.core.windows.net/cosmic-works-small/product.json"
       },
       "SinkSettings": {
-        "ConnectionString": "ADD-COSMOS-CONNECTION-STRING",
-        "Database":"database",
-        "Container":"product",
-        "PartitionKeyPath":"/categoryId",
-        "RecreateContainer": false,
-        "BatchSize": 100,
-        "ConnectionMode": "Direct",
-        "MaxRetryCount": 5,
-        "InitialRetryDurationMs": 200,
-        "CreatedContainerMaxThroughput": 1000,
-        "UseAutoscaleForCreatedContainer": true,
-        "WriteMode": "InsertStream",
-        "IsServerlessAccount": false
+        "ConnectionString": "mongodb+srv://markjbrown:Sp**kyTh3Cat@vsaimongov2-mongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+        "DatabaseName":"retaildb",
+        "Collection":"product",
+        "BatchSize": 100
         }
     },
     {
@@ -27,19 +18,10 @@
         "FilePath": "https://cosmosdbcosmicworks.blob.core.windows.net/cosmic-works-small/customer.json"
       },
       "SinkSettings": {
-        "ConnectionString": "ADD-COSMOS-CONNECTION-STRING",
-        "Database":"database",
-        "Container":"customer",
-        "PartitionKeyPath":"/customerId",
-        "RecreateContainer": false,
-        "BatchSize": 100,
-        "ConnectionMode": "Direct",
-        "MaxRetryCount": 5,
-        "InitialRetryDurationMs": 200,
-        "CreatedContainerMaxThroughput": 1000,
-        "UseAutoscaleForCreatedContainer": true,
-        "WriteMode": "InsertStream",
-        "IsServerlessAccount": false
+        "ConnectionString": "mongodb+srv://markjbrown:Sp**kyTh3Cat@vsaimongov2-mongo.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000",
+        "DatabaseName":"retaildb",
+        "Collection":"customer",
+        "BatchSize": 100
         }
     }
   ]

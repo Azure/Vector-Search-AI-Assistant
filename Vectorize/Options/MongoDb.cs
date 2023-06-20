@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Vectorize.Services;
 
 namespace Vectorize.Options
 {
@@ -7,7 +8,9 @@ namespace Vectorize.Options
         public string? Connection { get; set; }
         public string? DatabaseName { get; set; } 
 
-        public string? CollectionName { get; set; }
+        public string? CollectionNames { get; set; }
+
+        public OpenAiService? OpenAiService { get; set; }
 
         public ILogger? Logger { get; set; }
 

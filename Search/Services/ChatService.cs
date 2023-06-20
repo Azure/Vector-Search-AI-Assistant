@@ -1,6 +1,6 @@
-﻿using Azure.AI.OpenAI;
-using Search.Constants;
+﻿using Search.Constants;
 using Search.Models;
+using SharpToken;
 
 namespace Search.Services;
 
@@ -11,27 +11,29 @@ public class ChatService
     /// </summary>
     private static List<Session> _sessions = new();
 
-    private readonly CosmosDbService _cosmosDbService;
     private readonly OpenAiService _openAiService;
     private readonly MongoDbService _mongoDbService;
-    private readonly int _maxConversationBytes;
+    private readonly int _maxConversationTokens;
+    private readonly int _maxCompletionTokens;
+    private readonly ILogger _logger;
 
-    public ChatService(CosmosDbService cosmosDbService, OpenAiService openAiService, MongoDbService mongoDbService)
+    public ChatService(OpenAiService openAiService, MongoDbService mongoDbService, ILogger logger)
     {
-        _cosmosDbService = cosmosDbService;
+
         _openAiService = openAiService;
         _mongoDbService = mongoDbService;
 
-        _maxConversationBytes = openAiService.MaxConversationBytes;
-
+        _maxConversationTokens = openAiService.MaxConversationTokens;
+        _maxCompletionTokens = openAiService.MaxCompletionTokens;
+        _logger = logger;
     }
 
     /// <summary>
     /// Returns list of chat session ids and names for left-hand nav to bind to (display Name and ChatSessionId as hidden)
     /// </summary>
     public async Task<List<Session>> GetAllChatSessionsAsync()
-    {
-        return _sessions = await _cosmosDbService.GetSessionsAsync();
+    {  
+        return _sessions = await _mongoDbService.GetSessionsAsync();
     }
 
     /// <summary>
@@ -53,7 +55,7 @@ public class ChatService
         if (_sessions[index].Messages.Count == 0)
         {
             // Messages are not cached, go read from database
-            chatMessages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
+            chatMessages = await _mongoDbService.GetSessionMessagesAsync(sessionId);
 
             // Cache results
             _sessions[index].Messages = chatMessages;
@@ -76,7 +78,7 @@ public class ChatService
 
         _sessions.Add(session);
 
-        await _cosmosDbService.InsertSessionAsync(session);
+        await _mongoDbService.InsertSessionAsync(session);
 
     }
 
@@ -91,7 +93,7 @@ public class ChatService
 
         _sessions[index].Name = newChatSessionName;
 
-        await _cosmosDbService.UpdateSessionAsync(_sessions[index]);
+        await _mongoDbService.UpdateSessionAsync(_sessions[index]);
     }
 
     /// <summary>
@@ -105,7 +107,7 @@ public class ChatService
 
         _sessions.RemoveAt(index);
 
-        await _cosmosDbService.DeleteSessionAndMessagesAsync(sessionId);
+        await _mongoDbService.DeleteSessionAndMessagesAsync(sessionId);
     }
 
     /// <summary>
@@ -113,54 +115,118 @@ public class ChatService
     /// </summary>
     public async Task<string> GetChatCompletionAsync(string? sessionId, string userPrompt)
     {
-        ArgumentNullException.ThrowIfNull(sessionId);
 
-        //Retrieve conversation, including latest prompt.
-        //If you put this after the vector search it doesn't take advantage of previous information given so harder to chain prompts together.
-        //However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
-        //string conversation = GetChatSessionConversation(sessionId, userPrompt);
+        try
+        { 
+            ArgumentNullException.ThrowIfNull(sessionId);
 
-
-        //Get embeddings for user prompt.
-        (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(sessionId, userPrompt);
-
-
-
-        //Do vector search on prompt embeddings, return list of documents
-        string retrievedDocuments = await _mongoDbService.VectorSearchAsync(promptVectors);
+            //Retrieve conversation, including latest prompt.
+            //If you put this after the vector search it doesn't take advantage of previous information given so harder to chain prompts together.
+            //However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
+            
+            (string conversationAndUserPrompt, int conversationTokens) = GetChatSessionConversation(sessionId, userPrompt);
 
 
-        //Retrieve conversation, including latest prompt.
-        string conversation = GetChatSessionConversation(sessionId, userPrompt);
+            //Get embeddings for user prompt.
+            (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(sessionId, conversationAndUserPrompt);
 
 
-
-        //Generate the completion to return to the user
-        (string completion, int promptTokens, int responseTokens) = await _openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
-
-
-        //Add to prompt and completion to cache, then persist in Cosmos as transaction 
-        Message promptMessage = new Message(sessionId, nameof(Participants.User), promptTokens, userPrompt);
-        Message completionMessage = new Message(sessionId, nameof(Participants.Assistant), responseTokens, completion);        
-        await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage);
+            //Do vector search on prompt embeddings, return list of documents
+            string retrievedDocuments = await _mongoDbService.VectorSearchAsync(promptVectors);
 
 
-        return completion;
+            //Estimate token usage and trim vector data sent to OpenAI to prevent exceptions caused by exceeding token limits.
+            (string augmentedContent, int newUserPromptTokens) = BuildPromptAndData(sessionId, userPrompt, conversationTokens, retrievedDocuments);
+
+
+            //Generate the completion to return to the user
+            (string completion, int promptTokens, int completionTokens) = await _openAiService.GetChatCompletionAsync(sessionId, conversationAndUserPrompt, augmentedContent);
+
+
+            //Add to prompt and completion to cache, then persist in Cosmos as transaction
+            Message promptMessage = new Message(sessionId, nameof(Participants.User), newUserPromptTokens, default, userPrompt);
+            Message completionMessage = new Message(sessionId, nameof(Participants.Assistant), completionTokens, promptTokens, completion);        
+            await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage);
+
+
+            return completion;
+
+        }
+        catch (Exception ex) 
+        {
+            string message = $"ChatService.GetChatCompletionAsync(): {ex.Message}";
+            _logger.LogError(message);
+            throw;
+
+        }
+    }
+
+    /// <summary>
+    /// Estimate the token usage for OpenAI completion to prevent exceeding the OpenAI model's maximum token limit. This function estimates the
+    /// amount of tokens the vector search result data and the user prompt will consume. If the search result data exceeds the configured amount
+    /// the function reduces the number of vectors, reducing the amount of data sent.
+    /// </summary>
+    private (string augmentedContent, int newUserPromptTokens) BuildPromptAndData(string sessionId, string userPrompt, int conversationTokens, string augmentedContent)
+    {
+        
+        string updatedAugmentedContent = "";
+
+        //SharpToken only estimates token usage and often undercounts. Add a buffer of 300 tokens.
+        int maxGPTTokens = 4096 - 300;
+
+        //Create a new instance of SharpToken
+        var encoding = GptEncoding.GetEncodingForModel("gpt-3.5-turbo");
+
+        //Get count of vectors on rag data
+        List<int> ragVectors = encoding.Encode(augmentedContent);
+        int ragTokens = ragVectors.Count;
+
+        //Get count of vectors on user prompt (return)
+        int promptTokens = encoding.Encode(userPrompt).Count;
+
+        //Get count of vectors on conversation. This only counts the prompt and completion tokens. Does not include the tokens used to process the rag data.
+        
+
+        //If RAG data plus user prompt, plus conversation, plus tokens for completion is greater than max tokens, reduce by the size of data sent.
+        if (ragTokens + promptTokens + conversationTokens + _maxCompletionTokens > maxGPTTokens)
+        {
+
+            //Calculate how many vectors we can pass
+            int ragVectorsToTake = maxGPTTokens - promptTokens - _maxCompletionTokens - conversationTokens;
+
+            //Get the reduced number vectors
+            List<int> trimmedRagVectors = (List<int>)ragVectors.GetRange(0, ragVectorsToTake);
+
+            //Trim the data so it will not go over GPT's max token limit.
+            updatedAugmentedContent = encoding.Decode(trimmedRagVectors);
+
+        }
+        //If everthing + _maxCompletionTokens is less than 4097 then good to go.
+        else if (ragTokens + promptTokens + conversationTokens + _maxCompletionTokens < maxGPTTokens)
+        {
+            int index = _sessions.FindIndex(s => s.SessionId == sessionId);
+
+            //Return all of the content
+            updatedAugmentedContent = augmentedContent;
+        }
+
+
+        return (augmentedContent: updatedAugmentedContent, newUserPromptTokens: promptTokens);
+
     }
 
     /// <summary>
     /// Get current conversation from newest to oldest up to max conversation tokens and add to the prompt
     /// </summary>
-    private string GetChatSessionConversation(string sessionId, string userPrompt)
+    private (string conversation, int tokens) GetChatSessionConversation(string sessionId, string userPrompt)
     {
 
-        int? bytesUsed = 0;
+        
+        int? tokensUsed = 0;
 
         List<string> conversationBuilder = new List<string>();
 
-
         int index = _sessions.FindIndex(s => s.SessionId == sessionId);
-
 
         List<Message> messages = _sessions[index].Messages;
 
@@ -168,12 +234,11 @@ public class ChatService
         for (int i = messages.Count - 1; i >= 0; i--)
         {
 
-            bytesUsed += messages[i].Text.Length;
+            tokensUsed += messages[i].Tokens;
 
-            if (bytesUsed > _maxConversationBytes)
+            if (tokensUsed > _maxConversationTokens)
                 break;
 
-            
             conversationBuilder.Add(messages[i].Text);
 
         }
@@ -181,10 +246,14 @@ public class ChatService
         //Invert the chat messages to put back into chronological order and output as string.        
         string conversation = string.Join(Environment.NewLine, conversationBuilder.Reverse<string>());
 
-        //Add the current userPrompt
-        conversation += Environment.NewLine + userPrompt;
+        //Add a new line if needed, then append the current userPrompt
+        if (conversation.Length > 0)
+            conversation += Environment.NewLine;
 
-        return conversation;
+        conversation += userPrompt;
+
+
+        return (conversation, (int)tokensUsed);
 
 
     }
@@ -203,15 +272,15 @@ public class ChatService
     /// <summary>
     /// Add user prompt to the chat session message list object and insert into the data service.
     /// </summary>
-    private async Task<Message> AddPromptMessageAsync(string sessionId, string promptText)
+    private async Task AddPromptMessageAsync(string sessionId, string promptText)
     {
-        Message promptMessage = new(sessionId, nameof(Participants.User), default, promptText);
+        Message promptMessage = new(sessionId, nameof(Participants.User), default, default, promptText);
 
         int index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
         _sessions[index].AddMessage(promptMessage);
 
-        return await _cosmosDbService.InsertMessageAsync(promptMessage);
+        await _mongoDbService.InsertMessageAsync(promptMessage);
     }
 
 
@@ -231,10 +300,10 @@ public class ChatService
 
         //Update session cache with tokens used
         _sessions[index].TokensUsed += promptMessage.Tokens;
+        _sessions[index].TokensUsed += completionMessage.PromptTokens;
         _sessions[index].TokensUsed += completionMessage.Tokens;
 
-
-        await _cosmosDbService.UpsertSessionBatchAsync(promptMessage, completionMessage, _sessions[index]);
+        await _mongoDbService.UpsertSessionBatchAsync(session: _sessions[index], promptMessage: promptMessage, completionMessage: completionMessage);
 
     }
 }

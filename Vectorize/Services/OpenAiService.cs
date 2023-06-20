@@ -24,6 +24,7 @@ public class OpenAiService
         _openAIKey = key;
         _openAIEmbeddings = embeddingsDeployment;
         _openAIMaxTokens = int.TryParse(maxTokens, out _openAIMaxTokens) ? _openAIMaxTokens : 8191;
+        
         _logger = logger;
 
 
@@ -52,7 +53,7 @@ public class OpenAiService
         }
     }
 
-    public async Task<float[]?> GetEmbeddingsAsync(dynamic data, ILogger logger)
+    public async Task<float[]?> GetEmbeddingsAsync(dynamic data)
     {
         try
         {
@@ -71,7 +72,7 @@ public class OpenAiService
         }
         catch (Exception ex)
         {
-            logger.LogError($"GetEmbeddingsAsync Exception: {ex.Message}");
+            _logger.LogError($"GetEmbeddingsAsync Exception: {ex.Message}");
             return null;
         }
     }

@@ -33,8 +33,7 @@ static class ProgramExtensions
 {
     public static void RegisterConfiguration(this WebApplicationBuilder builder)
     {
-        builder.Services.AddOptions<CosmosDb>()
-            .Bind(builder.Configuration.GetSection(nameof(CosmosDb)));
+        builder.Configuration.AddUserSecrets<Program>(optional: true, reloadOnChange: true);
 
         builder.Services.AddOptions<OpenAi>()
             .Bind(builder.Configuration.GetSection(nameof(OpenAi)));
@@ -45,24 +44,7 @@ static class ProgramExtensions
 
     public static void RegisterServices(this IServiceCollection services)
     {
-        services.AddSingleton<CosmosDbService, CosmosDbService>((provider) =>
-        {
-            var cosmosDbOptions = provider.GetRequiredService<IOptions<CosmosDb>>();
-            if (cosmosDbOptions is null)
-            {
-                throw new ArgumentException($"{nameof(IOptions<CosmosDb>)} was not resolved through dependency injection.");
-            }
-            else
-            {
-                return new CosmosDbService(
-                    endpoint: cosmosDbOptions.Value?.Endpoint ?? String.Empty,
-                    key: cosmosDbOptions.Value?.Key ?? String.Empty,
-                    databaseName: cosmosDbOptions.Value?.Database ?? String.Empty,
-                    containerNames: cosmosDbOptions.Value?.Containers ?? String.Empty,
-                    logger: provider.GetRequiredService<ILogger<CosmosDb>>()
-                );
-            }
-        });
+        
         services.AddSingleton<OpenAiService, OpenAiService>((provider) =>
         {
             var openAiOptions = provider.GetRequiredService<IOptions<OpenAi>>();
@@ -77,11 +59,13 @@ static class ProgramExtensions
                     key: openAiOptions.Value?.Key ?? String.Empty,
                     embeddingsDeployment: openAiOptions.Value?.EmbeddingsDeployment ?? String.Empty,
                     completionsDeployment: openAiOptions.Value?.CompletionsDeployment ?? String.Empty,
-                    maxConversationBytes: openAiOptions.Value?.MaxConversationBytes ?? String.Empty,
+                    maxConversationTokens: openAiOptions.Value?.MaxConversationTokens ?? String.Empty,
+                    maxCompletionTokens: openAiOptions.Value?.MaxCompletionTokens ?? String.Empty,
                     logger: provider.GetRequiredService<ILogger<OpenAiService>>()
                 );
             }
         });
+
         services.AddSingleton<MongoDbService, MongoDbService>((provider) =>
         {
             var mongoDbOptions = provider.GetRequiredService<IOptions<MongoDb>>();
@@ -92,14 +76,30 @@ static class ProgramExtensions
             else
             {
                 return new MongoDbService(
-                    connection: mongoDbOptions.Value?.Connection?? String.Empty,
+                    connection: mongoDbOptions.Value?.Connection ?? String.Empty,
                     databaseName: mongoDbOptions.Value?.DatabaseName ?? String.Empty,
-                    collectionName: mongoDbOptions.Value?.CollectionName ?? String.Empty,
+                    collectionNames: mongoDbOptions.Value?.CollectionNames ?? String.Empty,
                     maxVectorSearchResults: mongoDbOptions.Value?.MaxVectorSearchResults ?? String.Empty,
+                    openAiService: provider.GetRequiredService<OpenAiService>(),
                     logger: provider.GetRequiredService<ILogger<MongoDbService>>()
                 );
             }
         });
-        services.AddSingleton<ChatService>();
+        services.AddSingleton<ChatService, ChatService>((provider) =>
+        {
+            var chatOptions = provider.GetRequiredService<IOptions<Chat>>();
+            if (chatOptions is null)
+            {
+                throw new ArgumentException($"{nameof(IOptions<Chat>)} was not resolved through dependency injection");
+            }
+            else
+            {
+                return new ChatService(
+                    mongoDbService: provider.GetRequiredService<MongoDbService>(),
+                    openAiService: provider.GetRequiredService<OpenAiService>(),
+                    logger: provider.GetRequiredService<ILogger<ChatService>>()
+                );
+            }
+        });
     }
 }

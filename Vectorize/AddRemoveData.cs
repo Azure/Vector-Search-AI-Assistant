@@ -1,13 +1,7 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Microsoft.Azure.Cosmos;
+using System.Net;
+using Microsoft.Azure.Functions.Worker.Http;
 using Vectorize.Models;
 using Vectorize.Services;
 
@@ -17,21 +11,20 @@ namespace Vectorize
     {
 
         private readonly MongoDbService _mongo;
+        private readonly ILogger _logger;
 
-        public AddRemoveData(MongoDbService mongo)
+        public AddRemoveData(MongoDbService mongo, ILoggerFactory loggerFactory)
         {
             _mongo = mongo;
+            _logger = loggerFactory.CreateLogger<AddRemoveData>();
         }
 
 
-        [FunctionName("AddRemoveData")]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            [CosmosDB(
-                Connection = "CosmosDBConnection")]CosmosClient cosmosClient,
-            ILogger logger)
+        [Function("AddRemoveData")]
+        public async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequestData req)
         {
-            logger.LogInformation("C# HTTP trigger function processed a request.");
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             string? action = req.Query["action"];
 
@@ -40,97 +33,75 @@ namespace Vectorize
 
                 if (action == "add")
                 {
-                    await AddProduct(cosmosClient, logger);
+                    await AddProduct();
                 }
                 else if (action == "remove")
                 {
-                    await RemoveProduct(cosmosClient, logger);
+                    await RemoveProduct();
 
                 }
                 else
                 {
-                    throw new Exception("Bad Request: Missing value for action in query string, add or remove");
+                    throw new Exception("Bad Request: AddRemoveData HTTP trigger. Missing value for action in query string, add or remove");
                 }
 
-                string responseMessage = "HTTP trigger function executed successfully.";
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+                await response.WriteStringAsync("AddRemoveData HTTP trigger function executed successfully.");
 
-                return new OkObjectResult(responseMessage);
+                return response;
             }
             catch (Exception ex) 
-            { 
-             
-                return new BadRequestObjectResult(ex);
-            
+            {
+
+                var response = req.CreateResponse(HttpStatusCode.BadRequest);
+                await response.WriteStringAsync(ex.ToString());
+                return response;
+
             }
         }
 
-        public async Task AddProduct(CosmosClient cosmosClient, ILogger logger) 
+        public async Task AddProduct() 
         {
 
             try
             {
 
-                Container container = cosmosClient.GetContainer("database", "product");
+                Product product = GetCosmicSock;
 
-                await container.CreateItemAsync(GetCosmicSock);
+                await _mongo.UpsertProductAsync(product);
 
-                logger.LogInformation("Added Cosmic Sock to product");
+                _logger.LogInformation("Vector generated for Cosmic Sock and saved in product catalog");
 
             }
-            catch (CosmosException ex)
+            catch (Exception ex)
             {
-                //Ignore conflict errors.
-                if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    logger.LogInformation("Product Already added.");
-                }
-                else
-                {
-                    logger.LogError(ex.Message);
-                    throw;
-                }
+                
+                _logger.LogError(ex.Message);
+                throw;
 
             }
-
         }
 
-        public async Task RemoveProduct(CosmosClient cosmosClient, ILogger logger)
+        public async Task RemoveProduct()
         {
 
-
             try
             {
-                Container container = cosmosClient.GetContainer("database", "product");
+                Product product = GetCosmicSock;
 
-                //Delete from Cosmos product container
-                await container.DeleteItemAsync<Product>(id: GetCosmicSock.id, partitionKey: new PartitionKey(GetCosmicSock.categoryId));
+                await _mongo.DeleteProductAsync(product);
+
+                _logger.LogInformation("Cosmic Sock Vector deleted and removed from product catalog");
 
             }
-            catch (CosmosException ex)
+            catch (Exception ex)
             {
-                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    logger.LogInformation("Cosmic Sock alread removed from product");
-                }
-                else
-                    throw;
+                _logger.LogError(ex.Message);
+                throw;
 
             }
 
-            try
-            {
-                    //just ignore any error
-                    await _mongo.DeleteVector(GetCosmicSock.categoryId, GetCosmicSock.id, logger);
-
-                    logger.LogInformation("Removed Cosmic Sock from product");
-
-            }
-            catch(Exception ex) 
-            { 
-                logger.LogError(ex.Message);
-                //throw;
-            
-            }
         }
 
         public Product GetCosmicSock

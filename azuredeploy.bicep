@@ -8,7 +8,6 @@ param location string = 'eastus'
 
 @description('''
 Unique name for the deployed services below. Max length 15 characters, alphanumeric only:
-- Azure Cosmos DB for NoSQL
 - Azure Cosmos DB for MongoDB vCore
 - Azure OpenAI
 - Azure App Service
@@ -32,10 +31,10 @@ param appServiceSku string = 'B1'
 ])
 param openAiSku string = 'S0'
 
-@description('MongoDb vCore user Name. No dashes.')
+@description('MongoDB vCore user Name. No dashes.')
 param mongoDbUserName string
 
-@description('MongoDb vCore password. 8-256 characters, 3 of the following: lower case, upper case, numeric, symbol.')
+@description('MongoDB vCore password. 8-256 characters, 3 of the following: lower case, upper case, numeric, symbol.')
 @minLength(8)
 @maxLength(256)
 @secure()
@@ -45,13 +44,14 @@ param mongoDbPassword string
 @description('Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant) repository.')
 param appGitRepository string = 'https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git'
 
-@description('Git repository branch for the application source. This defaults to the [**MongovCore** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/MongovCore) repository.')
-param appGetRepositoryBranch string = 'MongovCore'
+@description('Git repository branch for the application source. This defaults to the [**MongovCorev2** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/MongovCorev2) repository.')
+param appGetRepositoryBranch string = 'MongovCorev2'
 
 var openAiSettings = {
   name: '${name}-openai'
   sku: openAiSku
-  maxConversationBytes: '2000'
+  maxConversationTokens: '100'
+  maxCompletionTokens: '500'
   completionsModel: {
     name: 'gpt-35-turbo'
     version: '0301'
@@ -80,43 +80,10 @@ var deployedRegion = {
   }
 }
 
-var cosmosDbSettings = {
-  name: '${name}-cosmos-nosql'
-  databaseName: 'database'
-}
-
 var mongovCoreSettings = {
   mongoClusterName: '${name}-mongo'
   mongoClusterLogin: mongoDbUserName
   mongoClusterPassword: mongoDbPassword
-}
-
-var cosmosContainers = {
-  embeddingContainer: {
-    name: 'embedding'
-    partitionKeyPath : '/id'
-    maxThroughput: 1000
-  }
-  completionsContainer: {
-    name: 'completions'
-    partitionKeyPath: '/sessionId'
-    maxThroughput: 1000
-  }
-  productContainer: {
-    name: 'product'
-    partitionKeyPath: '/categoryId'
-    maxThroughput: 1000
-  }
-  customerContainer: {
-    name: 'customer'
-    partitionKeyPath: '/customerId'
-    maxThroughput: 1000
-  }
-  leasesContainer: {
-    name: 'leases'
-    partitionKeyPath: '/id'
-    maxThroughput: 1000
-  }
 }
 
 var appServiceSettings = {
@@ -139,57 +106,6 @@ var appServiceSettings = {
     }
   }
 }
-
-resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
-  name: cosmosDbSettings.name
-  location: location
-  kind: 'GlobalDocumentDB'
-  properties: {
-    consistencyPolicy: {
-      defaultConsistencyLevel: 'Session'
-    }
-    databaseAccountOfferType: 'Standard'
-    locations: [
-      {
-        failoverPriority: 0
-        isZoneRedundant: false
-        locationName: location
-      }
-    ]
-  }
-}
-
-resource cosmosDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-08-15' = {
-  parent: cosmosDbAccount
-  name: cosmosDbSettings.databaseName
-  properties: {
-    resource: {
-      id: cosmosDbSettings.databaseName
-    }
-  }
-}
-
-resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2022-08-15' = [for container in items(cosmosContainers):  {
-  parent: cosmosDatabase
-  name: container.value.name
-  properties: {
-    resource: {
-      id: container.value.name
-      partitionKey: {
-        paths: [
-          container.value.partitionKeyPath
-        ]
-        kind: 'Hash'
-        version: 2
-      }
-    }
-    options: {
-      autoscaleSettings: {
-        maxThroughput: container.value.maxThroughput
-      }
-    }
-  }
-}]
 
 resource mongoCluster 'Microsoft.DocumentDB/mongoClusters@2023-03-01-preview' = {
   name: mongovCoreSettings.mongoClusterName
@@ -319,18 +235,15 @@ resource appServiceWebSettings 'Microsoft.Web/sites/config@2022-03-01' = {
   kind: 'string'
   properties: {
     APPINSIGHTS_INSTRUMENTATIONKEY: appServiceWebInsights.properties.InstrumentationKey
-    COSMOSDB__ENDPOINT: cosmosDbAccount.properties.documentEndpoint
-    COSMOSDB__KEY: cosmosDbAccount.listKeys().primaryMasterKey
-    COSMOSDB__DATABASE: cosmosDatabase.name
-    COSMOSDB__CONTAINERS: 'completions,product,customer'
     OPENAI__ENDPOINT: openAiAccount.properties.endpoint
     OPENAI__KEY: openAiAccount.listKeys().key1
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
     OPENAI__COMPLETIONSDEPLOYMENT: openAiCompletionsModelDeployment.name
-    OPENAI__MAXCONVERSATIONBYTES: openAiSettings.maxConversationBytes
+    OPENAI__MAXCONVERSATIONTOKENS: openAiSettings.maxConversationTokens
+    OPENAI__MAXCOMPLETIONTOKENS: openAiSettings.maxCompletionTokens
     MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
-    MONGODB__DATABASENAME: 'vectordb'
-    MONGODB__COLLECTIONNAME: 'vectors'
+    MONGODB__DATABASENAME: 'retaildb'
+    MONGODB__COLLECTIONNAMES: 'product,customer,vectors,completions'
     MONGODB__MAXVECTORSEARCHRESULTS: '10'
   }
 }
@@ -341,17 +254,16 @@ resource appServiceFunctionSettings 'Microsoft.Web/sites/config@2022-03-01' = {
   kind: 'string'
   properties: {
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${name}fnstorage;EndpointSuffix=core.windows.net;AccountKey=${storageAccount.listKeys().keys[0].value}'
-    APPINSIGHTS_INSTRUMENTATIONKEY: appServiceFunctionsInsights.properties.ConnectionString
+    APPLICATIONINSIGHTS_CONNECTION_STRING: appServiceFunctionsInsights.properties.ConnectionString
     FUNCTIONS_EXTENSION_VERSION: '~4'
-    FUNCTIONS_WORKER_RUNTIME: 'dotnet'
-    CosmosDBConnection: cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
+    FUNCTIONS_WORKER_RUNTIME: 'dotnet-isolated'
     OPENAI__ENDPOINT: openAiAccount.properties.endpoint
     OPENAI__KEY: openAiAccount.listKeys().key1
     OPENAI__EMBEDDINGSDEPLOYMENT: openAiEmbeddingsModelDeployment.name
     OPENAI__MAXTOKENS: '8191'
     MONGODB__CONNECTION: 'mongodb+srv://${mongovCoreSettings.mongoClusterLogin}:${mongovCoreSettings.mongoClusterPassword}@${mongovCoreSettings.mongoClusterName}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
-    MONGODB__DATABASENAME: 'vectordb'
-    MONGODB__COLLECTIONNAME: 'vectors'
+    MONGODB__DATABASENAME: 'retaildb'
+    MONGODB__COLLECTIONNAMES: 'product,customer,vectors,completions'
   }
 }
 

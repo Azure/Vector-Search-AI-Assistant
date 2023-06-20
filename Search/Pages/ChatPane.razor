@@ -99,7 +99,13 @@
                                     <strong class="me-auto text-capitalize">
                                         @msg.Sender
                                     </strong>
-                                    @if(msg.Tokens is not null) {
+                                    @if (msg.PromptTokens > 0)
+                                    {
+                                        <span class="me-2 badge rounded-pill bg-light">
+                                            Prompt Tokens: @msg.PromptTokens
+                                        </span>
+                                    }
+                                    @if(msg.Tokens > 0) {
                                         <span class="me-2 badge rounded-pill bg-light">
                                             Tokens: @msg.Tokens
                                         </span>
