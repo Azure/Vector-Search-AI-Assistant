@@ -39,6 +39,14 @@ $docdb=EnsureAndReturnFirstItem $docdb "CosmosDB (Document Db)"
 $docdbKey=$(az cosmosdb keys list -g $resourceGroup -n $docdb.name -o json --query primaryMasterKey | ConvertFrom-Json)
 Write-Host "Document Db Account: $($docdb.name)" -ForegroundColor Yellow
 
+## Getting OpenAI info
+$openAi=$(az cognitiveservices account list -g $resourceGroup --query "[?kind=='OpenAI'].{name: name, kind:kind, endpoint: properties.endpoint}" -o json | ConvertFrom-Json)
+$openAiKey=$(az cognitiveservices account keys list -g $resourceGroup -n $openAi.name -o json --query key1 | ConvertFrom-Json)
+
+## Getting Cognitive Search info
+$search=$(az search service list -g $resourceGroup --query "[].{name: name, kind:kind}" -o json | ConvertFrom-Json)
+$searchKey=$(az search admin-key show -g $resourceGroup --service-name $search.name -o json --query primaryKey | ConvertFrom-Json)
+
 ## Getting App Insights instrumentation key, if required
 $appinsightsId=@()
 $appInsightsName=$(az resource list -g $resourceGroup --resource-type Microsoft.Insights/components --query [].name | ConvertFrom-Json)
@@ -58,11 +66,13 @@ Write-Host "gvalues file will be generated with values:"
 
 $tokens.cosmosEndpoint=$docdb.documentEndpoint
 $tokens.cosmosKey=$docdbKey
+$tokens.openAiEndpoint=$openAi.endpoint
+$tokens.openAiKey=$openAiKey
+$tokens.searchEndpoint="https://$($search.name).search.windows.net/"
+$tokens.searchAdminKey=$searchKey
 
 # Standard fixed tokens
 $tokens.ingressclass=$ingressClass
-$tokens.secissuer="TTFakeLogin"
-$tokens.seckey="nEpLzQJGNSCNL5H6DIQCtTdNxf5VgAGcBbtXLms1YDD01KJBAs0WVawaEjn97uwB"
 $tokens.ingressrewritepath="(/|$)(.*)"
 $tokens.ingressrewritetarget="`$2"
 
