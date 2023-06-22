@@ -1,0 +1,47 @@
+services:
+  api:
+    image: ${REGISTRY:-ms-openai-cosmosdb}/chat-service-api:${TAG:-latest}
+    build:
+      context: ./
+      dockerfile: ./ChatServiceWebApi/Dockerfile
+    ports:
+    - "80:80"
+    environment:
+      DOTNET_URLS: http://+:80
+      ASPNETCORE_ENVIRONMENT: Production
+      CognitiveSearch__AdminKey: '{{searchAdminKey}}'
+      CognitiveSearch__Endpoint: '{{searchEndpoint}}'
+      CognitiveSearch__IndexName: 'vector-index'
+      CognitiveSearch__MaxVectorSearchResults: '10'
+      CosmosDb__Containers: 'completions, customer, product'
+      CosmosDb__Database: 'database'
+      CosmosDb__Endpoint: '{{cosmosEndpoint}}'
+      CosmosDb__Key: '{{cosmosKey}}'
+      OpenAi__CompletionsDeployment: 'completions'
+      OpenAi__EmbeddingsDeployment: 'embeddings'
+      OpenAi__Endpoint: '{{OpenAiEndpoint}}'
+      OpenAi__Key: '{{OpenAiKey}}'
+      OpenAi__MaxConversationBytes: '2000'
+      Logging__Loglevel__Default: 'Debug'
+      Logging__Loglevel__Microsoft__AspNetCore: 'Debug'
+  web:
+    image: ${REGISTRY:-ms-openai-cosmosdb}/chat-web-app:${TAG:-latest}
+    build:
+      context: ./
+      dockerfile: ./Search/Dockerfile
+    ports:
+    - "8080:80"
+    environment:
+      DOTNET_URLS: http://+:80
+      ASPNETCORE_ENVIRONMENT: Production
+      CosmosDb__Containers: 'completions, customer, product'
+      CosmosDb__Database: 'database'
+      CosmosDb__Endpoint: '{{cosmosEndpoint}}'
+      CosmosDb__Key: '{{cosmosKey}}'
+      OpenAi__CompletionsDeployment: 'completions'
+      OpenAi__EmbeddingsDeployment: 'embeddings'
+      OpenAi__Endpoint: '{{OpenAiEndpoint}}'
+      OpenAi__Key: '{{OpenAiKey}}'
+      OpenAi__MaxConversationBytes: '2000'
+      Logging__Loglevel__Default: 'Debug'
+      Logging__Loglevel__Microsoft__AspNetCore: 'Debug'

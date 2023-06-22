@@ -34,7 +34,7 @@ ingress:
   hosts:
   - ms-openai-cosmosdb-chatbot.hatboysoftware.com
   tls:
-  - secretName: tt-letsencrypt-prod
+  - secretName: tls-prod
 
 env:
   configmap:
@@ -54,20 +54,3 @@ env:
   values:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
-
-# cognitiveSearch:
-#   adminKey: ''
-#   endpoint: 'https://cog-search-vector.search.windows.net'
-#   indexName: 'vector-index'
-#   maxVectorSearchResults: 10
-# cosmosDb:
-#   containers: 'completions, customer, product'
-#   database: 'database'
-#   endpoint: 'https://bhm7vnpxv6irq-cosmos-nosql.documents.azure.com:443/'
-#   key: '=='
-# openAi:
-#   completionsDeployment: 'completions'
-#   embeddingsDeployment: 'embeddings'
-#   endpoint: 'https://bhm7vnpxv6irq-openai.openai.azure.com/'
-#   key: ''
-#   maxConversationBytes: 2000
