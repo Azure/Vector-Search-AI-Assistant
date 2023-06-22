@@ -1,5 +1,6 @@
 services:
   api:
+    image: ${REGISTRY:-ms-openai-cosmosdb}/chat-service-api:${TAG:-latest}
     build:
       context: ./
       dockerfile: ./ChatServiceWebApi/Dockerfile
@@ -8,22 +9,23 @@ services:
     environment:
       DOTNET_URLS: http://+:80
       ASPNETCORE_ENVIRONMENT: Production
-      CognitiveSearch__AdminKey: ''
-      CognitiveSearch__Endpoint: 'https://cog-search-vector.search.windows.net'
+      CognitiveSearch__AdminKey: '{{searchAdminKey}}'
+      CognitiveSearch__Endpoint: '{{searchEndpoint}}'
       CognitiveSearch__IndexName: 'vector-index'
       CognitiveSearch__MaxVectorSearchResults: '10'
       CosmosDb__Containers: 'completions, customer, product'
       CosmosDb__Database: 'database'
-      CosmosDb__Endpoint: 'https://bhm7vnpxv6irq-cosmos-nosql.documents.azure.com:443/'
-      CosmosDb__Key: '=='
+      CosmosDb__Endpoint: '{{cosmosEndpoint}}'
+      CosmosDb__Key: '{{cosmosKey}}'
       OpenAi__CompletionsDeployment: 'completions'
       OpenAi__EmbeddingsDeployment: 'embeddings'
-      OpenAi__Endpoint: 'https://bhm7vnpxv6irq-openai.openai.azure.com/'
-      OpenAi__Key: ''
+      OpenAi__Endpoint: '{{OpenAiEndpoint}}'
+      OpenAi__Key: '{{OpenAiKey}}'
       OpenAi__MaxConversationBytes: '2000'
       Logging__Loglevel__Default: 'Debug'
       Logging__Loglevel__Microsoft__AspNetCore: 'Debug'
   web:
+    image: ${REGISTRY:-ms-openai-cosmosdb}/chat-web-app:${TAG:-latest}
     build:
       context: ./
       dockerfile: ./Search/Dockerfile
@@ -34,12 +36,12 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       CosmosDb__Containers: 'completions, customer, product'
       CosmosDb__Database: 'database'
-      CosmosDb__Endpoint: 'https://bhm7vnpxv6irq-cosmos-nosql.documents.azure.com:443/'
-      CosmosDb__Key: ''
+      CosmosDb__Endpoint: '{{cosmosEndpoint}}'
+      CosmosDb__Key: '{{cosmosKey}}'
       OpenAi__CompletionsDeployment: 'completions'
       OpenAi__EmbeddingsDeployment: 'embeddings'
-      OpenAi__Endpoint: 'https://bhm7vnpxv6irq-openai.openai.azure.com/'
-      OpenAi__Key: ''
+      OpenAi__Endpoint: '{{OpenAiEndpoint}}'
+      OpenAi__Key: '{{OpenAiKey}}'
       OpenAi__MaxConversationBytes: '2000'
       Logging__Loglevel__Default: 'Debug'
       Logging__Loglevel__Microsoft__AspNetCore: 'Debug'

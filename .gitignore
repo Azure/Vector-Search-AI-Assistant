@@ -362,4 +362,7 @@ __blobstorage__/bb49451b-5984-491a-bf47-800ae14ce60f
 /Vectorize/Properties/serviceDependencies.bhm7vnpxv6irq-vectorize - Zip Deploy.json
 /Vectorize/Properties/serviceDependencies.json
 
+docker-compose.yml
 docker-compose.dev.yml
+__values/configValues.yaml
+.idea
