@@ -1,6 +1,7 @@
 #! /usr/bin/pwsh
 
 Param(
+    [parameter(Mandatory=$false)][string]$acrName,
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$true)][string]$subscription,
@@ -48,13 +49,17 @@ $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFi
 & ./Generate-Config.ps1 -resourceGroup $resourceGroup -outputFile $gValuesLocation
 
 # Create Secrets
-# $acrName = $(az acr list --resource-group $resourceGroup --subscription $subscription -o json | ConvertFrom-Json).name
-# Write-Host "The Name of your ACR: $acrName" -ForegroundColor Yellow
+if (-not $acrName)
+{
+    $acrName = $(az acr list --resource-group $resourceGroup --subscription $subscription -o json --query name | ConvertFrom-Json).name
+}
+
+Write-Host "The Name of your ACR: $acrName" -ForegroundColor Yellow
 # & ./Create-Secret.ps1 -resourceGroup $resourceGroup -acrName $acrName
 
 if ($stepBuildPush) {
     # Build an Push
-    & ./Build-Push.ps1 -resourceGroup $resourceGroup -acrName $acrName
+    & ./BuildPush.ps1 -resourceGroup $resourceGroup -acrName $acrName
 }
 
 if ($stepDeployImages) {
