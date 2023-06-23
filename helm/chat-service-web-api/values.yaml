@@ -8,7 +8,7 @@ image:
   repository: bhm7vnpxv6irqcr.azurecr.io/chatservicewebapi
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "20230608125731"
+  tag: latest
 
 service:
   type: ClusterIP
@@ -31,8 +31,6 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-  hosts:
-  - ms-openai-cosmosdb-chatbot.hatboysoftware.com
   tls:
   - secretName: tls-prod
 

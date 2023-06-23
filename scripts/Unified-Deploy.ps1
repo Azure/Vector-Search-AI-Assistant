@@ -5,10 +5,10 @@ Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$true)][string]$subscription,
-    [parameter(Mandatory=$false)][string]$clientId,
-    [parameter(Mandatory=$false)][string]$password,
     [parameter(Mandatory=$false)][bool]$stepDeployArm=$true,
     [parameter(Mandatory=$false)][bool]$stepBuildPush=$true,
+    [parameter(Mandatory=$false)][bool]$stepDeployCertManager=$true,
+    [parameter(Mandatory=$false)][bool]$stepDeployTls=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployImages=$true,
     [parameter(Mandatory=$false)][bool]$stepLoginAzure=$true
 )
@@ -33,7 +33,7 @@ az account set --subscription $subscription
 
 if ($stepDeployArm) {
     # Deploy ARM
-    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -clientId $clientId -password $password
+    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location
 }
 
 # Connecting kubectl to AKS
@@ -57,6 +57,16 @@ if (-not $acrName)
 Write-Host "The Name of your ACR: $acrName" -ForegroundColor Yellow
 # & ./Create-Secret.ps1 -resourceGroup $resourceGroup -acrName $acrName
 
+if ($stepDeployCertManager) {
+    # Deploy Cert Manager
+    & ./DeployCertManager.ps1
+}
+
+if ($stepDeployTls) {
+    # Deploy TLS
+    & ./DeployTlsSupport.ps1 -sslSupport prod -resourceGroup $resourceGroup -aksName $aksName
+}
+
 if ($stepBuildPush) {
     # Build an Push
     & ./BuildPush.ps1 -resourceGroup $resourceGroup -acrName $acrName
@@ -64,7 +74,7 @@ if ($stepBuildPush) {
 
 if ($stepDeployImages) {
     # Deploy images in AKS
-    $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts __values,$gValuesFile)
+    $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
     $chartsToDeploy = "*"
     & ./Deploy-Images-Aks.ps1 -aksName $aksName -resourceGroup $resourceGroup -charts $chartsToDeploy -acrName $acrName -valuesFile $gValuesLocation
 }

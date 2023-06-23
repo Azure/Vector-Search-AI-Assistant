@@ -76,12 +76,12 @@ Join-Path .. helm | Push-Location
 
 if ($sslSupport -eq "staging") {
     Write-Host "Adding TLS/SSL support using Let's Encrypt Staging environment" -ForegroundColor Yellow
-    Write-Host "helm install $name-ssl -f $(Join-Path tls-support values-staging.yaml) --set domain=$domain tls-support" -ForegroundColor Yellow
-    cmd /c "helm install $name-ssl-staging -f $(Join-Path tls-support values-staging.yaml) --set domain=$domain --set ingressClass=$ingressClass tls-support"
+    cmd /c "helm upgrade --install $name-ssl-staging tls-support -f $(Join-Path tls-support values-staging.yaml) --set domain=$domain --set ingressClass=$ingressClass"
 }
 if ($sslSupport -eq "prod") {
     Write-Host "Adding TLS/SSL support using Let's Encrypt PRODUCTION environment" -ForegroundColor Yellow
-    cmd /c "helm install $name-ssl-prod -f $(Join-Path tls-support values-prod.yaml) --set domain=$domain --set ingressClass=$ingressClass tls-support"
+    Write-Host "helm upgrade --install $name-ssl-prod tls-support -f $(Join-Path tls-support values-prod.yaml) --set domain=$domain --set ingressClass=$ingressClass"
+    cmd /c "helm upgrade --install $name-ssl-prod tls-support -f $(Join-Path tls-support values-prod.yaml) --set domain=$domain --set ingressClass=$ingressClass"
 }
 if ($sslSupport -eq "custom") {
     Write-Host "TLS support is custom bound to domain $domain" -ForegroundColor Yellow
