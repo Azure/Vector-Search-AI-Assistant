@@ -54,10 +54,10 @@ function validate {
 function createHelmCommand([string]$command) {
     $tlsSecretNameToUse = ""
     if ($tlsEnv -eq "staging") {
-        $tlsSecretNameToUse = "letsencrypt-staging"
+        $tlsSecretNameToUse = "tls-staging"
     }
     if ($tlsEnv -eq "prod") {
-        $tlsSecretNameToUse = "letsencrypt-prod"
+        $tlsSecretNameToUse = "tls-prod"
     }
     if ($tlsEnv -eq "custom") {
         $tlsSecretNameToUse=$tlsSecretName
@@ -118,14 +118,14 @@ Write-Host "Configuration file used is $valuesFile" -ForegroundColor Yellow
 
 if ($charts.Contains("api") -or  $charts.Contains("*")) {
     Write-Host "API chart - pr" -ForegroundColor Yellow
-    $command = "helm upgrade --install $name-api chat-service-web-api -f $valuesFile --set ingress.hosts='{$aksHost}' --set image.repository=$acrLogin/chat-service-web-api --set image.tag=$tag --set hpa.activated=$autoscale"
+    $command = "helm upgrade --install $name-api ./chat-service-web-api -f $valuesFile --set ingress.hosts='{$aksHost}' --set image.repository=$acrLogin/chat-service-api --set image.tag=$tag --set hpa.activated=$autoscale"
     $command = createHelmCommand $command 
     Invoke-Expression "$command"
 }
 
 if ($charts.Contains("web") -or  $charts.Contains("*")) {
     Write-Host "Webapp chart - web" -ForegroundColor Yellow
-    $command = "helm upgrade --install $name-web chat-web-app -f $valuesFile --set ingress.hosts='{$aksHost}' --set image.repository=$acrLogin/chat-web-app --set image.tag=$tag  --set hpa.activated=$autoscale"
+    $command = "helm upgrade --install $name-web ./chat-web-app -f $valuesFile --set ingress.hosts='{$aksHost}' --set image.repository=$acrLogin/chat-web-app --set image.tag=$tag  --set hpa.activated=$autoscale"
     $command = createHelmCommand $command
     Invoke-Expression "$command"
 }
