@@ -5,6 +5,8 @@ using VectorSearchAiAssistant.Service.Models.Chat;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Search;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+using Microsoft.Extensions.Options;
+using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -18,25 +20,17 @@ namespace VectorSearchAiAssistant.Service.Services
         private readonly Container _product;
         private readonly Database _database;
         private readonly Dictionary<string, Container> _containers;
+        private readonly CosmosDbSettings _settings;
         private readonly ILogger _logger;
 
-        /// <summary>
-        /// Creates a new instance of the service.
-        /// </summary>
-        /// <param name="endpoint">Endpoint URI.</param>
-        /// <param name="key">Account key.</param>
-        /// <param name="databaseName">Name of the database to access.</param>
-        /// <param name="containerNames">Names of the containers to access.</param>
-        /// <exception cref="ArgumentNullException">Thrown when endpoint, key, databaseName, or containerNames is either null or empty.</exception>
-        /// <remarks>
-        /// This constructor will validate credentials and create a service client instance.
-        /// </remarks>
-        public CosmosDbService(string endpoint, string key, string databaseName, string containerNames, ILogger logger)
+        public CosmosDbService(
+            IOptions<CosmosDbSettings> settings, ILogger<CosmosDbService> logger)
         {
-            ArgumentException.ThrowIfNullOrEmpty(endpoint);
-            ArgumentException.ThrowIfNullOrEmpty(key);
-            ArgumentException.ThrowIfNullOrEmpty(databaseName);
-            ArgumentException.ThrowIfNullOrEmpty(containerNames);
+            _settings = settings.Value;
+            ArgumentException.ThrowIfNullOrEmpty(_settings.Endpoint);
+            ArgumentException.ThrowIfNullOrEmpty(_settings.Key);
+            ArgumentException.ThrowIfNullOrEmpty(_settings.Database);
+            ArgumentException.ThrowIfNullOrEmpty(_settings.Containers);
 
             _logger = logger;
 
@@ -45,11 +39,11 @@ namespace VectorSearchAiAssistant.Service.Services
                 PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
             };
 
-            CosmosClient client = new CosmosClientBuilder(endpoint, key)
+            CosmosClient client = new CosmosClientBuilder(_settings.Endpoint, _settings.Key)
                 .WithSerializerOptions(options)
                 .Build();
 
-            Database? database = client?.GetDatabase(databaseName);
+            Database? database = client?.GetDatabase(_settings.Database);
 
             _database = database ??
                         throw new ArgumentException("Unable to connect to existing Azure Cosmos DB database.");
@@ -58,7 +52,7 @@ namespace VectorSearchAiAssistant.Service.Services
             //Dictionary of container references for all containers listed in config
             _containers = new Dictionary<string, Container>();
 
-            List<string> containers = containerNames.Split(',').ToList();
+            List<string> containers = _settings.Containers.Split(',').ToList();
 
             foreach (string containerName in containers)
             {

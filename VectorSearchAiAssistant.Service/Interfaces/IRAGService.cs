@@ -8,6 +8,8 @@ namespace VectorSearchAiAssistant.Service.Interfaces
 {
     public interface IRAGService
     {
-        Task<string> GetResponse(string userPrompt);
+        Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[] UserPromptEmbedding)> GetResponse(string userPrompt);
+
+        int MaxConversationBytes { get; }
     }
 }

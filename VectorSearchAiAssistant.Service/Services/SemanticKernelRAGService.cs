@@ -1,20 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VectorSearchAiAssistant.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.AI.Embeddings;
-using Azure.AI.OpenAI;
-using Azure.Search.Documents.Models;
-using Azure.Search.Documents;
-using System.Text.Json;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -22,7 +13,7 @@ public class SemanticKernelRAGService : IRAGService
 {
     readonly SemanticKernelRAGServiceSettings _settings;
     readonly IKernel _semanticKernel;
-    readonly string _memoryCollectionName = "vector-index";
+    readonly ILogger<SemanticKernelRAGService> _logger;
 
     private readonly string _systemPromptRetailAssistant = @"
     You are an intelligent assistant for the Cosmic Works Bike Company. 
@@ -36,10 +27,14 @@ public class SemanticKernelRAGService : IRAGService
 
     Text of relevant information:";
 
+    public int MaxConversationBytes => _settings.OpenAI.MaxConversationBytes;
+
     public SemanticKernelRAGService(
-        IOptions<SemanticKernelRAGServiceSettings> options)
+        IOptions<SemanticKernelRAGServiceSettings> options,
+        ILogger<SemanticKernelRAGService> logger)
     {
         _settings = options.Value;
+        _logger = logger;
 
         var builder = new KernelBuilder();
 
@@ -61,7 +56,7 @@ public class SemanticKernelRAGService : IRAGService
             _semanticKernel.GetService<ITextEmbeddingGeneration>()));
     }
 
-    public async Task<string> GetResponse(string userPrompt)
+    public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[] UserPromptEmbedding)> GetResponse(string userPrompt)
     {
         var matchingMemories = await SearchMemoriesAsync(userPrompt);
 
@@ -74,7 +69,7 @@ public class SemanticKernelRAGService : IRAGService
         var reply = await chat.GenerateMessageAsync(chatHistory, new ChatRequestSettings());
         chatHistory.AddAssistantMessage(reply);
 
-        return reply;
+        return new(reply, 0, 0, Enumerable.Range(1, 10).Select(x => (float)x).ToArray());
     }
 
     private async Task<string> SearchMemoriesAsync(string query)
@@ -85,7 +80,7 @@ public class SemanticKernelRAGService : IRAGService
         try
         {
             var searchResults = await _semanticKernel.Memory
-                .SearchAsync(_memoryCollectionName, query, limit: 10, withEmbeddings: true)
+                .SearchAsync(_settings.CognitiveSearch.IndexName, query, limit: _settings.CognitiveSearch.MaxVectorSearchResults, withEmbeddings: true)
                 .ToListAsync();
 
             return string.Join(Environment.NewLine + "-",
@@ -93,7 +88,7 @@ public class SemanticKernelRAGService : IRAGService
         }
         catch (Exception ex)
         {
-            //_logger.LogError($"There was an error conducting a vector search: {ex.Message}");
+            _logger.LogError($"There was an error conducting a memory search: {ex.Message}");
         }
 
         return resultDocuments;
