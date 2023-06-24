@@ -354,5 +354,3 @@ MigrationBackup/
 .ionide/
 
 values.dev.yaml
-
-**launchSettings.json

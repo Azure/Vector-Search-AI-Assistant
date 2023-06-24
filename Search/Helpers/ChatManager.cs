@@ -1,4 +1,6 @@
-﻿using VectorSearchAiAssistant.Service.Interfaces;
+﻿using Microsoft.Extensions.Options;
+using System.Text.Json;
+using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace Search.Helpers
@@ -11,9 +13,20 @@ namespace Search.Helpers
         private List<Session> _sessions { get; set; }
         private readonly IChatService _chatService;
 
-        public ChatManager(IChatService chatService)
+        private readonly ChatManagerSettings _settings;
+        private HttpClient _httpClient;
+
+        public ChatManager(
+            IOptions<ChatManagerSettings> settings,
+            IChatService chatService)
         {
             _chatService = chatService;
+            _settings = settings.Value;
+
+            _httpClient = new HttpClient()
+            {
+                BaseAddress = new Uri(_settings.APIUrl)
+            };
         }
 
         /// <summary>
@@ -21,7 +34,9 @@ namespace Search.Helpers
         /// </summary>
         public async Task<List<Session>> GetAllChatSessionsAsync()
         {
-            return _sessions = await _chatService.GetAllChatSessionsAsync();
+            _sessions = await Get<List<Session>>("/sessions");
+
+            return _sessions;
         }
 
         /// <summary>
@@ -117,6 +132,13 @@ namespace Search.Helpers
             ArgumentNullException.ThrowIfNull(sessionId);
 
             return await _chatService.RateMessageAsync(id, sessionId, rating);
+        }
+
+        private async Task<T> Get<T>(string requestUri)
+        {
+            var responseMessage = await _httpClient.GetAsync(requestUri);
+            var content = await responseMessage.Content.ReadAsStringAsync();
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(content);
         }
     }
 }
