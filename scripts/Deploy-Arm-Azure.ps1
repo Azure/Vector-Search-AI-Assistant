@@ -29,6 +29,6 @@ Write-Host "AKS last version is $aksLastVersion" -ForegroundColor Yellow
 
 Write-Host "Begining the ARM deployment..." -ForegroundColor Yellow
 Push-Location $sourceFolder
-az group deployment create -g $resourceGroup --template-file $script --parameters k8sVersion=$aksLastVersion
+az deployment group create -g $resourceGroup --template-file $script --parameters k8sVersion=$aksLastVersion
 Pop-Location 
 Pop-Location 
