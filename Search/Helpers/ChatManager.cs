@@ -8,7 +8,7 @@ namespace Search.Helpers
         /// <summary>
         /// All data is cached in the _sessions List object.
         /// </summary>
-        private static List<Session> _sessions = new();
+        private List<Session> _sessions { get; set; }
         private readonly IChatService _chatService;
 
         public ChatManager(IChatService chatService)
