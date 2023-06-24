@@ -35,14 +35,8 @@ static class ProgramExtensions
 {
     public static void RegisterConfiguration(this WebApplicationBuilder builder)
     {
-        builder.Services.AddOptions<CosmosDb>()
-            .Bind(builder.Configuration.GetSection(nameof(CosmosDb)));
-
-        builder.Services.AddOptions<OpenAi>()
-            .Bind(builder.Configuration.GetSection(nameof(OpenAi)));
-
-        builder.Services.AddOptions<CognitiveSearch>()
-            .Bind(builder.Configuration.GetSection(nameof(CognitiveSearch)));
+        builder.Services.AddOptions<CosmosDbSettings>()
+            .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CosmosDB"));
 
         builder.Services.AddOptions<SemanticKernelRAGServiceSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI"));
@@ -52,10 +46,10 @@ static class ProgramExtensions
     {
         services.AddSingleton<ICosmosDbService, CosmosDbService>((provider) =>
         {
-            var cosmosDbOptions = provider.GetRequiredService<IOptions<CosmosDb>>();
+            var cosmosDbOptions = provider.GetRequiredService<IOptions<CosmosDbSettings>>();
             if (cosmosDbOptions is null)
             {
-                throw new ArgumentException($"{nameof(IOptions<CosmosDb>)} was not resolved through dependency injection.");
+                throw new ArgumentException($"{nameof(IOptions<CosmosDbSettings>)} was not resolved through dependency injection.");
             }
             else
             {
@@ -64,46 +58,46 @@ static class ProgramExtensions
                     key: cosmosDbOptions.Value?.Key ?? String.Empty,
                     databaseName: cosmosDbOptions.Value?.Database ?? String.Empty,
                     containerNames: cosmosDbOptions.Value?.Containers ?? String.Empty,
-                    logger: provider.GetRequiredService<ILogger<CosmosDb>>()
+                    logger: provider.GetRequiredService<ILogger<CosmosDbService>>()
                 );
             }
         });
         services.AddSingleton<IOpenAiService, OpenAiService>((provider) =>
         {
-            var openAiOptions = provider.GetRequiredService<IOptions<OpenAi>>();
+            var openAiOptions = provider.GetRequiredService<IOptions<SemanticKernelRAGServiceSettings>>();
             if (openAiOptions is null)
             {
-                throw new ArgumentException($"{nameof(IOptions<OpenAi>)} was not resolved through dependency injection.");
+                throw new ArgumentException($"{nameof(IOptions<SemanticKernelRAGServiceSettings>)} was not resolved through dependency injection.");
             }
             else
             {
                 return new OpenAiService(
-                    endpoint: openAiOptions.Value?.Endpoint ?? String.Empty,
-                    key: openAiOptions.Value?.Key ?? String.Empty,
-                    embeddingsDeployment: openAiOptions.Value?.EmbeddingsDeployment ?? String.Empty,
-                    completionsDeployment: openAiOptions.Value?.CompletionsDeployment ?? String.Empty,
-                    maxConversationBytes: openAiOptions.Value?.MaxConversationBytes ?? String.Empty,
+                    endpoint: openAiOptions.Value?.OpenAI.Endpoint ?? String.Empty,
+                    key: openAiOptions.Value?.OpenAI.Key ?? String.Empty,
+                    embeddingsDeployment: openAiOptions.Value?.OpenAI.EmbeddingsDeployment ?? String.Empty,
+                    completionsDeployment: openAiOptions.Value?.OpenAI.CompletionsDeployment ?? String.Empty,
+                    maxConversationBytes: openAiOptions.Value?.OpenAI.MaxConversationBytes ?? String.Empty,
                     logger: provider.GetRequiredService<ILogger<OpenAiService>>()
                 );
             }
         });
         services.AddSingleton<IVectorDatabaseServiceQueries, CognitiveSearchService>((provider) =>
         {
-            var cognitiveSearchOptions = provider.GetRequiredService<IOptions<CognitiveSearch>>();
+            var cognitiveSearchOptions = provider.GetRequiredService<IOptions<SemanticKernelRAGServiceSettings>>();
 
             if (cognitiveSearchOptions is null)
             {
-                throw new ArgumentException($"{nameof(IOptions<CognitiveSearch>)} was not resolved through dependency injection.");
+                throw new ArgumentException($"{nameof(IOptions<SemanticKernelRAGServiceSettings>)} was not resolved through dependency injection.");
             }
             else
             {
                 return new CognitiveSearchService
                 (
-                    azureSearchAdminKey: cognitiveSearchOptions.Value?.AdminKey ?? string.Empty,
-                    azureSearchServiceEndpoint: cognitiveSearchOptions.Value?.Endpoint ?? string.Empty,
-                    azureSearchIndexName: cognitiveSearchOptions.Value?.IndexName ?? string.Empty,
-                    maxVectorSearchResults: cognitiveSearchOptions.Value?.MaxVectorSearchResults ?? string.Empty,
-                    logger: provider.GetRequiredService<ILogger<CognitiveSearch>>(),
+                    azureSearchAdminKey: cognitiveSearchOptions.Value?.CognitiveSearch.Key ?? string.Empty,
+                    azureSearchServiceEndpoint: cognitiveSearchOptions.Value?.CognitiveSearch.Endpoint ?? string.Empty,
+                    azureSearchIndexName: cognitiveSearchOptions.Value?.CognitiveSearch.IndexName ?? string.Empty,
+                    maxVectorSearchResults: cognitiveSearchOptions.Value?.CognitiveSearch.MaxVectorSearchResults ?? string.Empty,
+                    logger: provider.GetRequiredService<ILogger<CognitiveSearchService>>(),
                     // Explicitly setting createIndexIfNotExists value to false because the Blazor app freezes and
                     // does not render the UI when the service attempts to check if the index exists.
                     createIndexIfNotExists:false

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
 {
-    public record CosmosDb
+    public record CosmosDbSettings
     {
         public required string Endpoint { get; init; }
 
@@ -16,7 +16,5 @@ namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
         public required string Database { get; init; }
 
         public required string Containers { get; init; }
-
-        public ILogger? Logger { get; init; }
     }
 }
