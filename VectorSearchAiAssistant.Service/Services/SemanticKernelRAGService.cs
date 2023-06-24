@@ -44,20 +44,20 @@ public class SemanticKernelRAGService : IRAGService
         var builder = new KernelBuilder();
 
         builder.WithAzureTextEmbeddingGenerationService(
-            _settings.OpenAIEmbeddingDeploymentName,
-            _settings.OpenAIEndpoint,
-            _settings.OpenAIKey);
+            _settings.OpenAI.EmbeddingsDeployment,
+            _settings.OpenAI.Endpoint,
+            _settings.OpenAI.Key);
 
         builder.WithAzureChatCompletionService(
-            _settings.OpenAICompletionDeploymentName,
-            _settings.OpenAIEndpoint,
-            _settings.OpenAIKey);
+            _settings.OpenAI.CompletionsDeployment,
+            _settings.OpenAI.Endpoint,
+            _settings.OpenAI.Key);
 
         _semanticKernel = builder.Build();
 
         _semanticKernel.RegisterMemory(new AzureCognitiveSearchVectorMemory(
-            _settings.CognitiveSearchEndpoint,
-            _settings.CognitiveSearchKey,
+            _settings.CognitiveSearch.Endpoint,
+            _settings.CognitiveSearch.Key,
             _semanticKernel.GetService<ITextEmbeddingGeneration>()));
     }
 
