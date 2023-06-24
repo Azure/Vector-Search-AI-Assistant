@@ -30,11 +30,11 @@ spec:
     - host: {{ . }}
       http:
         paths:
-          - path: /api
+          - path: /api(/|$)(.*)
             pathType: Prefix
             backend:
               service:
-                name: ttweb
+                name: {{ $fullName }}
                 port:
                   number: 80
   {{- end }}
