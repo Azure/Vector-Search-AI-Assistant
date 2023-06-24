@@ -7,6 +7,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UserSecretsId>86b98284-0715-492f-80de-95ad9057b2d4</UserSecretsId>
   </PropertyGroup>
+  <ItemGroup>
+    <_WebToolingArtifacts Remove="properties\launchSettings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="properties\launchSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <!--<ItemGroup>
     <Content Remove="nuget.config" />
   </ItemGroup>
@@ -19,5 +27,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VectorSearchAiAssistant.Service\VectorSearchAiAssistant.Service.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>
