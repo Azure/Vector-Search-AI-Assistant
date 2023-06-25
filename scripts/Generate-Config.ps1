@@ -5,7 +5,9 @@ Param (
     [parameter(Mandatory=$false)][string[]]$outputFile=$null,
     [parameter(Mandatory=$false)][string[]]$gvaluesTemplate="..,gvalues.template.yml",
     [parameter(Mandatory=$false)][string[]]$dockerComposeTemplate="..,docker-compose.template.yml",
-    [parameter(Mandatory=$false)][string]$ingressClass="addon-http-application-routing"
+    [parameter(Mandatory=$false)][string[]]$migrationSettingsTemplate="..,migrationsettings.template.json",
+    [parameter(Mandatory=$false)][string]$ingressClass="addon-http-application-routing",
+    [parameter(Mandatory=$false)][string]$domain
 )
 
 function EnsureAndReturnFirstItem($arr, $restype) {
@@ -32,6 +34,16 @@ $tokens=@{}
 # $storage=$(az storage account list -g $resourceGroup --query "[].{name: name, blob: primaryEndpoints.blob}" -o json | ConvertFrom-Json)
 # $storage=EnsureAndReturnFirstItem $storage "Storage Account"
 # Write-Host "Storage Account: $($storage.name)" -ForegroundColor Yellow
+
+## Getting API URL domain
+if ([String]::IsNullOrEmpty($domain)) {
+    $domain = $(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
+    if (-not $domain) {
+        $domain = $(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpapplicationrouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
+    }
+}
+
+$apiUrl = "https://$domain/api"
 
 ## Getting CosmosDb info
 $docdb=$(az cosmosdb list -g $resourceGroup --query "[?kind=='GlobalDocumentDB'].{name: name, kind:kind, documentEndpoint:documentEndpoint}" -o json | ConvertFrom-Json)
@@ -64,6 +76,8 @@ Write-Host "App Insights Instrumentation Key: $appinsightsId" -ForegroundColor Y
 Write-Host "===========================================================" -ForegroundColor Yellow
 Write-Host "gvalues file will be generated with values:"
 
+$tokens.apiUrl=$apiUrl
+$tokens.cosmosConnectionString="AccountEndpoint=$($docdb.documentEndpoint);AccountKey=$docdbKey"
 $tokens.cosmosEndpoint=$docdb.documentEndpoint
 $tokens.cosmosKey=$docdbKey
 $tokens.openAiEndpoint=$openAi.endpoint
@@ -94,4 +108,10 @@ Push-Location $($MyInvocation.InvocationName | Split-Path)
 $dockerComposeTemplatePath=$(./Join-Path-Recursively -pathParts $dockerComposeTemplate.Split(","))
 $outputFilePath=$(./Join-Path-Recursively -pathParts ..,docker-compose.yml)
 & ./Token-Replace.ps1 -inputFile $dockerComposeTemplatePath -outputFile $outputFilePath -tokens $tokens
+Pop-Location
+
+Push-Location $($MyInvocation.InvocationName | Split-Path)
+$migrationSettingsTemplatePath=$(./Join-Path-Recursively -pathParts $migrationSettingsTemplate.Split(","))
+$outputFilePath=$(./Join-Path-Recursively -pathParts ..,migrationsettings.json)
+& ./Token-Replace.ps1 -inputFile $migrationSettingsTemplatePath -outputFile $outputFilePath -tokens $tokens
 Pop-Location

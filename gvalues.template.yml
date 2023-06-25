@@ -1,5 +1,5 @@
 cognitiveSearch:
-  adminKey: '{{searchAdminKey}}'
+  key: '{{searchAdminKey}}'
   endpoint: '{{searchEndpoint}}'
   indexName: 'vector-index'
   maxVectorSearchResults: 10
@@ -14,3 +14,4 @@ openAi:
   endpoint: '{{openAiEndpoint}}'
   key: '{{openAiKey}}'
   maxConversationBytes: 2000
+apiUrl: {{apiUrl}}

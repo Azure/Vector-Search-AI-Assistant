@@ -363,3 +363,4 @@ docker-compose.dev.yml
 __values/configFile.yaml
 .idea
 dMT
+migrationsettings.json

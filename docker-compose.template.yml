@@ -9,19 +9,22 @@ services:
     environment:
       DOTNET_URLS: http://+:80
       ASPNETCORE_ENVIRONMENT: Production
-      CognitiveSearch__AdminKey: '{{searchAdminKey}}'
-      CognitiveSearch__Endpoint: '{{searchEndpoint}}'
-      CognitiveSearch__IndexName: 'vector-index'
-      CognitiveSearch__MaxVectorSearchResults: '10'
-      CosmosDb__Containers: 'completions, customer, product'
-      CosmosDb__Database: 'database'
-      CosmosDb__Endpoint: '{{cosmosEndpoint}}'
-      CosmosDb__Key: '{{cosmosKey}}'
-      OpenAi__CompletionsDeployment: 'completions'
-      OpenAi__EmbeddingsDeployment: 'embeddings'
-      OpenAi__Endpoint: '{{OpenAiEndpoint}}'
-      OpenAi__Key: '{{OpenAiKey}}'
-      OpenAi__MaxConversationBytes: '2000'
+      AllowedHosts: '*'
+      MSCosmosDBOpenAI__CognitiveSearch__IndexName: 'vector-index'
+      MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults: '10'
+      MSCosmosDBOpenAI__CognitiveSearch__Endpoint: '{{searchEndpoint}}'
+      MSCosmosDBOpenAI__CognitiveSearch__Key: '{{searchAdminKey}}'
+      MSCosmosDBOpenAI__OpenAI__CompletionsDeployment: 'completions'
+      MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment: 'embeddings'
+      MSCosmosDBOpenAI__OpenAI__MaxConversationBytes: '2000'
+      MSCosmosDBOpenAI__OpenAI__Endpoint: '{{OpenAiEndpoint}}'
+      MSCosmosDBOpenAI__OpenAI__Key: '{{OpenAiKey}}'
+      MSCosmosDBOpenAI__CosmosDB__Containers: 'completions, customer, product'
+      MSCosmosDBOpenAI__CosmosDB__Database: 'database'
+      MSCosmosDBOpenAI__CosmosDB__Endpoint: '{{cosmosEndpoint}}'
+      MSCosmosDBOpenAI__CosmosDB__Key: '{{cosmosKey}}'
+      MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer: 'system-prompt'
+      MSCosmosDBOpenAI__SystemPromptName: 'RetailAssistant.Default'
       Logging__Loglevel__Default: 'Debug'
       Logging__Loglevel__Microsoft__AspNetCore: 'Debug'
   web:
@@ -34,14 +37,8 @@ services:
     environment:
       DOTNET_URLS: http://+:80
       ASPNETCORE_ENVIRONMENT: Production
-      CosmosDb__Containers: 'completions, customer, product'
-      CosmosDb__Database: 'database'
-      CosmosDb__Endpoint: '{{cosmosEndpoint}}'
-      CosmosDb__Key: '{{cosmosKey}}'
-      OpenAi__CompletionsDeployment: 'completions'
-      OpenAi__EmbeddingsDeployment: 'embeddings'
-      OpenAi__Endpoint: '{{OpenAiEndpoint}}'
-      OpenAi__Key: '{{OpenAiKey}}'
-      OpenAi__MaxConversationBytes: '2000'
+      AllowedHosts: '*'
+      DetailedErrors: 'true'
+      MSCosmosDBOpenAI__ChatManager__APIUrl: "http://api:80"
       Logging__Loglevel__Default: 'Debug'
       Logging__Loglevel__Microsoft__AspNetCore: 'Debug'
