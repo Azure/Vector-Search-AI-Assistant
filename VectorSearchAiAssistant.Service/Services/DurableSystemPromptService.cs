@@ -22,18 +22,26 @@ namespace VectorSearchAiAssistant.Service.Services
 
         public async Task<string> GetPrompt(string promptName, bool forceRefresh = false)
         {
+            ArgumentNullException.ThrowIfNullOrEmpty(promptName, nameof(promptName));
+
             if (_prompts.ContainsKey(promptName) && !forceRefresh)
                 return _prompts[promptName];
 
-            return null;
+            var blobClient = _storageClient.GetBlobClient(GetFilePath(promptName));
+            var reader = new StreamReader(await blobClient.OpenReadAsync());
+            var prompt = await reader.ReadToEndAsync();
+
+            _prompts[promptName] = prompt;
+
+            return prompt;
         }
 
         private string GetFilePath(string promptName)
         {
             var tokens = promptName.Split('.');
 
-            //var folderPath = $"/{string.Join('/', tokens.Take(tokens.Length - 1)}/{tokens[tokens.Length - 1]}.txt";
-            return null;
+            var folderPath = (tokens.Length == 1 ? string.Empty : $"/{string.Join('/', tokens.Take(tokens.Length - 1))}");
+            return $"{folderPath}/{tokens.Last()}.txt";
         }
     }
 }
