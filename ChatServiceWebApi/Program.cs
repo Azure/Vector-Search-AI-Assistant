@@ -23,12 +23,12 @@ namespace ChatServiceWebApi
             builder.Services.AddSingleton<IChatService, ChatService>();
 
             // Simple, static system prompt service
-            builder.Services.AddSingleton<ISystemPromptService, InMemorySystemPromptService>();
+            //builder.Services.AddSingleton<ISystemPromptService, InMemorySystemPromptService>();
 
             // System prompt service backed by an Azure blob storage account
-            //builder.Services.AddOptions<DurableSystemPromptServiceSettings>()
-            //    .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:SystemPrompt"));
-            //builder.Services.AddSingleton<ISystemPromptService, DurableSystemPromptService>();
+            builder.Services.AddOptions<DurableSystemPromptServiceSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:DurableSystemPrompt"));
+            builder.Services.AddSingleton<ISystemPromptService, DurableSystemPromptService>();
 
             builder.Services.AddScoped<ChatEndpoints>();
 
