@@ -35,21 +35,12 @@ static class ProgramExtensions
 {
     public static void RegisterConfiguration(this WebApplicationBuilder builder)
     {
-        builder.Services.AddOptions<CosmosDbSettings>()
-            .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CosmosDB"));
-
-        builder.Services.AddOptions<SemanticKernelRAGServiceSettings>()
-            .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI"));
-
         builder.Services.AddOptions<ChatManagerSettings>()
             .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:ChatManager"));
     }
 
     public static void RegisterServices(this IServiceCollection services)
     {
-        services.AddSingleton<ICosmosDbService, CosmosDbService>();
-        services.AddSingleton<IRAGService, SemanticKernelRAGService>();
-        services.AddSingleton<IChatService, ChatService>();
         services.AddSingleton<IChatManager, ChatManager>();
     }
 }

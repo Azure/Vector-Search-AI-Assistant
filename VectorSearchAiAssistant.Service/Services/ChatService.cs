@@ -72,7 +72,7 @@ public class ChatService : IChatService
     /// <summary>
     /// Receive a prompt from a user, vectorize it from the OpenAI service, and get a completion from the OpenAI service.
     /// </summary>
-    public async Task<string> GetChatCompletionAsync(string? sessionId, string userPrompt)
+    public async Task<Completion> GetChatCompletionAsync(string? sessionId, string userPrompt)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
@@ -100,7 +100,7 @@ public class ChatService : IChatService
         var completionMessage = new Message(sessionId, nameof(Participants.Assistant), result.ResponseTokens, result.Completion, null, null);        
         await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage);
 
-        return result.Completion;
+        return new Completion { Text = result.Completion };
     }
 
     /// <summary>
@@ -134,7 +134,7 @@ public class ChatService : IChatService
     /// <summary>
     /// Generate a name for a chat message, based on the passed in prompt.
     /// </summary>
-    public async Task<string> SummarizeChatSessionNameAsync(string? sessionId, string prompt)
+    public async Task<Completion> SummarizeChatSessionNameAsync(string? sessionId, string prompt)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
