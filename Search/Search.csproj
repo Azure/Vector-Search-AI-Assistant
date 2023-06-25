@@ -11,10 +11,10 @@
     <Content Remove="appsettings.development.json" />
   </ItemGroup>
   <ItemGroup>
-    <_WebToolingArtifacts Remove="properties\launchSettings.json" />
+    <_WebToolingArtifacts Remove="Properties\launchSettings.json" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="properties\launchSettings.json">
+    <Content Include="Properties\launchSettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
