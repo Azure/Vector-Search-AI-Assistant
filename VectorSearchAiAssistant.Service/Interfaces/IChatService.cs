@@ -32,9 +32,9 @@ public interface IChatService
     /// <summary>
     /// Receive a prompt from a user, Vectorize it from _openAIService Get a completion from _openAiService
     /// </summary>
-    Task<string> GetChatCompletionAsync(string? sessionId, string userPrompt);
+    Task<Completion> GetChatCompletionAsync(string? sessionId, string userPrompt);
 
-    Task<string> SummarizeChatSessionNameAsync(string? sessionId, string prompt);
+    Task<Completion> SummarizeChatSessionNameAsync(string? sessionId, string prompt);
 
     /// <summary>
     /// Rate an assistant message. This can be used to discover useful AI responses for training, discoverability, and other benefits down the road.

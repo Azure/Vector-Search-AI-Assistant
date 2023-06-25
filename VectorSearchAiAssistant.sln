@@ -20,7 +20,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorSearchAiAssistant.Ser
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatServiceWebApi", "ChatServiceWebApi\ChatServiceWebApi.csproj", "{3450C557-BECA-4F6D-B414-5941129229A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VectorSearchAiAssistant.SemanticKernel", "VectorSearchAiAssistant.SemanticKernel\VectorSearchAiAssistant.SemanticKernel.csproj", "{503CE23D-63D7-4A26-8475-AA71A45D519B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorSearchAiAssistant.SemanticKernel", "VectorSearchAiAssistant.SemanticKernel\VectorSearchAiAssistant.SemanticKernel.csproj", "{503CE23D-63D7-4A26-8475-AA71A45D519B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

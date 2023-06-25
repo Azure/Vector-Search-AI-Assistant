@@ -2,11 +2,25 @@
 {
     public record SemanticKernelRAGServiceSettings
     {
-        public string OpenAIKey { get; init; }
-        public string OpenAIEmbeddingDeploymentName { get; init; }
-        public string OpenAICompletionDeploymentName { get; init; }
-        public string OpenAIEndpoint { get; init; }
-        public string CognitiveSearchKey { get; init; }
-        public string CognitiveSearchEndpoint { get; init; }
+        public record OpenAISettings
+        {
+            public required string CompletionsDeployment { get; set; }
+            public required string EmbeddingsDeployment { get; init; }
+            public required int MaxConversationBytes { get; init; }
+            public required string Endpoint { get; init; }
+            public required string Key { get; init; }
+        }
+
+        public record CognitiveSearchSettings
+        {
+            public required string IndexName { get; set; }
+            public required int MaxVectorSearchResults { get; init; }
+            public required string Endpoint { get; init; }
+            public required string Key { get; init; }
+        }
+
+        public required OpenAISettings OpenAI { get; set; }
+        public required CognitiveSearchSettings CognitiveSearch { get; set; }
+        public required string SystemPromptName { get; set; }
     }
 }

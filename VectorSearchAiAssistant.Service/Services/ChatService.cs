@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Azure;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using VectorSearchAiAssistant.Service.Constants;
 using VectorSearchAiAssistant.Service.Interfaces;
@@ -9,21 +10,17 @@ namespace VectorSearchAiAssistant.Service.Services;
 public class ChatService : IChatService
 {
     private readonly ICosmosDbService _cosmosDbService;
-    private readonly IOpenAiService _openAiService;
-    private readonly IVectorDatabaseServiceQueries _vectorDatabaseService;
     private readonly IRAGService _ragService;
     private readonly int _maxConversationBytes;
 
-    public ChatService(ICosmosDbService cosmosDbService, IOpenAiService openAiService,
-        IVectorDatabaseServiceQueries vectorDatabaseService,
+    public ChatService(
+        ICosmosDbService cosmosDbService,
         IRAGService ragService)
     {
         _cosmosDbService = cosmosDbService;
-        _openAiService = openAiService;
-        _vectorDatabaseService = vectorDatabaseService;
         _ragService = ragService;
 
-        _maxConversationBytes = openAiService.MaxConversationBytes;
+        _maxConversationBytes = _ragService.MaxConversationBytes;
     }
 
     /// <summary>
@@ -75,7 +72,7 @@ public class ChatService : IChatService
     /// <summary>
     /// Receive a prompt from a user, vectorize it from the OpenAI service, and get a completion from the OpenAI service.
     /// </summary>
-    public async Task<string> GetChatCompletionAsync(string? sessionId, string userPrompt)
+    public async Task<Completion> GetChatCompletionAsync(string? sessionId, string userPrompt)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
@@ -84,12 +81,11 @@ public class ChatService : IChatService
         // However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
         // string conversation = GetChatSessionConversation(sessionId, userPrompt);
 
-
         // Get embeddings for user prompt.
-        (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(userPrompt, sessionId);
+        //(float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(userPrompt, sessionId);
 
         // Do vector search on prompt embeddings, return list of documents
-        var retrievedDocuments = await _vectorDatabaseService.VectorSearchAsync(promptVectors);
+        //var retrievedDocuments = await _vectorDatabaseService.VectorSearchAsync(promptVectors);
 
         // Retrieve conversation, including latest prompt.
         var messages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
@@ -97,17 +93,14 @@ public class ChatService : IChatService
 
         // Generate the completion to return to the user
         //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAs ync(sessionId, conversation, retrievedDocuments);
-        string completion = await _ragService.GetResponse(userPrompt);
-        // TODO: Extract token counts from SemanticKernel
-        var promptTokens = 0;
-        var responseTokens = 0;
+        var result = await _ragService.GetResponse(userPrompt);
 
         // Add to prompt and completion to cache, then persist in Cosmos as transaction 
-        var promptMessage = new Message(sessionId, nameof(Participants.User), promptTokens, userPrompt, promptVectors, null);
-        var completionMessage = new Message(sessionId, nameof(Participants.Assistant), responseTokens, completion, null, null);        
+        var promptMessage = new Message(sessionId, nameof(Participants.User), result.UserPromptTokens, userPrompt, result.UserPromptEmbedding, null);
+        var completionMessage = new Message(sessionId, nameof(Participants.Assistant), result.ResponseTokens, result.Completion, null, null);        
         await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage);
 
-        return completion;
+        return new Completion { Text = result.Completion };
     }
 
     /// <summary>
@@ -141,15 +134,17 @@ public class ChatService : IChatService
     /// <summary>
     /// Generate a name for a chat message, based on the passed in prompt.
     /// </summary>
-    public async Task<string> SummarizeChatSessionNameAsync(string? sessionId, string prompt)
+    public async Task<Completion> SummarizeChatSessionNameAsync(string? sessionId, string prompt)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        var response = await _openAiService.SummarizeAsync(sessionId, prompt);
+        await Task.CompletedTask;
+        throw new NotImplementedException();
+        //var response = await _openAiService.SummarizeAsync(sessionId, prompt);
 
-        await RenameChatSessionAsync(sessionId, response);
+        //await RenameChatSessionAsync(sessionId, response);
 
-        return response;
+        //return response;
     }
 
     /// <summary>

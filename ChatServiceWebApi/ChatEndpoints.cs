@@ -39,11 +39,11 @@ namespace ChatServiceWebApi
                     await _chatService.DeleteChatSessionAsync(sessionId))
                 .WithName("DeleteChatSession");
 
-            app.MapPost("/sessions/{sessionId}/completion", async (string sessionId, string userPrompt) =>
+            app.MapPost("/sessions/{sessionId}/completion", async (string sessionId, [FromBody] string userPrompt) =>
                     await _chatService.GetChatCompletionAsync(sessionId, userPrompt))
                 .WithName("GetChatCompletion");
 
-            app.MapPost("/sessions/{sessionId}/summarize-name", async (string sessionId, string prompt) =>
+            app.MapPost("/sessions/{sessionId}/summarize-name", async (string sessionId, [FromBody] string prompt) =>
                     await _chatService.SummarizeChatSessionNameAsync(sessionId, prompt))
                 .WithName("SummarizeChatSessionName");
         }
