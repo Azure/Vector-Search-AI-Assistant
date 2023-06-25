@@ -36,19 +36,22 @@ ingress:
 
 env:
   configmap:
-    - name: CognitiveSearch__AdminKey
-    - name: CognitiveSearch__Endpoint
-    - name: CognitiveSearch__IndexName
-    - name: CognitiveSearch__MaxVectorSearchResults
-    - name: CosmosDb__Containers
-    - name: CosmosDb__Database
-    - name: CosmosDb__Endpoint
-    - name: CosmosDb__Key
-    - name: OpenAi__CompletionsDeployment
-    - name: OpenAi__EmbeddingsDeployment
-    - name: OpenAi__Endpoint
-    - name: OpenAi__Key
-    - name: OpenAi__MaxConversationBytes
+    - name: MSCosmosDBOpenAI__CognitiveSearch__IndexName
+    - name: MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults
+    - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeployment
+    - name: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment
+    - name: MSCosmosDBOpenAI__OpenAI__MaxConversationBytes
+    - name: MSCosmosDBOpenAI__CosmosDB__Containers
+    - name: MSCosmosDBOpenAI__CosmosDB__Database
+    - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer
+    - name: MSCosmosDBOpenAI__SystemPromptName
+  secret:
+    - name: MSCosmosDBOpenAI__CognitiveSearch__Endpoint
+    - name: MSCosmosDBOpenAI__CognitiveSearch__Key
+    - name: MSCosmosDBOpenAI__OpenAI__Endpoint
+    - name: MSCosmosDBOpenAI__OpenAI__Key
+    - name: MSCosmosDBOpenAI__CosmosDB__Endpoint
+    - name: MSCosmosDBOpenAI__CosmosDB__Key
   values:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production

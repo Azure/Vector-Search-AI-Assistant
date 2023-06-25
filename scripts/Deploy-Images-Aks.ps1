@@ -117,7 +117,7 @@ if ([String]::IsNullOrEmpty($valuesFile)) {
 Write-Host "Configuration file used is $valuesFile" -ForegroundColor Yellow
 
 if ($charts.Contains("api") -or  $charts.Contains("*")) {
-    Write-Host "API chart - pr" -ForegroundColor Yellow
+    Write-Host "API chart - api" -ForegroundColor Yellow
     $command = "helm upgrade --install $name-api ./chat-service-web-api -f $valuesFile --set ingress.hosts='{$aksHost}' --set image.repository=$acrLogin/chat-service-api --set image.tag=$tag --set hpa.activated=$autoscale"
     $command = createHelmCommand $command 
     Invoke-Expression "$command"

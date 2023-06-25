@@ -1,5 +1,6 @@
 {{- $name := include "chat-service-web-api.fullname" . -}}
 {{- $cfgname := printf "%s-%s" "cfg" $name -}}
+{{- $secretName := printf "%s-%s" "secret" $name -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -47,6 +48,15 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: {{ $cfgname }}
+                  key: {{ .name }}
+          {{- end -}}
+          {{- end }}
+          {{- if .Values.env.secret -}}
+          {{- range .Values.env.secret -}}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
                   key: {{ .name }}
           {{- end -}}
           {{- end }}

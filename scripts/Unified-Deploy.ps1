@@ -10,6 +10,8 @@ Param(
     [parameter(Mandatory=$false)][bool]$stepDeployCertManager=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployTls=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployImages=$true,
+    [parameter(Mandatory=$false)][bool]$stepUploadSystemPrompts=$true,
+    [parameter(Mandatory=$false)][bool]$stepImportData=$true,
     [parameter(Mandatory=$false)][bool]$stepLoginAzure=$true
 )
 $gValuesFile="configFile.yaml"
@@ -22,6 +24,9 @@ az extension update --name aks-preview
 
 az extension add --name  application-insights
 az extension update --name  application-insights
+
+az extension add --name storage-preview
+az extension update --name storage-preview
 
 if ($stepLoginAzure) {
     # Write-Host "Login in your account" -ForegroundColor Yellow
@@ -73,11 +78,21 @@ if ($stepBuildPush) {
     & ./BuildPush.ps1 -resourceGroup $resourceGroup -acrName $acrName
 }
 
+if ($stepUploadSystemPrompts) {
+    # Upload System Prompts
+    & ./UploadSystemPrompts.ps1 -resourceGroup $resourceGroup -location $location
+}
+
 if ($stepDeployImages) {
     # Deploy images in AKS
     $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
     $chartsToDeploy = "*"
     & ./Deploy-Images-Aks.ps1 -aksName $aksName -resourceGroup $resourceGroup -charts $chartsToDeploy -acrName $acrName -valuesFile $gValuesLocation
+}
+
+if ($stepImportData) {
+    # Import Data
+    & ./Import-Data.ps1 -resourceGroup $resourceGroup -location $location
 }
 
 Pop-Location

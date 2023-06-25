@@ -52,72 +52,17 @@ You can see this at work by debugging the Azure Web App remotely or running loca
 
 ### Installation
 
-1. Fork this repository to your own GitHub account.
-1. Depending on whether you deploy using the ARM Template or Bicep, modify "appGitRepository" variable in one of those files to point to your fork of this repository: https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git (Be sure to have the right branch that corresponds with the vector search database you are using)
-1. If using the Deploy to Azure button below, also modify this README.md file to change the path for the Deploy To Azure button to your local repository.
-1. If you deploy this application without making either of these changes, you can update the repository by disconnecting and connecting an external git repository pointing to your fork.
+Run the following script to provision the infrastructure and deploy the API and frontend
 
-
-The provided ARM or Bicep Template will provision the following resources:
-1. Azure Cosmos DB for NoSQL account with a database and 5 containers at 1000 RU/s autoscale. This account will scale down to 500 RU/s when not in use.
-1. Azure Cosmos DB for MongoDB vCore for vector search.
-1. Azure App service. This will be configured to deploy the Search web application from **this** GitHub repository. This will work fine if no changes are made. If you want it to deploy from your forked repository, modify the Deploy To Azure button below.
-1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
-1. Azure Functions. This will run on the same hosting plan as the Azure App Service.
-
-**Note:** You must have access to Azure OpenAI service from your subscription before attempting to deploy this application.
-
-All connection information for Azure Cosmos DB and Azure OpenAI is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
-
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2FVectorSearchAiAssistant%2FMongovCore%2Fazuredeploy.json)
-
-**Note:** To run the solution locally, the following environment variables must be configured (replace the values with your own):
-
+```pwsh
+./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> -location <location> -subscription <subscription-id>
 ```
-"ASPNETCORE_ENVIRONMENT": "Development",
-"CognitiveSearch__AdminKey": "",
-"CognitiveSearch__Endpoint": "https://cog-search-vector.search.windows.net",
-"CognitiveSearch__IndexName": "vector-index",
-"CognitiveSearch__MaxVectorSearchResults": "10",
-"CosmosDb__Containers": "completions, customer, product",
-"CosmosDb__Database": "database",
-"CosmosDb__Endpoint": "https://bhm7vnpxv6irq-cosmos-nosql.documents.azure.com:443/",
-"CosmosDb__Key": "",
-"OpenAi__CompletionsDeployment": "completions",
-"OpenAi__EmbeddingsDeployment": "embeddings",
-"OpenAi__Endpoint": "https://bhm7vnpxv6irq-openai.openai.azure.com/",
-"OpenAi__Key": "",
-"OpenAi__MaxConversationBytes": "2000",
-"Logging__Loglevel__Default": "Debug",
-"Logging__Loglevel__Microsoft__AspNetCore": "Debug",
-"MSCosmosDBOpenAI__OpenAIEmbeddingDeploymentName": "embeddings",
-"MSCosmosDBOpenAI__OpenAICompletionDeploymentName": "completions",
-"MSCosmosDBOpenAI__OpenAIEndpoint": "https://bhm7vnpxv6irq-openai.openai.azure.com/",
-"MSCosmosDBOpenAI__CognitiveSearchEndpoint": "https://cog-search-vector.search.windows.net"
-"MSCosmosDBOpenAI__CognitiveSearchKey":
-"MSCosmosDBOpenAI__OpenAIKey"
-```
-
-### Initial data load
-
-The data for this solution must be loaded once it has been deployed. This process takes approximately 10 minutes to complete. The process for loading data also starts the process of generating vectors for all of the operational retail data in this solution. Follow the steps below.
-
-1. Download and install the [Azure Cosmos DB Data Migration Desktop Tool](https://github.com/AzureCosmosDB/data-migration-desktop-tool/releases)
-1. Copy the `migrationsettings.json` from the root folder of this repository and replace the version in the folder where you downloaded the tool above.
-1. Open the file using any text editor.
-1. Open the Azure Cosmos DB blade in the resource group for this solution.
-1. Navigate to the Keys blade in Azure Portal and copy the Primary Connection String for the Azure Cosmos DB for NoSQL account.
-1. Paste the connection string to replace to placeholders called `ADD-COSMOS-CONNECTION-STRING`. Save the file.
-1. Run dmt.exe
-1. You can watch Azure Functions processing the data by navigating to each of the Azure Functions in the portal. **Note:** you will need to enable Logging for the Azure Functions in the portal when first accessing the Functions Logs.
-
-<p align="center">
-    <img src="img/monitorfunctions.png" width="100%">
-</p>
 
 ### Quickstart
 
-1. After data loading is complete, go to the resource group for your deployment and open the Azure App Service in the Azure Portal. Click the link to launch the website.
+1. After deployment is complete, go to the resource group for your deployment and open the Azure App Service in the Azure Portal. Click the link to launch the website.
+> TODO: This needs to be changed to fetch the AKS HTTP application routing addon hostname
+
 1. Click [+ Create New Chat] button to create a new chat session.
 1. Type in your questions in the text box and press Enter.
 

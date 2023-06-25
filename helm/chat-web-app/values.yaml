@@ -36,19 +36,7 @@ ingress:
 
 env:
   configmap:
-    - name: CognitiveSearch__AdminKey
-    - name: CognitiveSearch__Endpoint
-    - name: CognitiveSearch__IndexName
-    - name: CognitiveSearch__MaxVectorSearchResults
-    - name: CosmosDb__Containers
-    - name: CosmosDb__Database
-    - name: CosmosDb__Endpoint
-    - name: CosmosDb__Key
-    - name: OpenAi__CompletionsDeployment
-    - name: OpenAi__EmbeddingsDeployment
-    - name: OpenAi__Endpoint
-    - name: OpenAi__Key
-    - name: OpenAi__MaxConversationBytes
+    - name: MSCosmosDBOpenAI__ChatManager__APIUrl
   values:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
