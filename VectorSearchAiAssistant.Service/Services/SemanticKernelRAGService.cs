@@ -14,25 +14,16 @@ public class SemanticKernelRAGService : IRAGService
     readonly SemanticKernelRAGServiceSettings _settings;
     readonly IKernel _semanticKernel;
     readonly ILogger<SemanticKernelRAGService> _logger;
-
-    private readonly string _systemPromptRetailAssistant = @"
-    You are an intelligent assistant for the Cosmic Works Bike Company. 
-    You are designed to provide helpful answers to user questions about 
-    product, product category, customer and sales order (salesOrder) information provided in JSON format below.
-
-    Instructions:
-    - Only answer questions related to the information provided below,
-    - Don't reference any product, customer, or salesOrder data not provided below.
-    - If you're unsure of an answer, you can say ""I don't know"" or ""I'm not sure"" and recommend users search themselves.
-
-    Text of relevant information:";
+    readonly ISystemPromptService _systemPromptService;
 
     public int MaxConversationBytes => _settings.OpenAI.MaxConversationBytes;
 
     public SemanticKernelRAGService(
+        ISystemPromptService systemPromptService,
         IOptions<SemanticKernelRAGServiceSettings> options,
         ILogger<SemanticKernelRAGService> logger)
     {
+        _systemPromptService = systemPromptService;
         _settings = options.Value;
         _logger = logger;
 
@@ -62,7 +53,8 @@ public class SemanticKernelRAGService : IRAGService
 
         var chat = _semanticKernel.GetService<IChatCompletion>();
 
-        var chatHistory = chat.CreateNewChat($"{_systemPromptRetailAssistant}{matchingMemories}");
+        var systemPrompt = _systemPromptService.GetPrompt(_settings.SystemPromptName);
+        var chatHistory = chat.CreateNewChat($"{systemPrompt}{matchingMemories}");
 
         chatHistory.AddUserMessage(userPrompt);
 

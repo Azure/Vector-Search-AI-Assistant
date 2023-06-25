@@ -13,14 +13,22 @@ namespace ChatServiceWebApi
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddOptions<CosmosDbSettings>()
-            .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CosmosDB"));
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CosmosDB"));
 
             builder.Services.AddOptions<SemanticKernelRAGServiceSettings>()
-                    .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI"));
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI"));
 
             builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>();
             builder.Services.AddSingleton<IRAGService, SemanticKernelRAGService>();
             builder.Services.AddSingleton<IChatService, ChatService>();
+
+            // Simple, static system prompt service
+            builder.Services.AddSingleton<ISystemPromptService, InMemorySystemPromptService>();
+
+            // System prompt service backed by an Azure blob storage account
+            //builder.Services.AddOptions<DurableSystemPromptServiceSettings>()
+            //    .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:SystemPrompt"));
+            //builder.Services.AddSingleton<ISystemPromptService, DurableSystemPromptService>();
 
             builder.Services.AddScoped<ChatEndpoints>();
 
