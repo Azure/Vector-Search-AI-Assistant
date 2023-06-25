@@ -71,6 +71,33 @@ All connection information for Azure Cosmos DB and Azure OpenAI is zero-touch an
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2FVectorSearchAiAssistant%2FMongovCore%2Fazuredeploy.json)
 
+**Note:** To run the solution locally, the following environment variables must be configured (replace the values with your own):
+
+```
+"ASPNETCORE_ENVIRONMENT": "Development",
+"CognitiveSearch__AdminKey": "",
+"CognitiveSearch__Endpoint": "https://cog-search-vector.search.windows.net",
+"CognitiveSearch__IndexName": "vector-index",
+"CognitiveSearch__MaxVectorSearchResults": "10",
+"CosmosDb__Containers": "completions, customer, product",
+"CosmosDb__Database": "database",
+"CosmosDb__Endpoint": "https://bhm7vnpxv6irq-cosmos-nosql.documents.azure.com:443/",
+"CosmosDb__Key": "",
+"OpenAi__CompletionsDeployment": "completions",
+"OpenAi__EmbeddingsDeployment": "embeddings",
+"OpenAi__Endpoint": "https://bhm7vnpxv6irq-openai.openai.azure.com/",
+"OpenAi__Key": "",
+"OpenAi__MaxConversationBytes": "2000",
+"Logging__Loglevel__Default": "Debug",
+"Logging__Loglevel__Microsoft__AspNetCore": "Debug",
+"MSCosmosDBOpenAI__OpenAIEmbeddingDeploymentName": "embeddings",
+"MSCosmosDBOpenAI__OpenAICompletionDeploymentName": "completions",
+"MSCosmosDBOpenAI__OpenAIEndpoint": "https://bhm7vnpxv6irq-openai.openai.azure.com/",
+"MSCosmosDBOpenAI__CognitiveSearchEndpoint": "https://cog-search-vector.search.windows.net"
+"MSCosmosDBOpenAI__CognitiveSearchKey":
+"MSCosmosDBOpenAI__OpenAIKey"
+```
+
 ### Initial data load
 
 The data for this solution must be loaded once it has been deployed. This process takes approximately 10 minutes to complete. The process for loading data also starts the process of generating vectors for all of the operational retail data in this solution. Follow the steps below.
