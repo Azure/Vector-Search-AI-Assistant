@@ -83,7 +83,7 @@ namespace VectorSearchAiAssistant.Service.Services
             _leases = database?.GetContainer(_settings.ChangeFeedLeaseContainer)
                 ?? throw new ArgumentException($"Unable to connect to the {_settings.ChangeFeedLeaseContainer} container required to listen to the CosmosDB change feed.");
 
-            StartChangeFeedProcessors();
+            Task.Run(() => StartChangeFeedProcessors());
         }
 
         private async Task StartChangeFeedProcessors()
