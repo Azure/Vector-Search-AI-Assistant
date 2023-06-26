@@ -70,6 +70,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
             {
                 if (await _adminClient.GetIndexAsync(_searchIndexName) != null)
                 {
+                    _searchClient = _adminClient.GetSearchClient(_searchIndexName);
                     _logger.LogInformation($"The {_searchIndexName} index already exists; skipping index creation.");
                     return;
                 }
