@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Azure;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+﻿using Microsoft.Extensions.Logging;
 using VectorSearchAiAssistant.Service.Constants;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
@@ -12,14 +10,20 @@ public class ChatService : IChatService
 {
     private readonly ICosmosDbService _cosmosDbService;
     private readonly IRAGService _ragService;
+    private readonly ILogger _logger;
+
     private readonly int _maxConversationBytes;
+
+    public bool IsInitialized => _cosmosDbService.IsInitialized && _ragService.IsInitialized;
 
     public ChatService(
         ICosmosDbService cosmosDbService,
-        IRAGService ragService)
+        IRAGService ragService,
+        ILogger<ChatService> logger)
     {
         _cosmosDbService = cosmosDbService;
         _ragService = ragService;
+        _logger = logger;
 
         _maxConversationBytes = _ragService.MaxConversationBytes;
     }
@@ -200,5 +204,14 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNullOrEmpty(categoryId);
 
         await _cosmosDbService.DeleteProductAsync(productId, categoryId);
+
+        try
+        {
+            await _ragService.RemoveMemory<Product>(new Product { id = productId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error attempting to remove memory for product id {productId} (category id {categoryId})");
+        }
     }
 }

@@ -5,18 +5,18 @@ using Azure.Search.Documents.Models;
 using Azure.Search.Documents;
 using Azure;
 using Microsoft.SemanticKernel.Memory;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.SemanticKernel.AI.Embeddings;
 using System.Text.Json;
 using System.Collections;
-using System.Reflection.Emit;
+using System.Reflection;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using Azure.Core.Serialization;
+using System.Reflection.Metadata;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch
 {
@@ -27,23 +27,30 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
     public class AzureCognitiveSearchVectorMemory : ISemanticTextMemory
     {
         private readonly SearchIndexClient _adminClient;
+        private SearchClient _searchClient;
+        private readonly string _searchIndexName;
 
         private readonly ConcurrentDictionary<string, SearchClient> _clientsByIndex = new();
 
         private readonly ITextEmbeddingGeneration _textEmbedding;
+        private readonly ILogger _logger;
 
         private const string VectorFieldName = "vector";
+        private const int ModelDimensions = 1536;
 
         /// <summary>
         /// Create a new instance of semantic memory using Azure Cognitive Search.
         /// </summary>
         /// <param name="endpoint">Azure Cognitive Search URI, e.g. "https://contoso.search.windows.net"</param>
         /// <param name="apiKey">API Key</param>
-        public AzureCognitiveSearchVectorMemory(string endpoint, string apiKey, ITextEmbeddingGeneration textEmbedding)
+        public AzureCognitiveSearchVectorMemory(string endpoint, string apiKey, string indexName, ITextEmbeddingGeneration textEmbedding, ILogger logger)
         {
             AzureKeyCredential credentials = new(apiKey);
-            _adminClient = new SearchIndexClient(new Uri(endpoint), credentials);
+
+            _adminClient = new SearchIndexClient(new Uri(endpoint), credentials, GetSearchClientOptions());
+            _searchIndexName = indexName;
             _textEmbedding = textEmbedding;
+            _logger = logger;
         }
 
         /// <summary>
@@ -51,10 +58,116 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
         /// </summary>
         /// <param name="endpoint">Azure Cognitive Search URI, e.g. "https://contoso.search.windows.net"</param>
         /// <param name="credentials">Azure service</param>
-        public AzureCognitiveSearchVectorMemory(string endpoint, TokenCredential credentials, ITextEmbeddingGeneration textEmbedding)
+        public AzureCognitiveSearchVectorMemory(string endpoint, TokenCredential credentials, string indexName, ITextEmbeddingGeneration textEmbedding, ILogger logger)
         {
-            _adminClient = new SearchIndexClient(new Uri(endpoint), credentials);
+            _adminClient = new SearchIndexClient(new Uri(endpoint), credentials, GetSearchClientOptions());
             _textEmbedding = textEmbedding;
+        }
+
+        public async Task Initialize(List<Type> typesToIndex)
+        {
+            try
+            {
+                if (await _adminClient.GetIndexAsync(_searchIndexName) != null)
+                {
+                    _logger.LogInformation($"The {_searchIndexName} index already exists; skipping index creation.");
+                    return;
+                }
+
+                var vectorSearchConfigName = "vector-config";
+
+                var fieldBuilder = new Azure.Search.Documents.Indexes.FieldBuilder();
+
+                var fieldsToIndex = typesToIndex
+                    .Select(tti => fieldBuilder.Build(tti))
+                    .SelectMany(x => x);
+
+                // Combine the three search fields, eliminating duplicate names:
+                var allFields = fieldsToIndex
+                    .GroupBy(field => field.Name)
+                    .Select(group => group.First())
+                    .ToList();
+                allFields.Add(
+                    new SearchField(VectorFieldName, SearchFieldDataType.Collection(SearchFieldDataType.Single))
+                    {
+                        IsSearchable = true,
+                        Dimensions = ModelDimensions,
+                        VectorSearchConfiguration = vectorSearchConfigName
+                    });
+
+                SearchIndex searchIndex = new(_searchIndexName)
+                {
+                    VectorSearch = new()
+                    {
+                        AlgorithmConfigurations =
+                        {
+                            new VectorSearchAlgorithmConfiguration(vectorSearchConfigName, "hnsw")
+                        }
+                    },
+                    Fields = allFields
+                };
+
+                await _adminClient.CreateIndexAsync(searchIndex);
+                _searchClient = _adminClient.GetSearchClient(_searchIndexName);
+
+                _logger.LogInformation($"Created the {_searchIndexName} index.");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"An error occurred while trying to build the {_searchIndexName} index: {e}");
+                throw;
+            }
+        }
+
+        public async Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer)
+        {
+            // Serialize the product object to send to OpenAI
+            var sItem = JObject.FromObject(item).ToString();
+
+            try
+            {
+                // Get the embeddings from OpenAI
+                var embbedding = await _textEmbedding.GenerateEmbeddingAsync(sItem);
+                vectorizer(item, embbedding.Vector.ToArray());
+
+                // Save to Cognitive Search
+                await _searchClient.IndexDocumentsAsync(IndexDocumentsBatch.Upload(new object[] { item }));
+
+                _logger.LogInformation($"Saved vector for item: {itemName} of type {typeof(T)}");
+            }
+            catch (Exception x)
+            {
+                _logger.LogError($"Exception while generating vector for [{itemName}]: " + x.Message);
+            }
+        }
+
+        public async Task RemoveMemory<T>(T item)
+        {
+            try
+            {
+                var objectType = item.GetType();
+                var properties = objectType.GetProperties();
+
+                foreach (var property in properties)
+                {
+                    var searchableAttribute = property.GetCustomAttribute<SearchableFieldAttribute>();
+                    if (searchableAttribute != null && searchableAttribute.IsKey)
+                    {
+                        var propertyName = property.Name;
+                        var propertyValue = property.GetValue(item);
+
+                        Console.WriteLine($"Found key property: {propertyName}, Value: {propertyValue}");
+                        await _searchClient.DeleteDocumentsAsync(propertyName, new[] { propertyValue?.ToString() });
+
+                        _logger.LogInformation("Deleted vector from Cognitive Search");
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception: DeleteVector(): {ex.Message}");
+            }
         }
 
         /// <inheritdoc />
@@ -146,6 +259,9 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
             bool withEmbeddings = false,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            if (collection.CompareTo(_searchIndexName) != 0)
+                throw new ArgumentException($"There is no corresponding index for collection {collection}.");
+
             collection = NormalizeIndexName(collection);
 
             var client = GetSearchClient(collection);
@@ -434,6 +550,18 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
         {
             var bytes = Convert.FromBase64String(encodedId);
             return Encoding.UTF8.GetString(bytes);
+        }
+
+        private SearchClientOptions GetSearchClientOptions()
+        {
+            return new SearchClientOptions()
+            {
+                Serializer = new JsonObjectSerializer(
+                    new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    })
+            };
         }
 
         #endregion

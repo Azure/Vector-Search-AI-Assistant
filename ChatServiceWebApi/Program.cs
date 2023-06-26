@@ -1,5 +1,3 @@
-
-using Microsoft.Extensions.Options;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Services;

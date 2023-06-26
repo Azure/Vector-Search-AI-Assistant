@@ -2,7 +2,7 @@
 
 namespace VectorSearchAiAssistant.Service.Models.Search
 {
-    public class Customer
+    public class Customer : EmbeddedEntity
     {
         [SearchableField(IsKey = true, IsFilterable = true)]
         public string id { get; set; }
@@ -28,8 +28,6 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         public Password password { get; set; }
         [SimpleField]
         public double salesOrderCount { get; set; }
-        [FieldBuilderIgnore]
-        public float[]? vector { get; set; }
 
         public Customer(string id, string type, string customerId, string title,
             string firstName, string lastName, string emailAddress, string phoneNumber,
