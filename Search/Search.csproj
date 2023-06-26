@@ -8,10 +8,13 @@
     <UserSecretsId>86b98284-0715-492f-80de-95ad9057b2d4</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <_WebToolingArtifacts Remove="properties\launchSettings.json" />
+    <Content Remove="appsettings.development.json" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="properties\launchSettings.json">
+    <_WebToolingArtifacts Remove="Properties\launchSettings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Properties\launchSettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -30,5 +33,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="appsettings.development.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

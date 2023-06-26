@@ -1,4 +1,7 @@
-﻿using VectorSearchAiAssistant.Service.Interfaces;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.Extensions.Options;
+using System.Text.Json;
+using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace Search.Helpers
@@ -9,11 +12,19 @@ namespace Search.Helpers
         /// All data is cached in the _sessions List object.
         /// </summary>
         private List<Session> _sessions { get; set; }
-        private readonly IChatService _chatService;
 
-        public ChatManager(IChatService chatService)
+        private readonly ChatManagerSettings _settings;
+        private HttpClient _httpClient;
+
+        public ChatManager(
+            IOptions<ChatManagerSettings> settings)
         {
-            _chatService = chatService;
+            _settings = settings.Value;
+
+            _httpClient = new HttpClient()
+            {
+                BaseAddress = new Uri(_settings.APIUrl)
+            };
         }
 
         /// <summary>
@@ -21,7 +32,9 @@ namespace Search.Helpers
         /// </summary>
         public async Task<List<Session>> GetAllChatSessionsAsync()
         {
-            return _sessions = await _chatService.GetAllChatSessionsAsync();
+            _sessions = await SendRequest<List<Session>>(HttpMethod.Get, "/sessions");
+
+            return _sessions;
         }
 
         /// <summary>
@@ -38,7 +51,7 @@ namespace Search.Helpers
 
             var index = _sessions.FindIndex(s => s.SessionId == sessionId);
 
-            chatMessages = await _chatService.GetChatSessionMessagesAsync(sessionId);
+            chatMessages = await SendRequest<List<Message>>(HttpMethod.Get, $"/sessions/{sessionId}/messages");
 
             // Cache results
             _sessions[index].Messages = chatMessages;
@@ -51,7 +64,7 @@ namespace Search.Helpers
         /// </summary>
         public async Task CreateNewChatSessionAsync()
         {
-            var session = await _chatService.CreateNewChatSessionAsync();
+            var session = await SendRequest<Session>(HttpMethod.Post, "/sessions");
             _sessions.Add(session);
         }
 
@@ -67,7 +80,8 @@ namespace Search.Helpers
 
             if (!onlyUpdateLocalSessionsCollection)
             {
-                await _chatService.RenameChatSessionAsync(sessionId, newChatSessionName);
+                await SendRequest<Session>(HttpMethod.Post,
+                    $"/sessions/{sessionId}/rename?newChatSessionName={newChatSessionName}");
             }
         }
 
@@ -81,7 +95,7 @@ namespace Search.Helpers
             var index = _sessions.FindIndex(s => s.SessionId == sessionId);
             _sessions.RemoveAt(index);
 
-            await _chatService.DeleteChatSessionAsync(sessionId);
+            await SendRequest(HttpMethod.Delete, $"/sessions/{sessionId}");
         }
 
         /// <summary>
@@ -91,21 +105,23 @@ namespace Search.Helpers
         {
             ArgumentNullException.ThrowIfNull(sessionId);
 
-            var completion =  await _chatService.GetChatCompletionAsync(sessionId, userPrompt);
+            var completion = await SendRequest<Completion>(HttpMethod.Post, 
+                $"/sessions/{sessionId}/completion", userPrompt);
             // Refresh the local messages cache:
             await GetChatSessionMessagesAsync(sessionId);
-            return completion;
+            return completion.Text;
         }
 
         public async Task<string> SummarizeChatSessionNameAsync(string sessionId, string prompt)
         {
             ArgumentNullException.ThrowIfNull(sessionId);
 
-            var response = await _chatService.SummarizeChatSessionNameAsync(sessionId, prompt);
+            var response = await SendRequest<Completion>(HttpMethod.Post, 
+                $"/sessions/{sessionId}/summarize-name", prompt);
 
-            await RenameChatSessionAsync(sessionId, response, true);
+            await RenameChatSessionAsync(sessionId, response.Text, true);
 
-            return response;
+            return response.Text;
         }
 
         /// <summary>
@@ -116,7 +132,40 @@ namespace Search.Helpers
             ArgumentNullException.ThrowIfNull(id);
             ArgumentNullException.ThrowIfNull(sessionId);
 
-            return await _chatService.RateMessageAsync(id, sessionId, rating);
+            return await SendRequest<Message>(HttpMethod.Post, 
+                $"/sessions/{sessionId}/message/{sessionId}/rate?rating={rating}");
+        }
+
+        private async Task<T> SendRequest<T>(HttpMethod method, string requestUri, object payload = null)
+        {
+            HttpResponseMessage responseMessage;
+            switch (method)
+            {
+                case HttpMethod m when m == HttpMethod.Get:
+                    responseMessage = await _httpClient.GetAsync(requestUri);
+                    break;
+                case HttpMethod m when m == HttpMethod.Post:
+                    responseMessage = await _httpClient.PostAsync(requestUri,
+                        payload == null ? null : JsonContent.Create(payload, payload.GetType()));
+                    break;
+                default:
+                    throw new NotImplementedException($"The Http method {method.Method} is not supported.");
+            }
+
+            var content = await responseMessage.Content.ReadAsStringAsync();
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(content);
+        }
+
+        private async Task SendRequest(HttpMethod method, string requestUri)
+        {
+            switch (method)
+            {
+                case HttpMethod m when m == HttpMethod.Delete:
+                    await _httpClient.DeleteAsync(requestUri);
+                    break;
+                default:
+                    throw new NotImplementedException($"The Http method {method.Method} is not supported.");
+            }
         }
     }
 }
