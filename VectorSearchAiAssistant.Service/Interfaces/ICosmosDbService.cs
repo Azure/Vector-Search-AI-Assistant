@@ -94,7 +94,7 @@ public interface ICosmosDbService
     /// <param name="productId">The Id of the product to delete.</param>
     /// <param name="categoryId">The category Id of the product to delete.</param>
     /// <returns></returns>
-    Task DeleteProduct(string productId, string categoryId);
+    Task DeleteProductAsync(string productId, string categoryId);
 
     /// <summary>
     /// Reads all documents retrieved by Vector Search.
