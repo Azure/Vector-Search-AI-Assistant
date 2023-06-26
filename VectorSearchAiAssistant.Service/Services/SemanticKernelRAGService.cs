@@ -7,6 +7,8 @@ using VectorSearchAiAssistant.Service.Interfaces;
 using Microsoft.Extensions.Logging;
 using VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using VectorSearchAiAssistant.SemanticKernel.Skills.Core;
+using VectorSearchAiAssistant.Service.Models.Search;
+using Microsoft.SemanticKernel.Memory;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -16,8 +18,13 @@ public class SemanticKernelRAGService : IRAGService
     readonly IKernel _semanticKernel;
     readonly ILogger<SemanticKernelRAGService> _logger;
     readonly ISystemPromptService _systemPromptService;
+    readonly AzureCognitiveSearchVectorMemory _memory;
+
+    bool _memoryInitialized = false;
 
     public int MaxConversationBytes => _settings.OpenAI.MaxConversationBytes;
+
+    public bool IsInitialized => _memoryInitialized;
 
     public SemanticKernelRAGService(
         ISystemPromptService systemPromptService,
@@ -44,10 +51,27 @@ public class SemanticKernelRAGService : IRAGService
 
         _semanticKernel = builder.Build();
 
-        _semanticKernel.RegisterMemory(new AzureCognitiveSearchVectorMemory(
+        _memory = new AzureCognitiveSearchVectorMemory(
             _settings.CognitiveSearch.Endpoint,
             _settings.CognitiveSearch.Key,
-            _semanticKernel.GetService<ITextEmbeddingGeneration>()));
+            _settings.CognitiveSearch.IndexName,
+            _semanticKernel.GetService<ITextEmbeddingGeneration>(),
+            _logger);
+        InitializeMemory();
+
+        _semanticKernel.RegisterMemory(_memory);
+    }
+
+    private async Task InitializeMemory()
+    {
+        await _memory.Initialize(new List<Type>
+        {
+            typeof(Customer),
+            typeof(Product),
+            typeof(SalesOrder)
+        });
+
+        _memoryInitialized = true;
     }
 
     public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt)
@@ -76,5 +100,15 @@ public class SemanticKernelRAGService : IRAGService
         chatHistory.AddAssistantMessage(reply);
 
         return new(reply, 0, 0, userPromptEmbedding);
+    }
+
+    public async Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer)
+    {
+        await _memory.AddMemory<T>(item, itemName, vectorizer);
+    }
+
+    public async Task RemoveMemory<T>(T item)
+    {
+        await _memory.RemoveMemory<T>(item);
     }
 }
