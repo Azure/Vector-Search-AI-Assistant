@@ -53,7 +53,7 @@ public class SemanticKernelRAGService : IRAGService
     public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt)
     {
         var memorySkill = new TextEmbeddingObjectMemorySkill();
-        _semanticKernel.ImportSkill(memorySkill);
+        //_semanticKernel.ImportSkill(memorySkill);
         var skContext = _semanticKernel.CreateNewContext();
 
         var memories = await memorySkill.RecallAsync(
