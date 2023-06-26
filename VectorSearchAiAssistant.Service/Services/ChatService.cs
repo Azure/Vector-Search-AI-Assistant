@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using VectorSearchAiAssistant.Service.Constants;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
+using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -182,5 +183,22 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(sessionId);
 
         return await _cosmosDbService.UpdateMessageRatingAsync(id, sessionId, rating);
+    }
+
+    public async Task AddProduct(Product product)
+    {
+        ArgumentNullException.ThrowIfNull(product);
+        ArgumentNullException.ThrowIfNullOrEmpty(product.id);
+        ArgumentNullException.ThrowIfNullOrEmpty(product.categoryId);
+
+        await _cosmosDbService.InsertProductAsync(product);
+    }
+
+    public async Task DeleteProduct(string productId, string categoryId)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(productId);
+        ArgumentNullException.ThrowIfNullOrEmpty(categoryId);
+
+        await _cosmosDbService.DeleteProductAsync(productId, categoryId);
     }
 }

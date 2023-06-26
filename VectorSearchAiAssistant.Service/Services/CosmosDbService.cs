@@ -18,6 +18,7 @@ namespace VectorSearchAiAssistant.Service.Services
         private readonly Container _completions;
         private readonly Container _customer;
         private readonly Container _product;
+        private readonly Container _leases;
         private readonly Database _database;
         private readonly Dictionary<string, Container> _containers;
         private readonly CosmosDbSettings _settings;
@@ -65,6 +66,8 @@ namespace VectorSearchAiAssistant.Service.Services
             _completions = _containers["completions"];
             _customer = _containers["customer"];
             _product = _containers["product"];
+
+
         }
 
         /// <summary>
@@ -306,7 +309,7 @@ namespace VectorSearchAiAssistant.Service.Services
         /// <param name="productId">The Id of the product to delete.</param>
         /// <param name="categoryId">The category Id of the product to delete.</param>
         /// <returns></returns>
-        public async Task DeleteProduct(string productId, string categoryId)
+        public async Task DeleteProductAsync(string productId, string categoryId)
         {
             try
             {
