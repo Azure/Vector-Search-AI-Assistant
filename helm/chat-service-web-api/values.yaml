@@ -52,6 +52,7 @@ env:
     - name: MSCosmosDBOpenAI__OpenAI__Key
     - name: MSCosmosDBOpenAI__CosmosDB__Endpoint
     - name: MSCosmosDBOpenAI__CosmosDB__Key
+    - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection
   values:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production

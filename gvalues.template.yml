@@ -15,3 +15,7 @@ openAi:
   key: '{{openAiKey}}'
   maxConversationBytes: 2000
 apiUrl: {{apiUrl}}
+durableSystemPrompt:
+  blobStorageContainer: 'system-prompt'
+  systemPromptName: 'RetailAssistant.Default'
+  blobStorageConnection: '{{blobStorageConnectionString}}'

@@ -52,7 +52,7 @@ spec:
           {{- end -}}
           {{- end }}
           {{- if .Values.env.secret -}}
-          {{- range .Values.env.secret -}}
+          {{- range .Values.env.secret }}
             - name: {{ .name }}
               valueFrom:
                 secretKeyRef:

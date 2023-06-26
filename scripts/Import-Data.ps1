@@ -5,6 +5,7 @@ Param(
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
 Push-Location ..
+Remove-Item -Path dMT -Recurse -Force -ErrorAction Ignore
 New-Item -ItemType Directory -Force -Path "dMT"
 Push-Location "dMT"
 
