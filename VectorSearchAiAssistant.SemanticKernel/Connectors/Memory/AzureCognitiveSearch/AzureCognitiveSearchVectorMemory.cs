@@ -68,7 +68,8 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
         {
             try
             {
-                if (await _adminClient.GetIndexAsync(_searchIndexName) != null)
+                var indexNames = await _adminClient.GetIndexNamesAsync().ToListAsync().ConfigureAwait(false);
+                if (indexNames.Contains(_searchIndexName))
                 {
                     _searchClient = _adminClient.GetSearchClient(_searchIndexName);
                     _logger.LogInformation($"The {_searchIndexName} index already exists; skipping index creation.");
@@ -116,7 +117,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
             catch (Exception e)
             {
                 _logger.LogError($"An error occurred while trying to build the {_searchIndexName} index: {e}");
-                throw;
             }
         }
 

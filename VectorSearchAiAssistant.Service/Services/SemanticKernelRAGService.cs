@@ -57,7 +57,7 @@ public class SemanticKernelRAGService : IRAGService
             _settings.CognitiveSearch.IndexName,
             _semanticKernel.GetService<ITextEmbeddingGeneration>(),
             _logger);
-        InitializeMemory();
+        Task.Run(() =>  InitializeMemory());
 
         _semanticKernel.RegisterMemory(_memory);
     }
