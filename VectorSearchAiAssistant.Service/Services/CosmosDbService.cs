@@ -7,6 +7,7 @@ using VectorSearchAiAssistant.Service.Models.Search;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using Microsoft.Extensions.Options;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
+using System.Text.Json;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -21,12 +22,24 @@ namespace VectorSearchAiAssistant.Service.Services
         private readonly Container _leases;
         private readonly Database _database;
         private readonly Dictionary<string, Container> _containers;
+
+        private readonly IRAGService _ragService;
         private readonly CosmosDbSettings _settings;
         private readonly ILogger _logger;
 
+        private ChangeFeedProcessor? _productChangeFeedProcessor, _customerChangeFeedProcessor;
+        private bool _productsInitialized = false;
+        private bool _customersInitialized = false;
+
+        public bool IsInitialized => _productsInitialized && _customersInitialized;
+
         public CosmosDbService(
-            IOptions<CosmosDbSettings> settings, ILogger<CosmosDbService> logger)
+            IRAGService ragService,
+            IOptions<CosmosDbSettings> settings, 
+            ILogger<CosmosDbService> logger)
         {
+            _ragService = ragService;
+
             _settings = settings.Value;
             ArgumentException.ThrowIfNullOrEmpty(_settings.Endpoint);
             ArgumentException.ThrowIfNullOrEmpty(_settings.Key);
@@ -67,8 +80,98 @@ namespace VectorSearchAiAssistant.Service.Services
             _customer = _containers["customer"];
             _product = _containers["product"];
 
-            //var response = await _database.CreateContainerIfNotExistsAsync(new ContainerProperties(_settings.ChangeFeedLeaseContainer, "/id"));
-            //_leases = response.Container;
+            _leases = database?.GetContainer(_settings.ChangeFeedLeaseContainer)
+                ?? throw new ArgumentException($"Unable to connect to the {_settings.ChangeFeedLeaseContainer} container required to listen to the CosmosDB change feed.");
+
+            StartChangeFeedProcessors();
+        }
+
+        private async Task StartChangeFeedProcessors()
+        {
+            // TODO: Implement a smarter configuration approach for change feed source containers
+            _productChangeFeedProcessor = _containers["product"]
+                .GetChangeFeedProcessorBuilder<Product>("productChangeFeed", ProductChangeFeedHandler)
+                .WithLeaseContainer(_leases)
+                .Build();
+            await _productChangeFeedProcessor.StartAsync();
+
+            // TODO: Implement a smarter configuration approach for change feed source containers
+            _customerChangeFeedProcessor = _containers["product"]
+                .GetChangeFeedProcessorBuilder<JsonDocument>("customerChangeFeed", CustomerChangeFeedHandler)
+                .WithLeaseContainer(_leases)
+                .Build();
+            await _productChangeFeedProcessor.StartAsync();
+        }
+
+        private async Task ProductChangeFeedHandler(
+            ChangeFeedProcessorContext context,
+            IReadOnlyCollection<Product> changes,
+            CancellationToken cancellationToken)
+        {
+            if (changes.Count == 0)
+                return;
+
+            _logger.LogInformation("Generating embeddings for " + changes.Count + " Products");
+
+            foreach (var product in changes) 
+            {
+                try
+                {
+                    await _ragService.AddMemory<Product>(
+                        product,
+                        product.name,
+                        (p, v) => { p.vector = v; });
+                    _logger.LogInformation("Add a new memory for product: " + product.name);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Exception while generating memory for [" + product.name + "]: " + ex.Message);
+                }
+            }
+        }
+
+        private async Task CustomerChangeFeedHandler(
+            ChangeFeedProcessorContext context,
+            IReadOnlyCollection<JsonDocument> changes,
+            CancellationToken cancellationToken)
+        {
+            if (changes.Count == 0)
+                return;
+
+            _logger.LogInformation("Generating embeddings for " + changes.Count + " Customers and Sales Orders");
+
+            // Using dynamic type as this container has two different entities
+            foreach (var item in changes)
+            {
+                var type = "";
+                using (var doc = JsonDocument.Parse(item.RootElement.GetRawText()))
+                {
+                    var obj = doc.RootElement.GetProperty("type");
+                    type = obj.GetString();
+                }
+
+                if (type == "customer")
+                {
+                    var customer = JsonSerializer.Deserialize<Customer>(item.RootElement.GetRawText());
+                    await _ragService.AddMemory<Customer>(
+                        customer, 
+                        $"{customer.firstName} {customer.lastName}",
+                        (p, v) => { p.vector = v; });
+                }
+                else if (type == "salesOrder")
+                {
+                    var salesOrder = JsonSerializer.Deserialize<SalesOrder>(item.RootElement.GetRawText());
+                    await _ragService.AddMemory<SalesOrder>(
+                        salesOrder,
+                        salesOrder.id,
+                        (p, v) => { p.vector = v; });
+
+                }
+                else
+                {
+                    _logger.LogError($"Unsupported entity saved in customer container: {type}");
+                }
+            }
         }
 
         /// <summary>
