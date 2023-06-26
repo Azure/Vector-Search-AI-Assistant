@@ -10,31 +10,16 @@ using System.Text.Json;
 namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
 {
     /// <summary>
-    /// TextEmbeddingMemorySkill provides a skill to recall vector-embedded information from the long term memory.
+    /// TextEmbeddingObjectMemorySkill provides a skill to recall object information from the long term memory using vector-based similarity.
     /// </summary>
     /// <example>
-    /// Usage: kernel.ImportSkill("memory", new TextEmbeddingMemorySkill());
+    /// Usage: kernel.ImportSkill("memory", new TextEmbeddingObjectMemorySkill());
     /// Examples:
     /// SKContext["input"] = "what is the capital of France?"
     /// {{memory.recall $input }} => "Paris"
     /// </example>
     public sealed class TextEmbeddingObjectMemorySkill
     {
-        /// <summary>
-        /// Name of the context variable used to specify which memory collection to use.
-        /// </summary>
-        public const string CollectionParam = "collection";
-
-        /// <summary>
-        /// Name of the context variable used to specify memory search relevance score.
-        /// </summary>
-        public const string RelevanceParam = "relevance";
-
-        /// <summary>
-        /// Name of the context variable used to specify the number of memories to recall
-        /// </summary>
-        public const string LimitParam = "limit";
-
         /// <summary>
         /// The vector embedding of the last text input submitted to the Recall method.
         /// Can only be read once, to avoid inconsistencies across multiple calls to Recall.
@@ -71,7 +56,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
         /// <param name="relevance">The relevance score, from 0.0 to 1.0, where 1.0 means perfect match.</param>
         /// <param name="limit">The maximum number of relevant memories to recall.</param>
         /// <param name="context">Contains the memory to search.</param>
-        [SKFunction("Semantic search and return up to N memories related to the input text")]
+        [SKFunction("Vector search and return up to N memories related to the input text")]
         public async Task<string> RecallAsync(
             [Description("The input text to find related memories for")] string text,
             [Description("Memories collection to search"), DefaultValue(DefaultCollection)] string collection,
@@ -79,8 +64,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
             [Description("The maximum number of relevant memories to recall"), DefaultValue(DefaultLimit)] int? limit,
             SKContext context)
         {
-            //Verify.NotNullOrWhiteSpace(collection, $"{nameof(context)}.{nameof(context.Variables)}[{CollectionParam}]");
-            ArgumentNullException.ThrowIfNullOrEmpty(collection, $"{nameof(context)}.{nameof(context.Variables)}[{CollectionParam}]");
+            ArgumentNullException.ThrowIfNullOrEmpty(collection, nameof(collection));
             relevance ??= DefaultRelevance;
             limit ??= DefaultLimit;
 

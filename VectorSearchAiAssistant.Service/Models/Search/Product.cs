@@ -3,7 +3,7 @@
 namespace VectorSearchAiAssistant.Service.Models.Search
 {
 
-    public class Product
+    public class Product : EmbeddedEntity
     {
         [SearchableField(IsKey = true, IsFilterable = true)]
         public string id { get; set; }
@@ -21,8 +21,6 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         public double price { get; set; }
         [SimpleField]
         public List<Tag> tags { get; set; }
-        [FieldBuilderIgnore]
-        public float[]? vector { get; set; }
 
         public Product(string id, string categoryId, string categoryName, string sku, string name, string description, double price, List<Tag> tags, float[]? vector = null)
         {
@@ -35,6 +33,10 @@ namespace VectorSearchAiAssistant.Service.Models.Search
             this.price = price;
             this.tags = tags;
             this.vector = vector;
+        }
+
+        public Product()
+        {
         }
     }
 
