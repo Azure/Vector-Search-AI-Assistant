@@ -1,5 +1,4 @@
 {{- $name := include "chat-service-web-api.fullname" . -}}
-{{- $apihost := include  "chat-service-web-api.apihost" . -}}
 
 apiVersion: v1
 kind: ConfigMap

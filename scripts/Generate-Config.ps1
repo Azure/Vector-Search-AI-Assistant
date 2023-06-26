@@ -43,13 +43,17 @@ if ([String]::IsNullOrEmpty($domain)) {
     }
 }
 
-$apiUrl = "https://$domain/api"
+$apiUrl = "https://$domain/api/"
 
 ## Getting CosmosDb info
 $docdb=$(az cosmosdb list -g $resourceGroup --query "[?kind=='GlobalDocumentDB'].{name: name, kind:kind, documentEndpoint:documentEndpoint}" -o json | ConvertFrom-Json)
 $docdb=EnsureAndReturnFirstItem $docdb "CosmosDB (Document Db)"
 $docdbKey=$(az cosmosdb keys list -g $resourceGroup -n $docdb.name -o json --query primaryMasterKey | ConvertFrom-Json)
 Write-Host "Document Db Account: $($docdb.name)" -ForegroundColor Yellow
+
+## Getting Storage info
+$blobAccount=$(az storage account list -g $resourceGroup -o json | ConvertFrom-Json).name
+$blobKey=$(az storage account keys list -g $resourceGroup -n $blobAccount -o json | ConvertFrom-Json)[0].value
 
 ## Getting OpenAI info
 $openAi=$(az cognitiveservices account list -g $resourceGroup --query "[?kind=='OpenAI'].{name: name, kind:kind, endpoint: properties.endpoint}" -o json | ConvertFrom-Json)
@@ -77,6 +81,7 @@ Write-Host "===========================================================" -Foregr
 Write-Host "gvalues file will be generated with values:"
 
 $tokens.apiUrl=$apiUrl
+$tokens.blobStorageConnectionString="DefaultEndpointsProtocol=https;AccountName=$($blobAccount);AccountKey=$blobKey;EndpointSuffix=core.windows.net"
 $tokens.cosmosConnectionString="AccountEndpoint=$($docdb.documentEndpoint);AccountKey=$docdbKey"
 $tokens.cosmosEndpoint=$docdb.documentEndpoint
 $tokens.cosmosKey=$docdbKey
