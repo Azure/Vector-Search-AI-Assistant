@@ -40,4 +40,6 @@ env:
   values:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
+    - name: MSCosmosDBOpenAI__ChatManager__RoutePrefix
+      value: /api
 

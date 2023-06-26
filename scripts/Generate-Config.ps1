@@ -43,7 +43,7 @@ if ([String]::IsNullOrEmpty($domain)) {
     }
 }
 
-$apiUrl = "https://$domain/api/"
+$apiUrl = "https://$domain"
 
 ## Getting CosmosDb info
 $docdb=$(az cosmosdb list -g $resourceGroup --query "[?kind=='GlobalDocumentDB'].{name: name, kind:kind, documentEndpoint:documentEndpoint}" -o json | ConvertFrom-Json)
