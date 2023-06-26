@@ -18,7 +18,7 @@ using System.Text.Json;
 using System.Collections;
 using System.Reflection.Emit;
 
-namespace VectorSearchAiAssistant.SemanticKernel
+namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch
 {
     /// <summary>
     /// Semantic Memory implementation using Azure Cognitive Search.
@@ -42,8 +42,8 @@ namespace VectorSearchAiAssistant.SemanticKernel
         public AzureCognitiveSearchVectorMemory(string endpoint, string apiKey, ITextEmbeddingGeneration textEmbedding)
         {
             AzureKeyCredential credentials = new(apiKey);
-            this._adminClient = new SearchIndexClient(new Uri(endpoint), credentials);
-            this._textEmbedding = textEmbedding;
+            _adminClient = new SearchIndexClient(new Uri(endpoint), credentials);
+            _textEmbedding = textEmbedding;
         }
 
         /// <summary>
@@ -53,8 +53,8 @@ namespace VectorSearchAiAssistant.SemanticKernel
         /// <param name="credentials">Azure service</param>
         public AzureCognitiveSearchVectorMemory(string endpoint, TokenCredential credentials, ITextEmbeddingGeneration textEmbedding)
         {
-            this._adminClient = new SearchIndexClient(new Uri(endpoint), credentials);
-            this._textEmbedding = textEmbedding;
+            _adminClient = new SearchIndexClient(new Uri(endpoint), credentials);
+            _textEmbedding = textEmbedding;
         }
 
         /// <inheritdoc />
@@ -77,7 +77,7 @@ namespace VectorSearchAiAssistant.SemanticKernel
                 IsReference = false,
             };
 
-            return this.UpsertRecordAsync(collection, record, cancellationToken);
+            return UpsertRecordAsync(collection, record, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -102,7 +102,7 @@ namespace VectorSearchAiAssistant.SemanticKernel
                 IsReference = true,
             };
 
-            return this.UpsertRecordAsync(collection, record, cancellationToken);
+            return UpsertRecordAsync(collection, record, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -114,7 +114,7 @@ namespace VectorSearchAiAssistant.SemanticKernel
         {
             collection = NormalizeIndexName(collection);
 
-            var client = this.GetSearchClient(collection);
+            var client = GetSearchClient(collection);
 
             Response<AzureCognitiveSearchRecord>? result;
             try
@@ -148,7 +148,7 @@ namespace VectorSearchAiAssistant.SemanticKernel
         {
             collection = NormalizeIndexName(collection);
 
-            var client = this.GetSearchClient(collection);
+            var client = GetSearchClient(collection);
 
             if (withEmbeddings)
             {
@@ -171,6 +171,10 @@ namespace VectorSearchAiAssistant.SemanticKernel
                 {
                     // Index not found, no data to return
                 }
+
+                //By convention, the first item in the result is the embedding of the query.
+                //Once SK develops a more standardized way to expose embeddings, this should be removed.
+                yield return new MemoryQueryResult(null, 1, embedding);
 
                 if (searchResult != null)
                 {
@@ -224,7 +228,7 @@ namespace VectorSearchAiAssistant.SemanticKernel
 
             var records = new List<AzureCognitiveSearchRecord> { new() { Id = EncodeId(key) } };
 
-            var client = this.GetSearchClient(collection);
+            var client = GetSearchClient(collection);
             try
             {
                 await client.DeleteDocumentsAsync(records, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -238,7 +242,7 @@ namespace VectorSearchAiAssistant.SemanticKernel
         /// <inheritdoc />
         public async Task<IList<string>> GetCollectionsAsync(CancellationToken cancellationToken = default)
         {
-            ConfiguredCancelableAsyncEnumerable<SearchIndex> indexes = this._adminClient.GetIndexesAsync(cancellationToken).ConfigureAwait(false);
+            ConfiguredCancelableAsyncEnumerable<SearchIndex> indexes = _adminClient.GetIndexesAsync(cancellationToken).ConfigureAwait(false);
 
             var result = new List<string>();
             await foreach (var index in indexes)
@@ -270,10 +274,10 @@ namespace VectorSearchAiAssistant.SemanticKernel
         private SearchClient GetSearchClient(string indexName)
         {
             // Search an available client from the local cache
-            if (!this._clientsByIndex.TryGetValue(indexName, out SearchClient client))
+            if (!_clientsByIndex.TryGetValue(indexName, out SearchClient client))
             {
-                client = this._adminClient.GetSearchClient(indexName);
-                this._clientsByIndex[indexName] = client;
+                client = _adminClient.GetSearchClient(indexName);
+                _clientsByIndex[indexName] = client;
             }
 
             return client;
@@ -310,7 +314,7 @@ namespace VectorSearchAiAssistant.SemanticKernel
                 }
             };
 
-            return this._adminClient.CreateIndexAsync(newIndex, cancellationToken);
+            return _adminClient.CreateIndexAsync(newIndex, cancellationToken);
         }
 
         private async Task<string> UpsertRecordAsync(
@@ -318,7 +322,7 @@ namespace VectorSearchAiAssistant.SemanticKernel
             AzureCognitiveSearchRecord record,
             CancellationToken cancellationToken = default)
         {
-            var client = this.GetSearchClient(indexName);
+            var client = GetSearchClient(indexName);
 
             Task<Response<IndexDocumentsResult>> UpsertCode() => client
                 .MergeOrUploadDocumentsAsync(new List<AzureCognitiveSearchRecord> { record },
@@ -332,7 +336,7 @@ namespace VectorSearchAiAssistant.SemanticKernel
             }
             catch (RequestFailedException e) when (e.Status == 404)
             {
-                await this.CreateIndexAsync(indexName, cancellationToken).ConfigureAwait(false);
+                await CreateIndexAsync(indexName, cancellationToken).ConfigureAwait(false);
                 result = await UpsertCode().ConfigureAwait(false);
             }
 

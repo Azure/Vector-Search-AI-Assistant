@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SKRAGTest": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

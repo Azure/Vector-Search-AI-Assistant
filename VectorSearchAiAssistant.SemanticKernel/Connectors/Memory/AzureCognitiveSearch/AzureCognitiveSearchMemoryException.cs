@@ -2,7 +2,7 @@
 
 using System;
 
-namespace VectorSearchAiAssistant.SemanticKernel;
+namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 
 #pragma warning disable RCS1194 // Implement exception constructors
 
