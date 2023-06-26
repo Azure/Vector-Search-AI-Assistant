@@ -67,7 +67,8 @@ namespace VectorSearchAiAssistant.Service.Services
             _customer = _containers["customer"];
             _product = _containers["product"];
 
-
+            //var response = await _database.CreateContainerIfNotExistsAsync(new ContainerProperties(_settings.ChangeFeedLeaseContainer, "/id"));
+            //_leases = response.Container;
         }
 
         /// <summary>
