@@ -139,7 +139,8 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(sessionId);
 
         await Task.CompletedTask;
-        throw new NotImplementedException();
+
+        return new Completion { Text = $"Chat at {DateTime.UtcNow:HH:mm:ss} (utc)" };
         //var response = await _openAiService.SummarizeAsync(sessionId, prompt);
 
         //await RenameChatSessionAsync(sessionId, response);
