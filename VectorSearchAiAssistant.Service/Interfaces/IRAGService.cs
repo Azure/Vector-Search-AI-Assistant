@@ -11,7 +11,7 @@ namespace VectorSearchAiAssistant.Service.Interfaces
     {
         bool IsInitialized { get; }
 
-        Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt);
+        Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, string interactionHistory);
 
         Task<string> Summarize(string sessionId, string userPrompt);
 
