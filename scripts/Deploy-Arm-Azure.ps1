@@ -23,7 +23,7 @@ if (-not $rg) {
 }
 
 Write-Host "Getting last AKS version in location $location" -ForegroundColor Yellow
-$aksVersions=$(az aks get-versions -l $location --query  orchestrators[].orchestratorVersion -o json | ConvertFrom-Json)
+$aksVersions=$(az aks get-versions -l $location --query  values[].version -o json | ConvertFrom-Json)
 $aksLastVersion=$aksVersions[$aksVersions.Length-1]
 Write-Host "AKS last version is $aksLastVersion" -ForegroundColor Yellow
 
