@@ -27,7 +27,14 @@ The application frontend is a Blazor application with Intelligent Agent UI funct
 
 ### Deployment
 
-Run the following script to provision the infrastructure and deploy the API and frontend
+Clone the VectorSearchAiAssistant repository and change to the `cognitive-search-vector` branch
+
+```pwsh
+git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant
+git checkout cognitive-search-vector
+```
+
+Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
 
 ```pwsh
 ./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> -location <location> -subscription <subscription-id>
