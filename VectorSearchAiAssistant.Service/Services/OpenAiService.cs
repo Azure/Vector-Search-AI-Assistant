@@ -7,6 +7,9 @@ using VectorSearchAiAssistant.Service.Interfaces;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
+/// <summary>
+/// This service is provided as an example, it is not used by the main RAG flow.
+/// </summary>
 public class OpenAiService : IOpenAiService
 {
     private readonly string _embeddingsModelOrDeployment = string.Empty;
