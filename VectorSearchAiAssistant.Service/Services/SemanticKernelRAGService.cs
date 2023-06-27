@@ -80,7 +80,7 @@ public class SemanticKernelRAGService : IRAGService
         _memoryInitialized = true;
     }
 
-    public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt)
+    public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, string interactionHistory)
     {
         var memorySkill = new TextEmbeddingObjectMemorySkill();
         //_semanticKernel.ImportSkill(memorySkill);
@@ -98,12 +98,12 @@ public class SemanticKernelRAGService : IRAGService
         var chat = _semanticKernel.GetService<IChatCompletion>();
 
         var systemPrompt = await _systemPromptService.GetPrompt(_settings.SystemPromptName);
-        var chatHistory = chat.CreateNewChat($"{systemPrompt}{memories}");
+        var chatHistory = chat.CreateNewChat($"{systemPrompt}\n{memories}\n{interactionHistory}");
 
         chatHistory.AddUserMessage(userPrompt);
 
         var reply = await chat.GenerateMessageAsync(chatHistory, new ChatRequestSettings());
-        chatHistory.AddAssistantMessage(reply);
+        //chatHistory.AddAssistantMessage(reply);
 
         return new(reply, 0, 0, userPromptEmbedding);
     }
