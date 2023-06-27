@@ -110,17 +110,17 @@ public class SemanticKernelRAGService : IRAGService
 
     public async Task<string> Summarize(string sessionId, string userPrompt)
     {
-        var chatHistory = _chat.CreateNewChat();
-        chatHistory.AddSystemMessage(
-            await _systemPromptService.GetPrompt(_settings.ShortSummaryPromptName));
-        chatHistory.AddUserMessage(
-            userPrompt);
+        var summarizerSkill = new GenericSummarizerSkill(
+            await _systemPromptService.GetPrompt(_settings.ShortSummaryPromptName),
+            500,
+            _semanticKernel);
 
-        // TODO: Explore different ChatRequestSettings to see the impact on the summarization
-        var summary = await _chat.GenerateMessageAsync(chatHistory);
+        var updatedContext = await summarizerSkill.SummarizeConversationAsync(
+            userPrompt,
+            _semanticKernel.CreateNewContext());
 
         //Remove all non-alpha numeric characters (Turbo has a habit of putting things in quotes even when you tell it not to
-        summary = Regex.Replace(summary, @"[^a-zA-Z0-9\s]", "");
+        var summary = Regex.Replace(updatedContext.Result, @"[^a-zA-Z0-9\s]", "");
 
         return summary;
     }
