@@ -88,19 +88,32 @@ namespace VectorSearchAiAssistant.Service.Services
 
         private async Task StartChangeFeedProcessors()
         {
-            // TODO: Implement a smarter configuration approach for change feed source containers
-            _productChangeFeedProcessor = _containers["product"]
-                .GetChangeFeedProcessorBuilder<Product>("productChangeFeed", ProductChangeFeedHandler)
-                .WithLeaseContainer(_leases)
-                .Build();
-            await _productChangeFeedProcessor.StartAsync();
+            try
+            {
+                // TODO: Implement a smarter configuration approach for change feed source containers
+                _productChangeFeedProcessor = _containers["product"]
+                    .GetChangeFeedProcessorBuilder<Product>("productChangeFeed", ProductChangeFeedHandler)
+                    .WithInstanceName("productChangeInstance")
+                    .WithLeaseContainer(_leases)
+                    .Build();
+                await _productChangeFeedProcessor.StartAsync();
 
-            // TODO: Implement a smarter configuration approach for change feed source containers
-            _customerChangeFeedProcessor = _containers["customer"]
-                .GetChangeFeedProcessorBuilder<JsonDocument>("customerChangeFeed", CustomerChangeFeedHandler)
-                .WithLeaseContainer(_leases)
-                .Build();
-            await _productChangeFeedProcessor.StartAsync();
+                _productsInitialized = true;
+
+                // TODO: Implement a smarter configuration approach for change feed source containers
+                _customerChangeFeedProcessor = _containers["customer"]
+                    .GetChangeFeedProcessorBuilder<JsonDocument>("customerChangeFeed", CustomerChangeFeedHandler)
+                    .WithInstanceName("customerChangeInstance")
+                    .WithLeaseContainer(_leases)
+                    .Build();
+                await _customerChangeFeedProcessor.StartAsync();
+
+                _customersInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing change feed processors.");
+            }
         }
 
         private async Task ProductChangeFeedHandler(
