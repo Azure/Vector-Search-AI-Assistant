@@ -9,6 +9,9 @@ using VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSea
 using VectorSearchAiAssistant.SemanticKernel.Skills.Core;
 using VectorSearchAiAssistant.Service.Models.Search;
 using Microsoft.SemanticKernel.Memory;
+using Azure.AI.OpenAI;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+using System.Text.RegularExpressions;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -18,6 +21,7 @@ public class SemanticKernelRAGService : IRAGService
     readonly IKernel _semanticKernel;
     readonly ILogger<SemanticKernelRAGService> _logger;
     readonly ISystemPromptService _systemPromptService;
+    readonly IChatCompletion _chat;
     readonly AzureCognitiveSearchVectorMemory _memory;
 
     bool _memoryInitialized = false;
@@ -60,6 +64,8 @@ public class SemanticKernelRAGService : IRAGService
         Task.Run(() =>  InitializeMemory());
 
         _semanticKernel.RegisterMemory(_memory);
+
+        _chat = _semanticKernel.GetService<IChatCompletion>();
     }
 
     private async Task InitializeMemory()
@@ -91,7 +97,7 @@ public class SemanticKernelRAGService : IRAGService
 
         var chat = _semanticKernel.GetService<IChatCompletion>();
 
-        var systemPrompt = _systemPromptService.GetPrompt(_settings.SystemPromptName);
+        var systemPrompt = await _systemPromptService.GetPrompt(_settings.SystemPromptName);
         var chatHistory = chat.CreateNewChat($"{systemPrompt}{memories}");
 
         chatHistory.AddUserMessage(userPrompt);
@@ -100,6 +106,23 @@ public class SemanticKernelRAGService : IRAGService
         chatHistory.AddAssistantMessage(reply);
 
         return new(reply, 0, 0, userPromptEmbedding);
+    }
+
+    public async Task<string> Summarize(string sessionId, string userPrompt)
+    {
+        var chatHistory = _chat.CreateNewChat();
+        chatHistory.AddSystemMessage(
+            await _systemPromptService.GetPrompt(_settings.ShortSummaryPromptName));
+        chatHistory.AddUserMessage(
+            userPrompt);
+
+        // TODO: Explore different ChatRequestSettings to see the impact on the summarization
+        var summary = await _chat.GenerateMessageAsync(chatHistory);
+
+        //Remove all non-alpha numeric characters (Turbo has a habit of putting things in quotes even when you tell it not to
+        summary = Regex.Replace(summary, @"[^a-zA-Z0-9\s]", "");
+
+        return summary;
     }
 
     public async Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer)

@@ -145,12 +145,11 @@ public class ChatService : IChatService
 
         await Task.CompletedTask;
 
-        return new Completion { Text = $"Chat at {DateTime.UtcNow:HH:mm:ss} (utc)" };
-        //var response = await _openAiService.SummarizeAsync(sessionId, prompt);
+        var summary = await _ragService.Summarize(sessionId, prompt);
 
-        //await RenameChatSessionAsync(sessionId, response);
+        await RenameChatSessionAsync(sessionId, summary);
 
-        //return response;
+        return new Completion { Text = summary };
     }
 
     /// <summary>
