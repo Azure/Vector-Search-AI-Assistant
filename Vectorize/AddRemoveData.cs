@@ -76,7 +76,7 @@ namespace Vectorize
 
         public async Task RemoveProduct()
         {
-            await _cosmosDbService.DeleteProduct(GetCosmicSock.id, GetCosmicSock.categoryId);
+            await _cosmosDbService.DeleteProductAsync(GetCosmicSock.id, GetCosmicSock.categoryId);
 
             try
             {

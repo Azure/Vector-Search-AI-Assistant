@@ -1,9 +1,8 @@
-﻿using System.Runtime.CompilerServices;
-using Azure;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+﻿using Microsoft.Extensions.Logging;
 using VectorSearchAiAssistant.Service.Constants;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
+using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -11,14 +10,20 @@ public class ChatService : IChatService
 {
     private readonly ICosmosDbService _cosmosDbService;
     private readonly IRAGService _ragService;
+    private readonly ILogger _logger;
+
     private readonly int _maxConversationBytes;
+
+    public bool IsInitialized => _cosmosDbService.IsInitialized && _ragService.IsInitialized;
 
     public ChatService(
         ICosmosDbService cosmosDbService,
-        IRAGService ragService)
+        IRAGService ragService,
+        ILogger<ChatService> logger)
     {
         _cosmosDbService = cosmosDbService;
         _ragService = ragService;
+        _logger = logger;
 
         _maxConversationBytes = _ragService.MaxConversationBytes;
     }
@@ -139,12 +144,12 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(sessionId);
 
         await Task.CompletedTask;
-        throw new NotImplementedException();
-        //var response = await _openAiService.SummarizeAsync(sessionId, prompt);
 
-        //await RenameChatSessionAsync(sessionId, response);
+        var summary = await _ragService.Summarize(sessionId, prompt);
 
-        //return response;
+        await RenameChatSessionAsync(sessionId, summary);
+
+        return new Completion { Text = summary };
     }
 
     /// <summary>
@@ -181,5 +186,31 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(sessionId);
 
         return await _cosmosDbService.UpdateMessageRatingAsync(id, sessionId, rating);
+    }
+
+    public async Task AddProduct(Product product)
+    {
+        ArgumentNullException.ThrowIfNull(product);
+        ArgumentNullException.ThrowIfNullOrEmpty(product.id);
+        ArgumentNullException.ThrowIfNullOrEmpty(product.categoryId);
+
+        await _cosmosDbService.InsertProductAsync(product);
+    }
+
+    public async Task DeleteProduct(string productId, string categoryId)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(productId);
+        ArgumentNullException.ThrowIfNullOrEmpty(categoryId);
+
+        await _cosmosDbService.DeleteProductAsync(productId, categoryId);
+
+        try
+        {
+            await _ragService.RemoveMemory<Product>(new Product { id = productId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error attempting to remove memory for product id {productId} (category id {categoryId})");
+        }
     }
 }

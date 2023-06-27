@@ -1,11 +1,17 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using VectorSearchAiAssistant.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.AI.Embeddings;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Interfaces;
 using Microsoft.Extensions.Logging;
+using VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
+using VectorSearchAiAssistant.SemanticKernel.Skills.Core;
+using VectorSearchAiAssistant.Service.Models.Search;
+using Microsoft.SemanticKernel.Memory;
+using Azure.AI.OpenAI;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+using System.Text.RegularExpressions;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -15,8 +21,14 @@ public class SemanticKernelRAGService : IRAGService
     readonly IKernel _semanticKernel;
     readonly ILogger<SemanticKernelRAGService> _logger;
     readonly ISystemPromptService _systemPromptService;
+    readonly IChatCompletion _chat;
+    readonly AzureCognitiveSearchVectorMemory _memory;
+
+    bool _memoryInitialized = false;
 
     public int MaxConversationBytes => _settings.OpenAI.MaxConversationBytes;
+
+    public bool IsInitialized => _memoryInitialized;
 
     public SemanticKernelRAGService(
         ISystemPromptService systemPromptService,
@@ -28,6 +40,8 @@ public class SemanticKernelRAGService : IRAGService
         _logger = logger;
 
         var builder = new KernelBuilder();
+
+        builder.WithLogger(_logger);
 
         builder.WithAzureTextEmbeddingGenerationService(
             _settings.OpenAI.EmbeddingsDeployment,
@@ -41,48 +55,83 @@ public class SemanticKernelRAGService : IRAGService
 
         _semanticKernel = builder.Build();
 
-        _semanticKernel.RegisterMemory(new AzureCognitiveSearchVectorMemory(
+        _memory = new AzureCognitiveSearchVectorMemory(
             _settings.CognitiveSearch.Endpoint,
             _settings.CognitiveSearch.Key,
-            _semanticKernel.GetService<ITextEmbeddingGeneration>()));
+            _settings.CognitiveSearch.IndexName,
+            _semanticKernel.GetService<ITextEmbeddingGeneration>(),
+            _logger);
+        Task.Run(() =>  InitializeMemory());
+
+        _semanticKernel.RegisterMemory(_memory);
+
+        _chat = _semanticKernel.GetService<IChatCompletion>();
     }
 
-    public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[] UserPromptEmbedding)> GetResponse(string userPrompt)
+    private async Task InitializeMemory()
     {
-        var matchingMemories = await SearchMemoriesAsync(userPrompt);
+        await _memory.Initialize(new List<Type>
+        {
+            typeof(Customer),
+            typeof(Product),
+            typeof(SalesOrder)
+        });
+
+        _memoryInitialized = true;
+    }
+
+    public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt)
+    {
+        var memorySkill = new TextEmbeddingObjectMemorySkill();
+        //_semanticKernel.ImportSkill(memorySkill);
+        var skContext = _semanticKernel.CreateNewContext();
+
+        var memories = await memorySkill.RecallAsync(
+            userPrompt,
+            _settings.CognitiveSearch.IndexName,
+            null,
+            _settings.CognitiveSearch.MaxVectorSearchResults,
+            skContext);
+        // Read the resulting user prompt embedding as soon as possile
+        var userPromptEmbedding = memorySkill.LastInputTextEmbedding?.ToArray();
 
         var chat = _semanticKernel.GetService<IChatCompletion>();
 
-        var systemPrompt = _systemPromptService.GetPrompt(_settings.SystemPromptName);
-        var chatHistory = chat.CreateNewChat($"{systemPrompt}{matchingMemories}");
+        var systemPrompt = await _systemPromptService.GetPrompt(_settings.SystemPromptName);
+        var chatHistory = chat.CreateNewChat($"{systemPrompt}{memories}");
 
         chatHistory.AddUserMessage(userPrompt);
 
         var reply = await chat.GenerateMessageAsync(chatHistory, new ChatRequestSettings());
         chatHistory.AddAssistantMessage(reply);
 
-        return new(reply, 0, 0, Enumerable.Range(1, 10).Select(x => (float)x).ToArray());
+        return new(reply, 0, 0, userPromptEmbedding);
     }
 
-    private async Task<string> SearchMemoriesAsync(string query)
+    public async Task<string> Summarize(string sessionId, string userPrompt)
     {
-        var retDocs = new List<string>();
-        string resultDocuments = string.Empty;
+        var chatHistory = _chat.CreateNewChat();
+        chatHistory.AddSystemMessage(
+            await _systemPromptService.GetPrompt(_settings.ShortSummaryPromptName));
+        chatHistory.AddUserMessage(
+            userPrompt);
 
-        try
-        {
-            var searchResults = await _semanticKernel.Memory
-                .SearchAsync(_settings.CognitiveSearch.IndexName, query, limit: _settings.CognitiveSearch.MaxVectorSearchResults, withEmbeddings: true)
-                .ToListAsync();
+        // TODO: Explore different ChatRequestSettings to see the impact on the summarization
+        var summary = await _chat.GenerateMessageAsync(chatHistory);
 
-            return string.Join(Environment.NewLine + "-",
-                searchResults.Select(sr => sr.Metadata.AdditionalMetadata));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"There was an error conducting a memory search: {ex.Message}");
-        }
+        //Remove all non-alpha numeric characters (Turbo has a habit of putting things in quotes even when you tell it not to
+        summary = Regex.Replace(summary, @"[^a-zA-Z0-9\s]", "");
 
-        return resultDocuments;
+        return summary;
+    }
+
+    public async Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer)
+    {
+        await _memory.AddMemory<T>(item, itemName, vectorizer);
+    }
+
+    public async Task RemoveMemory<T>(T item)
+    {
+        await _memory.RemoveMemory<T>(item);
     }
 }
