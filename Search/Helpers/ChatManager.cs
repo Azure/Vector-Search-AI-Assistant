@@ -142,10 +142,10 @@ namespace Search.Helpers
             switch (method)
             {
                 case HttpMethod m when m == HttpMethod.Get:
-                    responseMessage = await _httpClient.GetAsync(requestUri);
+                    responseMessage = await _httpClient.GetAsync($"{_settings.APIRoutePrefix}{requestUri}");
                     break;
                 case HttpMethod m when m == HttpMethod.Post:
-                    responseMessage = await _httpClient.PostAsync(requestUri,
+                    responseMessage = await _httpClient.PostAsync($"{_settings.APIRoutePrefix}{requestUri}",
                         payload == null ? null : JsonContent.Create(payload, payload.GetType()));
                     break;
                 default:
@@ -161,7 +161,7 @@ namespace Search.Helpers
             switch (method)
             {
                 case HttpMethod m when m == HttpMethod.Delete:
-                    await _httpClient.DeleteAsync(requestUri);
+                    await _httpClient.DeleteAsync($"{_settings.APIRoutePrefix}{requestUri}");
                     break;
                 default:
                     throw new NotImplementedException($"The Http method {method.Method} is not supported.");

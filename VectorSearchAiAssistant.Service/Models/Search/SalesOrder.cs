@@ -2,7 +2,7 @@
 
 namespace VectorSearchAiAssistant.Service.Models.Search
 {
-    public class SalesOrder
+    public class SalesOrder : EmbeddedEntity
     {
         [SearchableField(IsKey = true, IsFilterable = true)]
         public string id { get; set; }
@@ -16,8 +16,6 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         public string shipDate { get; set; }
         [SimpleField]
         public List<SalesOrderDetails> details { get; set; }
-        [FieldBuilderIgnore]
-        public float[]? vector { get; set; }
 
         public SalesOrder(string id, string type, string customerId, string orderDate, string shipDate, List<SalesOrderDetails> details, float[]? vector = null)
         {
