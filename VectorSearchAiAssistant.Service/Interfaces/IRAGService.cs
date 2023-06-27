@@ -13,6 +13,8 @@ namespace VectorSearchAiAssistant.Service.Interfaces
 
         Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt);
 
+        Task<string> Summarize(string sessionId, string userPrompt);
+
         int MaxConversationBytes { get; }
 
         Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer);
