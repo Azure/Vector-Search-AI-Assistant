@@ -58,3 +58,5 @@ env:
       value: Production
     - name: MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer
       value: leases
+    - name: MSCosmosDBOpenAI__ShortSummaryPromptName
+      value: Summarizer.TwoWords
