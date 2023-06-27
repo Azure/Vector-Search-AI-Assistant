@@ -1,4 +1,4 @@
-# Vector Search & AI Assistant for Azure Cosmos DB for MongoDB vCore
+# Vector Search & AI Assistant for Azure Cosmos DB for Cognitive Search Services
 
 This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using a variety of different vector capable databases available from Azure Cosmos DB and Azure.
 
