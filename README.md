@@ -18,31 +18,6 @@ The application frontend is a Blazor application with Intelligent Agent UI funct
     <img src="img/ui.png" width="100%">
 </p>
 
-This solution is composed of the following services:
-
-1.	Azure Cosmos DB - Stores the operational retail data, chat prompts and completions.
-1.  Azure Cosmos DB for MongoDB vCore - stores the vectorized retail data for search.
-1.	Azure Functions - Hosts a Cosmos DB trigger to generate embeddings and Azure Cosmos DB for MongoDB vCore to save the vectors.
-1.	Azure OpenAI - Generates embeddings using the Embeddings API and chat completions using the Completion API.
-1.	Azure App Service - Hosts Intelligent Agent UX.
-
-## Overall solution workflow
-
-There are two key elements of this solution, generating vectors and searching vectors. Vectors are generated when data is inserted into Azure Cosmos DB for NoSQL, then stored along with the source operational data in Azure Cosmos DB for MongoDB vCore. Users can then ask questions using web-based chat user interface to search the vectorized data and return augmented data to Azure OpenAI to generate a completion back to the user.
-
-### Generating vectors
-
-Vectors are generated in two Azure Functions contained in the Vectorize project, [Products](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs) and [CustomersAndOrders](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs). Vector generation starts with the data loading for this solution which loads data into Azure Cosmos DB from JSON files stored in Azure Storage. The containers in Cosmos have change feed running on them. When the data is inserted, the Azure Function calls Azure OpenAI's embedding API and passes the entire document to it. The returned vectorized data, along with the source items are saved to Azure Cosmos DB for MongoDB vCore.
-
-You can see this at work by debugging Azure Functions remotely or running locally by setting a break point on [GenerateProductVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs#L52), [GenerateCustomerVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L67) or [GenerateSalesOrderVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L93)
-
-## Searching vectors
-
-The web-based front-end for this solution provides users the means for searching the vectorized retail bike data for this solution. This work is centered around the [ChatService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Search/Services/ChatService.cs) in the Search project. In the chat UX a user starts a new chat session then types in a question. The text is sent to Azure OpenAI's embeddings API to generate vectors on it. The vectors are then used to perform a vector search on Azure Cosmos DB for MongoDB vCore. The query response which includes the original source data is sent to Azure OpenAI to generate a completion which is then passed back to the user as a response.
-
-You can see this at work by debugging the Azure Web App remotely or running locally. Set a break point on [GetChatCompletionAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Search/Services/ChatService.cs#L114), then step through each of the function calls to see each step in action.
-
-
 ## Getting Started
 
 ### Prerequisites
@@ -92,7 +67,13 @@ cd deploy/powershell
 
 1. After deployment is complete, go to the resource group for your deployment and open the Azure App Service in the Azure Portal. Click the link to launch the website.
 > TODO: This needs to be changed to fetch the AKS HTTP application routing addon hostname
+1. Navigate to resource group and obtain the name of the AKS service and execute the following command to obtain the OpenAI Chat endpoint
 
+  ```pwsh
+  az aks show -n <aks-name> -g <resource-group-name> -o tsv --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName
+  ```
+
+1. Browse to the web app with the returned hostname.
 1. Click [+ Create New Chat] button to create a new chat session.
 1. Type in your questions in the text box and press Enter.
 
@@ -150,7 +131,6 @@ This solution can be run locally post deployment. Below are the prerequisites an
 #### Vectorize Azure Function
 - Open the Configuration for the Azure Function copy the application setting values.
 - Within Visual Studio, right click the Vectorize project, then copy the contents of the configuration values into User Secrets or local.settings.json if not using Visual Studio.
-
 
 
 ## Resources
