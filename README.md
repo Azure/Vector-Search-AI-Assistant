@@ -97,11 +97,11 @@ Change Feed capability to dynamically add and remove products to the vector data
 
 1. Start a new Chat Session in the web application.
 1. In the chat text box, type: "Can you list all of your socks?". The AI Assistant will list 4 different socks of 2 types, racing and mountain.
-1. Using either CURL or Postman, send the following payload in a POST request with a `Content-Type` header value of `application/json` to `https://<chat-service-hostname>/api/products` to add a product.
+1. Using either CURL or Postman, send the following payload in a PUT request with a `Content-Type` header value of `application/json` to `https://<chat-service-hostname>/api/products` to add a product.
   
     ##### Curl Command
     ```pwsh
-    curl -X POST -H "Content-Type: application/json" -d $JsonPayload https://<chat-service-hostname>/api/products
+    curl -X PUT -H "Content-Type: application/json" -d $JsonPayload https://<chat-service-hostname>/api/products
     ```
 
     ##### Json Payload
@@ -130,15 +130,15 @@ Change Feed capability to dynamically add and remove products to the vector data
         ]
     }
     ```
-    > Note the `id` of `00001`.  We will need this in a later step.
+    > Note the `id` of `00001` and `categoryId` of `C48B4EF4-D352-4CD2-BCB8-CE89B7DFA642`.  We will need these values in a later step.
 
 
 1. Return to the AI Assistant and type, ""Can you list all of your socks again?". This time you should see a new product, "Cosmic Socks, M"
-1. Using either CURL or Postman, send the following payload in a DELETE request to `https://<chat-service-hostname>/api/products/<product_id>` to add a product, where `<product_id>` is the value of the `id` field of the JSON payload sent via a POST request in a previous step (`00001` in this case).
+1. Using either CURL or Postman, send the following payload in a DELETE request to `https://<chat-service-hostname>/api/products/<product_id>?categoryId=<category_id>` to add a product, where `<product_id>` is the value of the `id` field and `<category_id>` is the value of the `categoryId` field of the JSON payload sent via a PUT request in a previous step (`00001` and `C48B4EF4-D352-4CD2-BCB8-CE89B7DFA642`, respectively, in this case).
 
     ##### Curl Command
     ```pwsh
-    curl -X DELETE https://<chat-service-hostname>/api/products/<product_id>
+    curl -X DELETE https://<chat-service-hostname>/api/products/<product_id>?categoryId=<category_id>
     ```
 
 1. Open a **new** chat session and ask the same question again. This time it should show the original list of socks in the product catalog. 
