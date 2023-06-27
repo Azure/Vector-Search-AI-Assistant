@@ -26,6 +26,5 @@ var host = builder.Build();
 
 var ragService = host.Services.GetService<IRAGService>();
 
-var result = await ragService.GetResponse("Do you have socks?");
-
+var result = await ragService.Summarize("", "Do you have some nice socks?\nYes, of course we have, and we also have some nice hats if you are interested.");
 await host.RunAsync();

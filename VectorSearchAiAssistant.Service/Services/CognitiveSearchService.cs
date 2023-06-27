@@ -13,6 +13,9 @@ using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
+    /// <summary>
+    /// This service is provided as an example, it is not used by the main RAG flow.
+    /// </summary>
     public class CognitiveSearchService : IVectorDatabaseServiceManagement, IVectorDatabaseServiceQueries
     {
         private const int ModelDimensions = 1536;
