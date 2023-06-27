@@ -97,10 +97,50 @@ Change Feed capability to dynamically add and remove products to the vector data
 
 1. Start a new Chat Session in the web application.
 1. In the chat text box, type: "Can you list all of your socks?". The AI Assistant will list 4 different socks of 2 types, racing and mountain.
-1. Open a new browser tab, in the address bar type in `{your-app-name}-function.azurewebsites.net/api/addremovedata?action=add` replace the text in brackets with your application name, then press enter.
-1. The browser should show that the HTTP Trigger executed successfully.
+1. Using either CURL or Postman, send the following payload in a POST request with a `Content-Type` header value of `application/json` to `https://<chat-service-hostname>/api/products` to add a product.
+  
+    ##### Curl Command
+    ```pwsh
+    curl -X POST -H "Content-Type: application/json" -d $JsonPayload https://<chat-service-hostname>/api/products
+    ```
+
+    ##### Json Payload
+    ```json
+    {
+        "id": "00001",
+        "categoryId": "C48B4EF4-D352-4CD2-BCB8-CE89B7DFA642",
+        "categoryName": "Clothing, Socks",
+        "sku": "SO-R999-M",
+        "name": "Cosmic Racing Socks, M",
+        "description": "The product called Cosmic Racing Socks, M",
+        "price": 6.00,
+        "tags": [
+            {
+                "id": "51CD93BF-098C-4C25-9829-4AD42046D038",
+                "name": "Tag-25"
+            },
+            {
+                "id": "5D24B427-1402-49DE-B79B-5A7013579FBC",
+                "name": "Tag-76"
+            },
+            {
+                "id": "D4EC9C09-75F3-4ADD-A6EB-ACDD12C648FA",
+                "name": "Tag-153"
+            }
+        ]
+    }
+    ```
+    > Note the `id` of `00001`.  We will need this in a later step.
+
+
 1. Return to the AI Assistant and type, ""Can you list all of your socks again?". This time you should see a new product, "Cosmic Socks, M"
-1. Return to the second browser tab and type in, `{your-app-name}-function.azurewebsites.net/api/addremovedata?action=remove` replace the text in brackets with your application name, then press enter.
+1. Using either CURL or Postman, send the following payload in a DELETE request to `https://<chat-service-hostname>/api/products/<product_id>` to add a product, where `<product_id>` is the value of the `id` field of the JSON payload sent via a POST request in a previous step (`00001` in this case).
+
+    ##### Curl Command
+    ```pwsh
+    curl -X DELETE https://<chat-service-hostname>/api/products/<product_id>
+    ```
+
 1. Open a **new** chat session and ask the same question again. This time it should show the original list of socks in the product catalog. 
 
 **Note:** Using the same chat session after adding them will sometimes result in the Cosmic Socks not being returned. If that happens, start a new chat session and ask the same question. Also, sometimes after removing the socks they will continue to be returned by the AI Assistant. If that occurs, also start a new chat session. The reason this occurs is that previous prompts and completions are sent to OpenAI to allow it to maintain conversational context. Because of this, it will sometimes use previous completions as data to make future ones.
