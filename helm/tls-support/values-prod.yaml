@@ -1,8 +1,8 @@
-applicationName: tailwindtraders
-issuerName: letsencrypt-prod
-certName: tt-cert-prod
+applicationName: ms-openai-cosmosdb-tls
+issuerName: ms-openai-cosmosdb-tls-prod
+certName: ms-openai-cosmosdb-tls-cert-prod
 environment: prod
 server: https://acme-v02.api.letsencrypt.org/directory
-certSecretName: tt-letsencrypt-prod
+certSecretName: tls-prod
 issuerSecretName: letsencrypt-prod
 ingressClass: addon-http-application-routing

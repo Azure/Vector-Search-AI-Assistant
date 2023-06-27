@@ -1,0 +1,62 @@
+# Default values for chat-service-web-api.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: bhm7vnpxv6irqcr.azurecr.io/chatservicewebapi
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+ingress:
+  enabled: true
+  protocol: #http | https (set by script)
+  annotations:
+    kubernetes.io/ingress.class: addon-http-application-routing
+    ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  tls:
+  - secretName: tls-prod
+
+env:
+  configmap:
+    - name: MSCosmosDBOpenAI__CognitiveSearch__IndexName
+    - name: MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults
+    - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeployment
+    - name: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment
+    - name: MSCosmosDBOpenAI__OpenAI__MaxConversationBytes
+    - name: MSCosmosDBOpenAI__CosmosDB__Containers
+    - name: MSCosmosDBOpenAI__CosmosDB__Database
+    - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer
+    - name: MSCosmosDBOpenAI__SystemPromptName
+  secret:
+    - name: MSCosmosDBOpenAI__CognitiveSearch__Endpoint
+    - name: MSCosmosDBOpenAI__CognitiveSearch__Key
+    - name: MSCosmosDBOpenAI__OpenAI__Endpoint
+    - name: MSCosmosDBOpenAI__OpenAI__Key
+    - name: MSCosmosDBOpenAI__CosmosDB__Endpoint
+    - name: MSCosmosDBOpenAI__CosmosDB__Key
+    - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection
+  values:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Production
+    - name: MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer
+      value: leases
+    - name: MSCosmosDBOpenAI__ShortSummaryPromptName
+      value: Summarizer.TwoWords

@@ -1,0 +1,22 @@
+cognitiveSearch:
+  key: '{{searchAdminKey}}'
+  endpoint: '{{searchEndpoint}}'
+  indexName: 'vector-index'
+  maxVectorSearchResults: 10
+cosmosDb:
+  containers: 'completions, customer, product'
+  database: 'database'
+  endpoint: '{{cosmosEndpoint}}'
+  key: '{{cosmosKey}}'
+openAi:
+  completionsDeployment: 'completions'
+  embeddingsDeployment: 'embeddings'
+  endpoint: '{{openAiEndpoint}}'
+  key: '{{openAiKey}}'
+  maxConversationBytes: 2000
+apiUrl: {{apiUrl}}
+routePrefix: /api
+durableSystemPrompt:
+  blobStorageContainer: 'system-prompt'
+  systemPromptName: 'RetailAssistant.Default'
+  blobStorageConnection: '{{blobStorageConnectionString}}'

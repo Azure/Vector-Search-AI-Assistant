@@ -18,31 +18,6 @@ The application frontend is a Blazor application with Intelligent Agent UI funct
     <img src="img/ui.png" width="100%">
 </p>
 
-This solution is composed of the following services:
-
-1.	Azure Cosmos DB - Stores the operational retail data, chat prompts and completions.
-1.  Azure Cosmos DB for MongoDB vCore - stores the vectorized retail data for search.
-1.	Azure Functions - Hosts a Cosmos DB trigger to generate embeddings and Azure Cosmos DB for MongoDB vCore to save the vectors.
-1.	Azure OpenAI - Generates embeddings using the Embeddings API and chat completions using the Completion API.
-1.	Azure App Service - Hosts Intelligent Agent UX.
-
-## Overall solution workflow
-
-There are two key elements of this solution, generating vectors and searching vectors. Vectors are generated when data is inserted into Azure Cosmos DB for NoSQL, then stored along with the source operational data in Azure Cosmos DB for MongoDB vCore. Users can then ask questions using web-based chat user interface to search the vectorized data and return augmented data to Azure OpenAI to generate a completion back to the user.
-
-### Generating vectors
-
-Vectors are generated in two Azure Functions contained in the Vectorize project, [Products](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs) and [CustomersAndOrders](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs). Vector generation starts with the data loading for this solution which loads data into Azure Cosmos DB from JSON files stored in Azure Storage. The containers in Cosmos have change feed running on them. When the data is inserted, the Azure Function calls Azure OpenAI's embedding API and passes the entire document to it. The returned vectorized data, along with the source items are saved to Azure Cosmos DB for MongoDB vCore.
-
-You can see this at work by debugging Azure Functions remotely or running locally by setting a break point on [GenerateProductVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/Products.cs#L52), [GenerateCustomerVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L67) or [GenerateSalesOrderVectors() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Vectorize/CustomersAndOrders.cs#L93)
-
-## Searching vectors
-
-The web-based front-end for this solution provides users the means for searching the vectorized retail bike data for this solution. This work is centered around the [ChatService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Search/Services/ChatService.cs) in the Search project. In the chat UX a user starts a new chat session then types in a question. The text is sent to Azure OpenAI's embeddings API to generate vectors on it. The vectors are then used to perform a vector search on Azure Cosmos DB for MongoDB vCore. The query response which includes the original source data is sent to Azure OpenAI to generate a completion which is then passed back to the user as a response.
-
-You can see this at work by debugging the Azure Web App remotely or running locally. Set a break point on [GetChatCompletionAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/MongovCore/Search/Services/ChatService.cs#L114), then step through each of the function calls to see each step in action.
-
-
 ## Getting Started
 
 ### Prerequisites
@@ -50,74 +25,61 @@ You can see this at work by debugging the Azure Web App remotely or running loca
 - Azure Subscription
 - Subscription access to Azure OpenAI service. Start here to [Request Access to Azure OpenAI Service](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUOFA5Qk1UWDRBMjg0WFhPMkIzTzhKQ1dWNyQlQCN0PWcu)
 
-### Installation
+### Deployment
 
-1. Fork this repository to your own GitHub account.
-1. Depending on whether you deploy using the ARM Template or Bicep, modify "appGitRepository" variable in one of those files to point to your fork of this repository: https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git (Be sure to have the right branch that corresponds with the vector search database you are using)
-1. If using the Deploy to Azure button below, also modify this README.md file to change the path for the Deploy To Azure button to your local repository.
-1. If you deploy this application without making either of these changes, you can update the repository by disconnecting and connecting an external git repository pointing to your fork.
+Clone the VectorSearchAiAssistant repository and change to the `cognitive-search-vector` branch
 
-
-The provided ARM or Bicep Template will provision the following resources:
-1. Azure Cosmos DB for NoSQL account with a database and 5 containers at 1000 RU/s autoscale. This account will scale down to 500 RU/s when not in use.
-1. Azure Cosmos DB for MongoDB vCore for vector search.
-1. Azure App service. This will be configured to deploy the Search web application from **this** GitHub repository. This will work fine if no changes are made. If you want it to deploy from your forked repository, modify the Deploy To Azure button below.
-1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
-1. Azure Functions. This will run on the same hosting plan as the Azure App Service.
-
-**Note:** You must have access to Azure OpenAI service from your subscription before attempting to deploy this application.
-
-All connection information for Azure Cosmos DB and Azure OpenAI is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
-
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2FVectorSearchAiAssistant%2FMongovCore%2Fazuredeploy.json)
-
-**Note:** To run the solution locally, the following environment variables must be configured (replace the values with your own):
-
-```
-"ASPNETCORE_ENVIRONMENT": "Development",
-"CognitiveSearch__AdminKey": "",
-"CognitiveSearch__Endpoint": "https://cog-search-vector.search.windows.net",
-"CognitiveSearch__IndexName": "vector-index",
-"CognitiveSearch__MaxVectorSearchResults": "10",
-"CosmosDb__Containers": "completions, customer, product",
-"CosmosDb__Database": "database",
-"CosmosDb__Endpoint": "https://bhm7vnpxv6irq-cosmos-nosql.documents.azure.com:443/",
-"CosmosDb__Key": "",
-"OpenAi__CompletionsDeployment": "completions",
-"OpenAi__EmbeddingsDeployment": "embeddings",
-"OpenAi__Endpoint": "https://bhm7vnpxv6irq-openai.openai.azure.com/",
-"OpenAi__Key": "",
-"OpenAi__MaxConversationBytes": "2000",
-"Logging__Loglevel__Default": "Debug",
-"Logging__Loglevel__Microsoft__AspNetCore": "Debug",
-"MSCosmosDBOpenAI__OpenAIEmbeddingDeploymentName": "embeddings",
-"MSCosmosDBOpenAI__OpenAICompletionDeploymentName": "completions",
-"MSCosmosDBOpenAI__OpenAIEndpoint": "https://bhm7vnpxv6irq-openai.openai.azure.com/",
-"MSCosmosDBOpenAI__CognitiveSearchEndpoint": "https://cog-search-vector.search.windows.net"
-"MSCosmosDBOpenAI__CognitiveSearchKey":
-"MSCosmosDBOpenAI__OpenAIKey"
+```pwsh
+git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant
+git checkout cognitive-search-vector
 ```
 
-### Initial data load
+Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
 
-The data for this solution must be loaded once it has been deployed. This process takes approximately 10 minutes to complete. The process for loading data also starts the process of generating vectors for all of the operational retail data in this solution. Follow the steps below.
+```pwsh
+./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> -location <location> -subscription <subscription-id>
+```
 
-1. Download and install the [Azure Cosmos DB Data Migration Desktop Tool](https://github.com/AzureCosmosDB/data-migration-desktop-tool/releases)
-1. Copy the `migrationsettings.json` from the root folder of this repository and replace the version in the folder where you downloaded the tool above.
-1. Open the file using any text editor.
-1. Open the Azure Cosmos DB blade in the resource group for this solution.
-1. Navigate to the Keys blade in Azure Portal and copy the Primary Connection String for the Azure Cosmos DB for NoSQL account.
-1. Paste the connection string to replace to placeholders called `ADD-COSMOS-CONNECTION-STRING`. Save the file.
-1. Run dmt.exe
-1. You can watch Azure Functions processing the data by navigating to each of the Azure Functions in the portal. **Note:** you will need to enable Logging for the Azure Functions in the portal when first accessing the Functions Logs.
+### Enabling/Disabling Deployment Steps
 
-<p align="center">
-    <img src="img/monitorfunctions.png" width="100%">
-</p>
+The following flags can be used to enable/disable specific deployment steps in the `Unified-Deploy.ps1` script.
+
+| Parameter Name | Description |
+|----------------|-------------|
+| stepDeployArm | Enables or disables the provisioning of resources in Azure via ARM templates (located in `./arm`). Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Deploy-Arm-Azure.ps1` script.
+| stepBuildPush | Enables or disables the build and push of Docker images to the Azure Container Registry in the target resource group. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/BuildPush.ps1` script.
+| stepDeployCertManager | Enables or disables the Helm deployment of a LetsEncrypt capable certificate manager to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/DeployCertManager.ps1` script.
+| stepDeployTls | Enables or disables the Helm deployment of the LetsEncrypt certificate request resources to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/PublishTlsSupport.ps1` script.
+| stepDeployImages | Enables or disables the Helm deployment of the ChatServiceWebApi and Search services to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Deploy-Images-Aks.ps1` script.
+| stepUploadSystemPrompts | Enables or disables the upload of OpenAI system prompt artifacts to a storage account in the target resource group. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/UploadSystemPrompts.ps1` script.
+| stepImportData | Enables or disables the import of data into a Cosmos account in the target resource group using the Data Migration Tool. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Import-Data.ps1` script.
+| stepLoginAzure | Enables or disables interactive Azure login. If disabled, the deployment assumes that the current Azure CLI session is valid. Valid values are 0 (Disabled). 
+
+Example command:
+```pwsh
+cd deploy/powershell
+./Unified-Deploy.ps1 -resourceGroup myRg `
+                     -subscription 0000... `
+                     -stepLoginAzure 0 `
+                     -stepDeployArm 0 `
+                     -stepBuildPush 1 `
+                     -stepDeployCertManager 0 `
+                     -stepDeployTls 0 `
+                     -stepDeployImages 1 `
+                     -stepUploadSystemPrompts 0 `
+                     -stepImportData 0
+```
 
 ### Quickstart
 
-1. After data loading is complete, go to the resource group for your deployment and open the Azure App Service in the Azure Portal. Click the link to launch the website.
+1. After deployment is complete, go to the resource group for your deployment and open the Azure App Service in the Azure Portal. Click the link to launch the website.
+1. Navigate to resource group and obtain the name of the AKS service and execute the following command to obtain the OpenAI Chat endpoint
+
+  ```pwsh
+  az aks show -n <aks-name> -g <resource-group-name> -o tsv --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName
+  ```
+
+1. Browse to the web app with the returned hostname.
 1. Click [+ Create New Chat] button to create a new chat session.
 1. Type in your questions in the text box and press Enter.
 
@@ -175,7 +137,6 @@ This solution can be run locally post deployment. Below are the prerequisites an
 #### Vectorize Azure Function
 - Open the Configuration for the Azure Function copy the application setting values.
 - Within Visual Studio, right click the Vectorize project, then copy the contents of the configuration values into User Secrets or local.settings.json if not using Visual Studio.
-
 
 
 ## Resources

@@ -1,0 +1,21 @@
+{{- $name := include "chat-service-web-api.fullname" . -}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "cfg-{{ $name }}"
+  labels:
+    app: {{ template "chat-service-web-api.name" . }}
+    chart: {{ template "chat-service-web-api.chart" .}}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  MSCosmosDBOpenAI__CognitiveSearch__IndexName: {{ .Values.cognitiveSearch.indexName }}
+  MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults: {{ .Values.cognitiveSearch.maxVectorSearchResults | quote }}
+  MSCosmosDBOpenAI__CosmosDB__Containers: {{ .Values.cosmosDb.containers }}
+  MSCosmosDBOpenAI__CosmosDB__Database: {{ .Values.cosmosDb.database }}
+  MSCosmosDBOpenAI__OpenAI__CompletionsDeployment: {{ .Values.openAi.completionsDeployment }}
+  MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment: {{ .Values.openAi.embeddingsDeployment }}
+  MSCosmosDBOpenAI__OpenAI__MaxConversationBytes: {{ .Values.openAi.maxConversationBytes | quote }}
+  MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer: {{ .Values.durableSystemPrompt.blobStorageContainer }}
+  MSCosmosDBOpenAI__SystemPromptName: {{ .Values.durableSystemPrompt.systemPromptName }}

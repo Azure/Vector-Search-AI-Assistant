@@ -7,7 +7,7 @@
         "FilePath": "https://cosmosdbcosmicworks.blob.core.windows.net/cosmic-works-small/product.json"
       },
       "SinkSettings": {
-        "ConnectionString": "ADD-COSMOS-CONNECTION-STRING",
+        "ConnectionString": "{{cosmosConnectionString}}",
         "Database":"database",
         "Container":"product",
         "PartitionKeyPath":"/categoryId",
@@ -27,7 +27,7 @@
         "FilePath": "https://cosmosdbcosmicworks.blob.core.windows.net/cosmic-works-small/customer.json"
       },
       "SinkSettings": {
-        "ConnectionString": "ADD-COSMOS-CONNECTION-STRING",
+        "ConnectionString": "{{cosmosConnectionString}}",
         "Database":"database",
         "Container":"customer",
         "PartitionKeyPath":"/customerId",
