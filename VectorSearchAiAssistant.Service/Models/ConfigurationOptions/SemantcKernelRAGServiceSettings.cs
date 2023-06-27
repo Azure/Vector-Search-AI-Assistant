@@ -22,5 +22,6 @@
         public required OpenAISettings OpenAI { get; set; }
         public required CognitiveSearchSettings CognitiveSearch { get; set; }
         public required string SystemPromptName { get; set; }
+        public required string ShortSummaryPromptName { get; set; }
     }
 }
