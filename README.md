@@ -121,22 +121,104 @@ This solution can be run locally post deployment. Below are the prerequisites an
 ### Prerequisites for running/debugging locally
 
 - Visual Studio, VS Code, or some editor if you want to edit or view the source for this sample.
-- .NET 6 and 7 SDK
-- Azure Functions SDK v4
-- Azurite, for debugging using Azure Functions local storage.
+- .NET 7 SDK
 
 ### Local steps
 
-#### Search Azure App Service
-- Open the Configuration for the Azure App Service and copy the application setting values.
-- Within Visual Studio, right click the Search project, then copy the contents of appsettings.json into the User Secrets. 
-- If not using Visual Studio, create an `appsettings.Development.json` file and copy the appsettings.json and values into it.
- 
+#### Configure local settings
 
-#### Vectorize Azure Function
-- Open the Configuration for the Azure Function copy the application setting values.
-- Within Visual Studio, right click the Vectorize project, then copy the contents of the configuration values into User Secrets or local.settings.json if not using Visual Studio.
+- In the `Search` project, make sure the content of the `appsettings.json` file is similar to this:
 
+    ```json
+    {
+    "DetailedErrors": true,
+    "Logging": {
+        "LogLevel": {
+        "Default": "Information",
+        "Microsoft.AspNetCore": "Warning"
+        }
+    },
+    "AllowedHosts": "*",
+    "MSCosmosDBOpenAI": {
+        "ChatManager": {
+        "APIUrl": "https://localhost:63279",
+        "APIRoutePrefix": ""
+        }
+    }
+    }
+    ```
+
+- In the `ChatServiceWebApi` project, make sure the content of the `appsettings.json` file is similar to this:
+
+    ```json
+    {
+    "Logging": {
+        "LogLevel": {
+        "Default": "Information",
+        "Microsoft.AspNetCore": "Warning"
+        }
+    },
+    "AllowedHosts": "*",
+    "MSCosmosDBOpenAI": {
+        "CognitiveSearch": {
+        "IndexName": "vector-index",
+        "MaxVectorSearchResults": 10
+        },
+        "OpenAI": {
+        "CompletionsDeployment": "completions",
+        "EmbeddingsDeployment": "embeddings",
+        "MaxConversationBytes": 2000
+        },
+        "CosmosDB": {
+        "Containers": "completions, customer, product",
+        "Database": "database",
+        "ChangeFeedLeaseContainer": "leases"
+        },
+        "DurableSystemPrompt": {
+        "BlobStorageContainer": "system-prompt"
+        },
+        "SystemPromptName": "RetailAssistant.Default",
+        "ShortSummaryPromptName": "Summarizer.TwoWords"
+    }
+    }
+    ```
+- In the `ChatServiceWebApi` project, create an `appsettings.Development.json` file with the following content (replace all `<...>` placeholders with the values from your deployment):
+
+    ```json
+    {
+    "MSCosmosDBOpenAI": {
+        "CognitiveSearch": {
+        "Endpoint": "https://<...>.search.windows.net",
+        "Key": "<...>"
+        },
+        "OpenAI": {
+        "Endpoint": "https://<...>.openai.azure.com/",
+        "Key": "<...>"
+        },
+        "CosmosDB": {
+        "Endpoint": "https://<...>.documents.azure.com:443/",
+        "Key": "<...>"
+        },
+        "DurableSystemPrompt": {
+        "BlobStorageConnection": "<...>"
+        }
+    }
+    }
+    ```
+
+    >**NOTE**: THe `BlobStorageConnection` value can be found in the Azure Portal by navigating to the Storage Account created by the deployment (the one that has a container named `system-prompt`) and selecting the `Access keys` blade. The value is the `Connection string` for the `key1` key.
+
+#### Using Visual Studio
+
+To run locally and debug using Visual Studio, open the solution file to load the projects and prepare for debugging.
+
+Before you can start debugging, you need to set the startup projects. To do this, right-click on the solution in the Solution Explorer and select `Set Startup Projects...`. In the dialog that opens, select `Multiple startup projects` and set the `Action` for the `ChatServiceWebApi` and `Search` projects to `Start`.
+
+Also, make sure the newly created `appsettings.Development.json` file is copied to the output directory. To do this, right-click on the file in the Solution Explorer and select `Properties`. In the properties window, set the `Copy to Output Directory` property to `Copy always`..
+
+You are now ready to start debugging the solution locally. To do this, press `F5` or select `Debug > Start Debugging` from the menu.
+
+**NOTE**: With Visual Studio, you can also use alternate ways to manage the secrets and configuration. For example, you can use the `Manage User Secrets` option from the context menu of the `ChatWebServiceApi` project to open the `secrets.json` file and add the configuration values there.
 
 ## Resources
 
