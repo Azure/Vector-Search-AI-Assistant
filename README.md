@@ -72,7 +72,6 @@ cd deploy/powershell
 
 ### Quickstart
 
-1. After deployment is complete, go to the resource group for your deployment and open the Azure App Service in the Azure Portal. Click the link to launch the website.
 1. Navigate to resource group and obtain the name of the AKS service and execute the following command to obtain the OpenAI Chat endpoint
 
   ```pwsh
