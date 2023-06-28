@@ -17,6 +17,8 @@ spec:
       release: {{ .Release.Name }}
   template:
     metadata:
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
       labels:
         app: {{ template "chat-web-app.name" . }}
         release: {{ .Release.Name }}

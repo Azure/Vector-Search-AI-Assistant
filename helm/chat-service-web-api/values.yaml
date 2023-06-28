@@ -74,3 +74,15 @@ env:
       value: "Summarizer.TwoWords"
     - name: MSCosmosDBOpenAI__OpenAI__FavorMemoriesInPromptOptimization
       value: "false"
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionMinTokens
+      value: "50"
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionMaxTokens
+      value: "300"
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMinTokens
+      value: "500"
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMaxTokens
+      value: "2500"
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMinTokens
+      value: "1000"
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMaxTokens
+      value: "2500"
