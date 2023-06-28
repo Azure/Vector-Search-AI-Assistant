@@ -13,6 +13,6 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         public float[]? vector { get; set; }
 
         [SimpleField]
-        public string entityType__ { get; set; }
+        public string entityType__ { get; set; }    // Since this applies to all business entities,  use a name that is unlikely to cause collisions with other properties
     }
 }
