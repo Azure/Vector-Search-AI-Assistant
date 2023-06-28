@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using VectorSearchAiAssistant.SemanticKernel.Text;
 using VectorSearchAiAssistant.Service.Interfaces;
 
 namespace VectorSearchAiAssistant.Service.Services
@@ -21,15 +17,16 @@ Instructions:
 - Don't reference any product, customer, or salesOrder data not provided below.
 - If you're unsure of an answer, you can say ""I don't know"" or ""I'm not sure"" and recommend users search themselves.
 
-Text of relevant information:"
+Text of relevant information:".NormalizeLineEndings()
             },
             {
                 "RetailAssistant.Limited", @"
 You are an AI assistant that helps people find information.
-Provide concise answers that are polite and professional."
+Provide concise answers that are polite and professional.".NormalizeLineEndings()
             },
             { "Summarizer.TwoWords", @"
-Summarize this prompt in one or two words to use as a label in a button on a web page. Output words only." }
+Summarize this prompt in one or two words to use as a label in a button on a web page. Output words only.".NormalizeLineEndings()
+            }
         };
 
         public async Task<string> GetPrompt(string promptName, bool forceRefresh = false)

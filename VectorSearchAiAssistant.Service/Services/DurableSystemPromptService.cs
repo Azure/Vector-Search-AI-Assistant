@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
+using VectorSearchAiAssistant.SemanticKernel.Text;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 
@@ -31,7 +32,7 @@ namespace VectorSearchAiAssistant.Service.Services
             var reader = new StreamReader(await blobClient.OpenReadAsync());
             var prompt = await reader.ReadToEndAsync();
 
-            _prompts[promptName] = prompt;
+            _prompts[promptName] = prompt.NormalizeLineEndings();
 
             return prompt;
         }

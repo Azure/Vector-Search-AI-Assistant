@@ -14,6 +14,7 @@ using Microsoft.SemanticKernel.AI.TextCompletion;
 using VectorSearchAiAssistant.Service.Models.Chat;
 using Newtonsoft.Json;
 using VectorSearchAiAssistant.SemanticKernel.Chat;
+using VectorSearchAiAssistant.SemanticKernel.Text;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -113,7 +114,7 @@ public class SemanticKernelRAGService : IRAGService
             .WithMemories(
                 memoryCollection)
             .WithMessageHistory(
-                messageHistory.Select(m => (new AuthorRole(m.Sender), m.Text)).ToList())
+                messageHistory.Select(m => (new AuthorRole(m.Sender), m.Text.NormalizeLineEndings())).ToList())
             .Build();
 
         chatHistory.AddUserMessage(userPrompt);
