@@ -178,7 +178,6 @@ namespace VectorSearchAiAssistant.Service.Services
                         salesOrder,
                         salesOrder.id,
                         (p, v) => { p.vector = v; });
-
                 }
                 else
                 {

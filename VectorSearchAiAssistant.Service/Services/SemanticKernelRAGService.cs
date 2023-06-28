@@ -104,7 +104,10 @@ public class SemanticKernelRAGService : IRAGService
             memoryCollection = memoryCollectionRaw.Select(m => JsonConvert.DeserializeObject(m)).ToList();
         }
 
-        var chatHistory = new ChatBuilder(_semanticKernel)
+        var chatHistory = new ChatBuilder(
+                _semanticKernel,
+                _settings.OpenAI.CompletionsDeploymentMaxTokens,
+                promptOptimizationSettings: _settings.OpenAI.PromptOptimization)
             .WithSystemPrompt(
                 await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName))
             .WithMemories(
