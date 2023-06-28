@@ -60,3 +60,17 @@ env:
       value: leases
     - name: MSCosmosDBOpenAI__ShortSummaryPromptName
       value: Summarizer.TwoWords
+    - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeploymentMaxTokens
+      value: "4096"
+    - name: MSCosmosDBOpenAI__OpenAI__CompletionsMinTokens
+      value: "30"
+    - name: MSCosmosDBOpenAI__OpenAI__CompletionsMaxTokens
+      value: "300"
+    - name: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeploymentMaxTokens
+      value: "8191"
+    - name: MSCosmosDBOpenAI__OpenAI__ChatCompletionPromptName
+      value: RetailAssistant.Default
+    - name: MSCosmosDBOpenAI__OpenAI__ShortSummaryPromptName
+      value: "Summarizer.TwoWords"
+    - name: MSCosmosDBOpenAI__OpenAI__FavorMemoriesInPromptOptimization
+      value: "false"
