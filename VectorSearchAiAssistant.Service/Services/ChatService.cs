@@ -84,13 +84,6 @@ public class ChatService : IChatService
         // Retrieve conversation, including latest prompt.
         // If you put this after the vector search it doesn't take advantage of previous information given so harder to chain prompts together.
         // However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
-        // string conversation = GetChatSessionConversation(sessionId, userPrompt);
-
-        // Get embeddings for user prompt.
-        //(float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(userPrompt, sessionId);
-
-        // Do vector search on prompt embeddings, return list of documents
-        //var retrievedDocuments = await _vectorDatabaseService.VectorSearchAsync(promptVectors);
 
         // Retrieve conversation, including latest prompt.
         var messages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
@@ -98,7 +91,7 @@ public class ChatService : IChatService
 
         // Generate the completion to return to the user
         //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAs ync(sessionId, conversation, retrievedDocuments);
-        var result = await _ragService.GetResponse(userPrompt, conversation);
+        var result = await _ragService.GetResponse(userPrompt, messages);
 
         // Add to prompt and completion to cache, then persist in Cosmos as transaction 
         var promptMessage = new Message(sessionId, nameof(Participants.User), result.UserPromptTokens, userPrompt, result.UserPromptEmbedding, null);

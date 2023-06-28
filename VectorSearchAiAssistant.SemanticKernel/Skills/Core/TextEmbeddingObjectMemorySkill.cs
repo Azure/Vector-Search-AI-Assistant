@@ -87,9 +87,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
             }
 
             context.Log.LogTrace("Done looking for memories in collection '{0}')", collection);
-            return limit == 1
-                ? memories[1].Metadata.AdditionalMetadata
-                : JsonSerializer.Serialize(memories.Skip(1).Select(x => x.Metadata.AdditionalMetadata));
+            return JsonSerializer.Serialize(memories.Skip(1).Select(x => x.Metadata.AdditionalMetadata));
         }
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using VectorSearchAiAssistant.Service.Models.Search;
+﻿using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace VectorSearchAiAssistant.Service.Interfaces
 {
@@ -11,7 +6,7 @@ namespace VectorSearchAiAssistant.Service.Interfaces
     {
         bool IsInitialized { get; }
 
-        Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, string interactionHistory);
+        Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory);
 
         Task<string> Summarize(string sessionId, string userPrompt);
 
