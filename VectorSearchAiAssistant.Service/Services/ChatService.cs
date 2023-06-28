@@ -12,8 +12,6 @@ public class ChatService : IChatService
     private readonly IRAGService _ragService;
     private readonly ILogger _logger;
 
-    private readonly int _maxConversationBytes;
-
     public bool IsInitialized => _cosmosDbService.IsInitialized && _ragService.IsInitialized;
 
     public ChatService(
@@ -24,8 +22,6 @@ public class ChatService : IChatService
         _cosmosDbService = cosmosDbService;
         _ragService = ragService;
         _logger = logger;
-
-        _maxConversationBytes = _ragService.MaxConversationBytes;
     }
 
     /// <summary>
@@ -87,7 +83,6 @@ public class ChatService : IChatService
 
         // Retrieve conversation, including latest prompt.
         var messages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
-        var conversation = GetChatSessionConversation(messages, userPrompt);
 
         // Generate the completion to return to the user
         //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAs ync(sessionId, conversation, retrievedDocuments);
@@ -99,34 +94,6 @@ public class ChatService : IChatService
         await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage);
 
         return new Completion { Text = result.Completion };
-    }
-
-    /// <summary>
-    /// Get current conversation from newest to oldest up to max conversation tokens and add to the prompt.
-    /// </summary>
-    private string GetChatSessionConversation(List<Message> messages, string userPrompt)
-    {
-        int? bytesUsed = 0;
-        var conversationBuilder = new List<string>();
-
-        // Start at the end of the list and work backwards
-        for (var i = messages.Count - 1; i >= 0; i--)
-        {
-            bytesUsed += messages[i].Text.Length;
-
-            if (bytesUsed > _maxConversationBytes)
-                break;
-
-            conversationBuilder.Add(messages[i].Text);
-        }
-
-        // Invert the chat messages to put back into chronological order and output as string.        
-        var conversation = string.Join(Environment.NewLine, conversationBuilder.Reverse<string>());
-
-        // Add the current userPrompt
-        conversation += Environment.NewLine + userPrompt;
-
-        return conversation;
     }
 
     /// <summary>

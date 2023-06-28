@@ -28,8 +28,6 @@ public class SemanticKernelRAGService : IRAGService
 
     bool _memoryInitialized = false;
 
-    public int MaxConversationBytes => _settings.OpenAI.MaxConversationBytes;
-
     public bool IsInitialized => _memoryInitialized;
 
     public SemanticKernelRAGService(
@@ -102,7 +100,7 @@ public class SemanticKernelRAGService : IRAGService
 
         var chatHistory = new ChatBuilder(_semanticKernel)
             .WithSystemPrompt(
-                await _systemPromptService.GetPrompt(_settings.SystemPromptName))
+                await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName))
             .WithMemories(
                 memoryCollection)
             .WithMessageHistory(
@@ -124,7 +122,7 @@ public class SemanticKernelRAGService : IRAGService
     public async Task<string> Summarize(string sessionId, string userPrompt)
     {
         var summarizerSkill = new GenericSummarizerSkill(
-            await _systemPromptService.GetPrompt(_settings.ShortSummaryPromptName),
+            await _systemPromptService.GetPrompt(_settings.OpenAI.ShortSummaryPromptName),
             500,
             _semanticKernel);
 
