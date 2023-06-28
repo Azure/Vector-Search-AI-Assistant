@@ -11,5 +11,8 @@ namespace VectorSearchAiAssistant.Service.Models.Search
     {
         [FieldBuilderIgnore]
         public float[]? vector { get; set; }
+
+        [SimpleField]
+        public string _entityType { get; set; }
     }
 }

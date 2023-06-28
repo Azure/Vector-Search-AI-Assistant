@@ -136,8 +136,9 @@ public class SemanticKernelRAGService : IRAGService
         return summary;
     }
 
-    public async Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer)
+    public async Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer) where T : EmbeddedEntity
     {
+        item._entityType = item.GetType().Name;
         await _memory.AddMemory<T>(item, itemName, vectorizer);
     }
 
