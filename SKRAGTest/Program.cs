@@ -4,6 +4,14 @@ using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
+
+var tokens = GPT3Tokenizer.Encode(@"Many words map to one token, but some don't: indivisible.
+
+Unicode characters like emojis may be split into many tokens containing the underlying bytes: 🤚🏾
+
+Sequences of characters commonly found next to each other may be grouped together: 1234567890");
+
 
 var builder = Host.CreateApplicationBuilder(args);
 

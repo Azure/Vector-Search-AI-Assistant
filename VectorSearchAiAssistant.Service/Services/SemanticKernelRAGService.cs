@@ -95,8 +95,14 @@ public class SemanticKernelRAGService : IRAGService
         // Read the resulting user prompt embedding as soon as possile
         var userPromptEmbedding = memorySkill.LastInputTextEmbedding?.ToArray();
 
-        var memoryCollectionRaw = JsonConvert.DeserializeObject<List<string>>(memories);
-        var memoryCollection = memoryCollectionRaw.Select(m => JsonConvert.DeserializeObject(m)).ToList();
+        List<object?> memoryCollection;
+        if (string.IsNullOrEmpty(memories))
+            memoryCollection = new List<object?>();
+        else
+        {
+            var memoryCollectionRaw = JsonConvert.DeserializeObject<List<string>>(memories);
+            memoryCollection = memoryCollectionRaw.Select(m => JsonConvert.DeserializeObject(m)).ToList();
+        }
 
         var chatHistory = new ChatBuilder(_semanticKernel)
             .WithSystemPrompt(
