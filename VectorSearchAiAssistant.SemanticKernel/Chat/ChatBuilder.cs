@@ -1,6 +1,7 @@
 ﻿using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Newtonsoft.Json;
+using VectorSearchAiAssistant.SemanticKernel.Text;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Chat
 {
@@ -43,7 +44,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
                     MessagesMaxTokens = 3000
                 };
 
-            // Use 50 tokens as a buffer for extra needs resulting from concatenation, new lines, etc.
+            // Use BufferTokens (default 50) tokens as a buffer for extra needs resulting from concatenation, new lines, etc.
             _maxPromptTokens = _maxTokens - _promptOptimizationSettings.CompletionsMaxTokens - BufferTokens;
         }
 
@@ -70,7 +71,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
 
         public ChatHistory Build()
         {
-            //OptimizePromptSize();
+            OptimizePromptSize();
 
             var result = _kernel.GetService<IChatCompletion>()
                 .CreateNewChat();
@@ -80,7 +81,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
                 : _systemPrompt;
 
             if (_memories.Count > 0)
-                systemMessage = $"{systemMessage}{Environment.NewLine}{Environment.NewLine}{JsonConvert.SerializeObject(_memories)}";
+                systemMessage = $"{systemMessage}{Environment.NewLine}{Environment.NewLine}{JsonConvert.SerializeObject(_memories)}".NormalizeLineEndings();
 
             if (!string.IsNullOrWhiteSpace(systemMessage)) 
                 result.AddSystemMessage(systemMessage);
