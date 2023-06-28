@@ -13,6 +13,6 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         public float[]? vector { get; set; }
 
         [SimpleField]
-        public string _entityType { get; set; }
+        public string entityType__ { get; set; }
     }
 }
