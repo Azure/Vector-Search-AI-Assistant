@@ -171,20 +171,20 @@ This solution can be run locally post deployment. Below are the prerequisites an
 
     ```json
     {
-    "DetailedErrors": true,
-    "Logging": {
-        "LogLevel": {
-        "Default": "Information",
-        "Microsoft.AspNetCore": "Warning"
+        "DetailedErrors": true,
+        "Logging": {
+            "LogLevel": {
+            "Default": "Information",
+            "Microsoft.AspNetCore": "Warning"
         }
-    },
-    "AllowedHosts": "*",
-    "MSCosmosDBOpenAI": {
-        "ChatManager": {
-        "APIUrl": "https://localhost:63279",
-        "APIRoutePrefix": ""
+        },
+        "AllowedHosts": "*",
+        "MSCosmosDBOpenAI": {
+            "ChatManager": {
+                "APIUrl": "https://localhost:63279",
+                "APIRoutePrefix": ""
+            }
         }
-    }
     }
     ```
 
@@ -194,40 +194,40 @@ This solution can be run locally post deployment. Below are the prerequisites an
     {
         "Logging": {
             "LogLevel": {
-            "Default": "Information",
-            "Microsoft.AspNetCore": "Warning"
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning"
             }
         },
         "AllowedHosts": "*",
         "MSCosmosDBOpenAI": {
             "CognitiveSearch": {
-            "IndexName": "vector-index",
-            "MaxVectorSearchResults": 10
+                "IndexName": "vector-index",
+                "MaxVectorSearchResults": 10
             },
             "OpenAI": {
-            "CompletionsDeployment": "completions",
-            "CompletionsDeploymentMaxTokens": 4096,
-            "EmbeddingsDeployment": "embeddings",
-            "EmbeddingsDeploymentMaxTokens": 8191,
-            "ChatCompletionPromptName": "RetailAssistant.Default",
-            "ShortSummaryPromptName": "Summarizer.TwoWords",
-            "PromptOptimization": {
-                "CompletionsMinTokens": 50,
-                "CompletionsMaxTokens": 300,
-                "SystemMaxTokens": 1500,
-                "MemoryMinTokens": 500,
-                "MemoryMaxTokens": 2500,
-                "MessagesMinTokens": 1000,
-                "MessagesMaxTokens": 3000
-            }
+                "CompletionsDeployment": "completions",
+                "CompletionsDeploymentMaxTokens": 4096,
+                "EmbeddingsDeployment": "embeddings",
+                "EmbeddingsDeploymentMaxTokens": 8191,
+                "ChatCompletionPromptName": "RetailAssistant.Default",
+                "ShortSummaryPromptName": "Summarizer.TwoWords",
+                "PromptOptimization": {
+                    "CompletionsMinTokens": 50,
+                    "CompletionsMaxTokens": 300,
+                    "SystemMaxTokens": 1500,
+                    "MemoryMinTokens": 500,
+                    "MemoryMaxTokens": 2500,
+                    "MessagesMinTokens": 1000,
+                    "MessagesMaxTokens": 3000
+                }
             },
             "CosmosDB": {
-            "Containers": "completions, customer, product",
-            "Database": "database",
-            "ChangeFeedLeaseContainer": "leases"
+                "Containers": "completions, customer, product",
+                "Database": "database",
+                "ChangeFeedLeaseContainer": "leases"
             },
             "DurableSystemPrompt": {
-            "BlobStorageContainer": "system-prompt"
+                "BlobStorageContainer": "system-prompt"
             }
         }
     }
@@ -237,23 +237,23 @@ This solution can be run locally post deployment. Below are the prerequisites an
 
     ```json
     {
-    "MSCosmosDBOpenAI": {
-        "CognitiveSearch": {
-        "Endpoint": "https://<...>.search.windows.net",
-        "Key": "<...>"
-        },
-        "OpenAI": {
-        "Endpoint": "https://<...>.openai.azure.com/",
-        "Key": "<...>"
-        },
-        "CosmosDB": {
-        "Endpoint": "https://<...>.documents.azure.com:443/",
-        "Key": "<...>"
-        },
-        "DurableSystemPrompt": {
-        "BlobStorageConnection": "<...>"
+        "MSCosmosDBOpenAI": {
+            "CognitiveSearch": {
+                "Endpoint": "https://<...>.search.windows.net",
+                "Key": "<...>"
+            },
+            "OpenAI": {
+                "Endpoint": "https://<...>.openai.azure.com/",
+                "Key": "<...>"
+            },
+            "CosmosDB": {
+                "Endpoint": "https://<...>.documents.azure.com:443/",
+                "Key": "<...>"
+            },
+            "DurableSystemPrompt": {
+                "BlobStorageConnection": "<...>"
+            }
         }
-    }
     }
     ```
 
