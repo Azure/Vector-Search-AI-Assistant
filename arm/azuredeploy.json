@@ -48,25 +48,6 @@
     }
   },
   "variables": {
-    "openAiSettings": {
-      "name": "[format('{0}-openai', parameters('name'))]",
-      "sku": "[parameters('openAiSku')]",
-      "maxConversationBytes": "2000",
-      "completionsModel": {
-        "name": "gpt-35-turbo",
-        "version": "0301",
-        "deployment": {
-          "name": "completions"
-        }
-      },
-      "embeddingsModel": {
-        "name": "text-embedding-ada-002",
-        "version": "2",
-        "deployment": {
-          "name": "embeddings"
-        }
-      }
-    },
     "cosmosDbSettings": {
       "name": "[format('{0}-cosmos-nosql', parameters('name'))]",
       "databaseName": "database"
@@ -211,57 +192,6 @@
           "apiKeyOnly": {}
         }
       }
-    },
-    {
-      "type": "Microsoft.CognitiveServices/accounts",
-      "apiVersion": "2022-12-01",
-      "name": "[variables('openAiSettings').name]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "[variables('openAiSettings').sku]"
-      },
-      "kind": "OpenAI",
-      "properties": {
-        "customSubDomainName": "[variables('openAiSettings').name]",
-        "publicNetworkAccess": "Enabled"
-      }
-    },
-    {
-      "type": "Microsoft.CognitiveServices/accounts/deployments",
-      "apiVersion": "2022-12-01",
-      "name": "[format('{0}/{1}', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]",
-      "properties": {
-        "model": {
-          "format": "OpenAI",
-          "name": "[variables('openAiSettings').embeddingsModel.name]",
-          "version": "[variables('openAiSettings').embeddingsModel.version]"
-        },
-        "scaleSettings": {
-          "scaleType": "Standard"
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]"
-      ]
-    },
-    {
-      "type": "Microsoft.CognitiveServices/accounts/deployments",
-      "apiVersion": "2022-12-01",
-      "name": "[format('{0}/{1}', variables('openAiSettings').name, variables('openAiSettings').completionsModel.deployment.name)]",
-      "properties": {
-        "model": {
-          "format": "OpenAI",
-          "name": "[variables('openAiSettings').completionsModel.name]",
-          "version": "[variables('openAiSettings').completionsModel.version]"
-        },
-        "scaleSettings": {
-          "scaleType": "Standard"
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
-        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]"
-      ]
     },
     {
       "type": "Microsoft.Network/virtualNetworks",
@@ -584,6 +514,10 @@
     "deployedUrl": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('aksSettings').name), '2023-01-02-preview').addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName]"
+    },
+    "resourcePrefix": {
+      "type": "string",
+      "value": "[parameters('name')]"
     }
   }
 }

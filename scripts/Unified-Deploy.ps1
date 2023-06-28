@@ -5,7 +5,12 @@ Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$true)][string]$subscription,
+    [parameter(Mandatory=$false)][string]$openAiName=$null,
+    [parameter(Mandatory=$false)][string]$openAiRg=$null,
+    [parameter(Mandatory=$false)][string]$openAiCompletionsDeployment=$null,
+    [parameter(Mandatory=$false)][string]$openAiEmbeddingsDeployment=$null,
     [parameter(Mandatory=$false)][bool]$stepDeployArm=$true,
+    [parameter(Mandatory=$false)][bool]$stepDeployOpenAi=$true,
     [parameter(Mandatory=$false)][bool]$stepBuildPush=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployCertManager=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployTls=$true,
@@ -14,6 +19,7 @@ Param(
     [parameter(Mandatory=$false)][bool]$stepImportData=$true,
     [parameter(Mandatory=$false)][bool]$stepLoginAzure=$true
 )
+
 $gValuesFile="configFile.yaml"
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
@@ -41,6 +47,14 @@ if ($stepDeployArm) {
     & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location
 }
 
+if ($stepDeployOpenAi) {
+    if (-not $openAiRg) {
+        $openAiRg=$resourceGroup
+    }
+
+    & ./Deploy-OpenAi.ps1 -name $openAiName -resourceGroup $openAiRg -location $location -completionsDeployment $openAiCompletionsDeployment -embeddingsDeployment $openAiEmbeddingsDeployment
+}
+
 # Connecting kubectl to AKS
 Write-Host "Retrieving Aks Name" -ForegroundColor Yellow
 $aksName = $(az aks list -g $resourceGroup -o json | ConvertFrom-Json).name
@@ -51,7 +65,7 @@ az aks get-credentials -n $aksName -g $resourceGroup
 
 # Generate Config
 $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
-& ./Generate-Config.ps1 -resourceGroup $resourceGroup -outputFile $gValuesLocation
+& ./Generate-Config.ps1 -resourceGroup $resourceGroup -openAiName $openAiName -openAiRg $openAiRg -openAiDeployment $openAiDeployment -outputFile $gValuesLocation
 
 # Create Secrets
 if ([string]::IsNullOrEmpty($acrName))
