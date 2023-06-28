@@ -192,36 +192,47 @@ This solution can be run locally post deployment. Below are the prerequisites an
 
     ```json
     {
-    "Logging": {
-        "LogLevel": {
-        "Default": "Information",
-        "Microsoft.AspNetCore": "Warning"
+        "Logging": {
+            "LogLevel": {
+            "Default": "Information",
+            "Microsoft.AspNetCore": "Warning"
+            }
+        },
+        "AllowedHosts": "*",
+        "MSCosmosDBOpenAI": {
+            "CognitiveSearch": {
+            "IndexName": "vector-index",
+            "MaxVectorSearchResults": 10
+            },
+            "OpenAI": {
+            "CompletionsDeployment": "completions",
+            "CompletionsDeploymentMaxTokens": 4096,
+            "EmbeddingsDeployment": "embeddings",
+            "EmbeddingsDeploymentMaxTokens": 8191,
+            "ChatCompletionPromptName": "RetailAssistant.Default",
+            "ShortSummaryPromptName": "Summarizer.TwoWords",
+            "PromptOptimization": {
+                "CompletionsMinTokens": 50,
+                "CompletionsMaxTokens": 300,
+                "SystemMaxTokens": 1500,
+                "MemoryMinTokens": 500,
+                "MemoryMaxTokens": 2500,
+                "MessagesMinTokens": 1000,
+                "MessagesMaxTokens": 3000
+            }
+            },
+            "CosmosDB": {
+            "Containers": "completions, customer, product",
+            "Database": "database",
+            "ChangeFeedLeaseContainer": "leases"
+            },
+            "DurableSystemPrompt": {
+            "BlobStorageContainer": "system-prompt"
+            }
         }
-    },
-    "AllowedHosts": "*",
-    "MSCosmosDBOpenAI": {
-        "CognitiveSearch": {
-        "IndexName": "vector-index",
-        "MaxVectorSearchResults": 10
-        },
-        "OpenAI": {
-        "CompletionsDeployment": "completions",
-        "EmbeddingsDeployment": "embeddings",
-        "MaxConversationBytes": 2000
-        },
-        "CosmosDB": {
-        "Containers": "completions, customer, product",
-        "Database": "database",
-        "ChangeFeedLeaseContainer": "leases"
-        },
-        "DurableSystemPrompt": {
-        "BlobStorageContainer": "system-prompt"
-        },
-        "SystemPromptName": "RetailAssistant.Default",
-        "ShortSummaryPromptName": "Summarizer.TwoWords"
-    }
     }
     ```
+
 - In the `ChatServiceWebApi` project, create an `appsettings.Development.json` file with the following content (replace all `<...>` placeholders with the values from your deployment):
 
     ```json
