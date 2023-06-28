@@ -10,8 +10,6 @@ namespace VectorSearchAiAssistant.Service.Interfaces
 
         Task<string> Summarize(string sessionId, string userPrompt);
 
-        int MaxConversationBytes { get; }
-
         Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer);
 
         Task RemoveMemory<T>(T item);
