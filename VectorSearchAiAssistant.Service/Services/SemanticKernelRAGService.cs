@@ -8,10 +8,12 @@ using Microsoft.Extensions.Logging;
 using VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using VectorSearchAiAssistant.SemanticKernel.Skills.Core;
 using VectorSearchAiAssistant.Service.Models.Search;
-using Microsoft.SemanticKernel.Memory;
-using Azure.AI.OpenAI;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using System.Text.RegularExpressions;
+using System.Linq;
+using Microsoft.SemanticKernel.AI.TextCompletion;
+using VectorSearchAiAssistant.Service.Models.Chat;
+using Newtonsoft.Json;
+using VectorSearchAiAssistant.SemanticKernel.Chat;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -80,7 +82,7 @@ public class SemanticKernelRAGService : IRAGService
         _memoryInitialized = true;
     }
 
-    public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, string interactionHistory)
+    public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
     {
         var memorySkill = new TextEmbeddingObjectMemorySkill();
         //_semanticKernel.ImportSkill(memorySkill);
@@ -95,17 +97,28 @@ public class SemanticKernelRAGService : IRAGService
         // Read the resulting user prompt embedding as soon as possile
         var userPromptEmbedding = memorySkill.LastInputTextEmbedding?.ToArray();
 
-        var chat = _semanticKernel.GetService<IChatCompletion>();
+        var memoryCollectionRaw = JsonConvert.DeserializeObject<List<string>>(memories);
+        var memoryCollection = memoryCollectionRaw.Select(m => JsonConvert.DeserializeObject(m)).ToList();
 
-        var systemPrompt = await _systemPromptService.GetPrompt(_settings.SystemPromptName);
-        var chatHistory = chat.CreateNewChat($"{systemPrompt}\n{memories}\n{interactionHistory}");
+        var chatHistory = new ChatBuilder(_semanticKernel)
+            .WithSystemPrompt(
+                await _systemPromptService.GetPrompt(_settings.SystemPromptName))
+            .WithMemories(
+                memoryCollection)
+            .WithMessageHistory(
+                messageHistory.Select(m => (new AuthorRole(m.Sender), m.Text)).ToList())
+            .Build();
 
         chatHistory.AddUserMessage(userPrompt);
 
-        var reply = await chat.GenerateMessageAsync(chatHistory, new ChatRequestSettings());
-        //chatHistory.AddAssistantMessage(reply);
+        var chat = _semanticKernel.GetService<IChatCompletion>();
+        var completionResults = await chat.GetChatCompletionsAsync(chatHistory);
 
-        return new(reply, 0, 0, userPromptEmbedding);
+        // TODO: Add validation and perhaps fall back to a standard response if no completions are generated.
+        var reply = await completionResults[0].GetChatMessageAsync();
+        var rawResult = (completionResults[0] as ITextResult).ModelResult.GetOpenAIChatResult();
+
+        return new(reply.Content, rawResult.Usage.PromptTokens, rawResult.Usage.CompletionTokens, userPromptEmbedding);
     }
 
     public async Task<string> Summarize(string sessionId, string userPrompt)
