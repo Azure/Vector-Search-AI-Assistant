@@ -1,17 +1,9 @@
-﻿namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
+﻿using VectorSearchAiAssistant.SemanticKernel.Chat;
+
+namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
 {
     public record SemanticKernelRAGServiceSettings
     {
-        public record PromptOptimizationSettings
-        {
-            public required int CompletionsMinTokens { get; init; }
-            public required int CompletionsMaxTokens { get; init; }
-            public required int MemoryMinTokens { get; init; }
-            public required int MemoryMaxTokens { get; init; }
-            public required int MessagesMinTokens { get; init; }
-            public required int MessagesMaxTokens { get; init; }
-        }
-
         public record OpenAISettings
         {
             public required string CompletionsDeployment { get; set; }
