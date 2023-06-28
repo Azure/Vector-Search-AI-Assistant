@@ -1,4 +1,5 @@
 ﻿using VectorSearchAiAssistant.Service.Models.Chat;
+using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Interfaces
 {
@@ -10,7 +11,7 @@ namespace VectorSearchAiAssistant.Service.Interfaces
 
         Task<string> Summarize(string sessionId, string userPrompt);
 
-        Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer);
+        Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer) where T : EmbeddedEntity;
 
         Task RemoveMemory<T>(T item);
     }
