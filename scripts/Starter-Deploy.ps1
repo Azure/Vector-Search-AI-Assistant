@@ -26,20 +26,20 @@ Push-Location $($MyInvocation.InvocationName | Split-Path)
 & ./Unified-Deploy.ps1 -acrName $acrName `
                        -resourceGroup $resourceGroup `
                        -location $location `
-                       --subscription $subscription `
-                        -armTemplate $armTemplate `
-                        -openAiName $openAiName `
-                        -openAiRg $openAiRg `
-                        -openAiCompletionsDeployment $openAiCompletionsDeployment `
-                        -openAiEmbeddingsDeployment $openAiEmbeddingsDeployment `
-                        -stepDeployArm $stepDeployArm `
-                        -stepDeployOpenAi $stepDeployOpenAi `
-                        -stepBuildPush $stepBuildPush `
-                        -stepDeployCertManager $stepDeployCertManager `
-                        -stepDeployTls $stepDeployTls `
-                        -stepDeployImages $stepDeployImages `
-                        -stepUploadSystemPrompts $stepUploadSystemPrompts `
-                        -stepImportData $stepImportData `
-                        -stepLoginAzure $stepLoginAzure
+                       -subscription $subscription `
+                       -armTemplate $armTemplate `
+                       -openAiName $openAiName `
+                       -openAiRg $openAiRg `
+                       -openAiCompletionsDeployment $openAiCompletionsDeployment `
+                       -openAiEmbeddingsDeployment $openAiEmbeddingsDeployment `
+                       -stepDeployArm $stepDeployArm `
+                       -stepDeployOpenAi $stepDeployOpenAi `
+                       -stepBuildPush $stepBuildPush `
+                       -stepDeployCertManager $stepDeployCertManager `
+                       -stepDeployTls $stepDeployTls `
+                       -stepDeployImages $stepDeployImages `
+                       -stepUploadSystemPrompts $stepUploadSystemPrompts `
+                       -stepImportData $stepImportData `
+                       -stepLoginAzure $stepLoginAzure
 
 Pop-Location
