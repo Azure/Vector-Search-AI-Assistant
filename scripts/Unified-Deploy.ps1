@@ -5,6 +5,7 @@ Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$true)][string]$subscription,
+    [parameter(Mandatory=$true)][string]$armTemplate="azuredeploy.json",
     [parameter(Mandatory=$false)][string]$openAiName=$null,
     [parameter(Mandatory=$false)][string]$openAiRg=$null,
     [parameter(Mandatory=$false)][string]$openAiCompletionsDeployment=$null,
@@ -44,7 +45,7 @@ az account set --subscription $subscription
 
 if ($stepDeployArm) {
     # Deploy ARM
-    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location
+    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate
 }
 
 if ($stepDeployOpenAi) {

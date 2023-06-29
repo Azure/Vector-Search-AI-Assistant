@@ -2,14 +2,15 @@
 
 Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
-    [parameter(Mandatory=$true)][string]$location
+    [parameter(Mandatory=$true)][string]$location,
+    [parameter(Mandatory=$true)][string]$template
 )
-$spCreated=$false
+
 $sourceFolder=$(Join-Path -Path .. -ChildPath arm)
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
 
-$script="azuredeploy.json"
+$script=$template
 
 Write-Host "--------------------------------------------------------" -ForegroundColor Yellow
 Write-Host "Deploying ARM script $script" -ForegroundColor Yellow
