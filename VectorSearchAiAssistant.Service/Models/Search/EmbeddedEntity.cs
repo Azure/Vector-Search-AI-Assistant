@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding;
 
 namespace VectorSearchAiAssistant.Service.Models.Search
 {
@@ -13,6 +14,7 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         public float[]? vector { get; set; }
 
         [SimpleField]
+        [EmbeddingField(Label = "Entity (object) type")]
         public string entityType__ { get; set; }    // Since this applies to all business entities,  use a name that is unlikely to cause collisions with other properties
     }
 }

@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Azure.Core.Serialization;
 using System.Reflection.Metadata;
+using VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch
 {
@@ -84,7 +85,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
                     .Select(tti => fieldBuilder.Build(tti))
                     .SelectMany(x => x);
 
-                // Combine the three search fields, eliminating duplicate names:
+                // Combine the search fields, eliminating duplicate names:
                 var allFields = fieldsToIndex
                     .GroupBy(field => field.Name)
                     .Select(group => group.First())
@@ -122,13 +123,15 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
 
         public async Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer)
         {
-            // Serialize the product object to send to OpenAI
-            var sItem = JObject.FromObject(item).ToString();
-
             try
             {
+                // Prepare the object for embedding
+                var itemToEmbed = EmbeddingUtility.Transform<T>(item);
+
                 // Get the embeddings from OpenAI
-                var embbedding = await _textEmbedding.GenerateEmbeddingAsync(sItem);
+                // Use by default the more elaborate text representation based on EmbeddingFieldAttribute
+                // TODO: Test also using the JSON text representation - itemToEmbed.ObjectToEmbed
+                var embbedding = await _textEmbedding.GenerateEmbeddingAsync(itemToEmbed.TextToEmbed);
                 vectorizer(item, embbedding.Vector.ToArray());
 
                 // Save to Cognitive Search
@@ -305,7 +308,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
             }
             else
             {
-                // TODO: use vectors
                 var options = new SearchOptions
                 {
                     QueryType = SearchQueryType.Semantic,

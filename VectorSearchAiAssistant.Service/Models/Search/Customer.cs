@@ -1,4 +1,5 @@
 ﻿using Azure.Search.Documents.Indexes;
+using VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding;
 
 namespace VectorSearchAiAssistant.Service.Models.Search
 {
@@ -7,22 +8,29 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         [SearchableField(IsKey = true, IsFilterable = true)]
         public string id { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer type")]
         public string type { get; set; }
         [SimpleField]
         public string customerId { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer title")]
         public string title { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer first name")]
         public string firstName { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer last name")]
         public string lastName { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer email address")]
         public string emailAddress { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer phone number")]
         public string phoneNumber { get; set; }
         [SimpleField]
         public string creationDate { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer addresses")]
         public List<CustomerAddress> addresses { get; set; }
         [SimpleField(IsHidden = true)]
         public Password password { get; set; }
@@ -67,16 +75,22 @@ namespace VectorSearchAiAssistant.Service.Models.Search
     public class CustomerAddress
     {
         [SimpleField]
+        [EmbeddingField(Label = "Customer address line 1")]
         public string addressLine1 { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer address line 2")]
         public string addressLine2 { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer address city")]
         public string city { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer address state")]
         public string state { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer address country")]
         public string country { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer address zip code")]
         public string zipCode { get; set; }
         [SimpleField]
         public Location location { get; set; }
