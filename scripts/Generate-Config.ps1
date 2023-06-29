@@ -62,7 +62,8 @@ $blobKey=$(az storage account keys list -g $resourceGroup -n $blobAccount -o jso
 if ($openAiName) {
     $openAi=$(az cognitiveservices account show -n $openAiName -g $openAiRg -o json | ConvertFrom-Json)
 } else {
-    $openAi=$(az cognitiveservices account list -g $openAiRg -o json | ConvertFrom-Json)[0]
+    $openAi=$(az cognitiveservices account list -g $resourceGroup -o json | ConvertFrom-Json)
+    $openAiRg=$resourceGroup
 }
 
 $openAiKey=$(az cognitiveservices account keys list -g $openAiRg -n $openAi.name -o json --query key1 | ConvertFrom-Json)
