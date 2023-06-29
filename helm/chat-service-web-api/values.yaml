@@ -85,4 +85,4 @@ env:
     - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMinTokens
       value: "1000"
     - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMaxTokens
-      value: "2500"
+      value: "3000"
