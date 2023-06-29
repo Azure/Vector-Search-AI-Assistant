@@ -5,9 +5,26 @@ using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
+using VectorSearchAiAssistant.Service.Models.Search;
+using VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding;
 
-var tokens = GPT3Tokenizer.Encode(Environment.NewLine);
+var product = new Product(
+    id: "00001",
+    categoryId: "C48B4EF4-D352-4CD2-BCB8-CE89B7DFA642",
+    categoryName: "Clothing, Socks",
+    sku: "SO-R999-M",
+    name: "Cosmic Racing Socks, M",
+    description: "The product called Cosmic Racing Socks, M",
+    price: 6.00,
+    tags: new List<Tag>
+    {
+        new Tag(id: "51CD93BF-098C-4C25-9829-4AD42046D038", name: "Tag-25"),
+        new Tag(id: "5D24B427-1402-49DE-B79B-5A7013579FBC", name: "Tag-76"),
+        new Tag(id: "D4EC9C09-75F3-4ADD-A6EB-ACDD12C648FA", name: "Tag-153")
+    });
+product.entityType__ = "Product";
 
+var embItem = EmbeddingUtility.Transform<Product>(product);
 
 var builder = Host.CreateApplicationBuilder(args);
 

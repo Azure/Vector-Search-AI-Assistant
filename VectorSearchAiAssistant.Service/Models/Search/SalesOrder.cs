@@ -1,4 +1,5 @@
 ﻿using Azure.Search.Documents.Indexes;
+using VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding;
 
 namespace VectorSearchAiAssistant.Service.Models.Search
 {
@@ -7,6 +8,7 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         [SearchableField(IsKey = true, IsFilterable = true)]
         public string id { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer sales order type")]
         public string type { get; set; }
         [SimpleField]
         public string customerId { get; set; }
@@ -15,6 +17,7 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         [SimpleField]
         public string shipDate { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer sales order details")]
         public List<SalesOrderDetails> details { get; set; }
 
         public SalesOrder(string id, string type, string customerId, string orderDate, string shipDate, List<SalesOrderDetails> details, float[]? vector = null)
@@ -32,12 +35,16 @@ namespace VectorSearchAiAssistant.Service.Models.Search
     public class SalesOrderDetails
     {
         [SimpleField]
+        [EmbeddingField(Label = "Customer sales order detail stock keeping unit (SKU)")]
         public string sku { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer sales order detail product name")]
         public string name { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer sales order detail product price")]
         public double price { get; set; }
         [SimpleField]
+        [EmbeddingField(Label = "Customer sales order detail product quantity")]
         public double quantity { get; set; }
 
         public SalesOrderDetails(string sku, string name, double price, double quantity)

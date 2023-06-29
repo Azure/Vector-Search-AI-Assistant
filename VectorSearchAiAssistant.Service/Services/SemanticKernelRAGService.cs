@@ -26,6 +26,7 @@ public class SemanticKernelRAGService : IRAGService
     readonly ISystemPromptService _systemPromptService;
     readonly IChatCompletion _chat;
     readonly AzureCognitiveSearchVectorMemory _memory;
+    readonly Dictionary<string, Type> _memoryTypes;
 
     bool _memoryInitialized = false;
 
@@ -39,6 +40,13 @@ public class SemanticKernelRAGService : IRAGService
         _systemPromptService = systemPromptService;
         _settings = options.Value;
         _logger = logger;
+
+        _memoryTypes = new Dictionary<string, Type>
+            {
+                { nameof(Customer),  typeof(Customer) },
+                { nameof(Product),  typeof(Product) },
+                { nameof(SalesOrder),  typeof(SalesOrder) }
+            };
 
         var builder = new KernelBuilder();
 
@@ -71,12 +79,7 @@ public class SemanticKernelRAGService : IRAGService
 
     private async Task InitializeMemory()
     {
-        await _memory.Initialize(new List<Type>
-        {
-            typeof(Customer),
-            typeof(Product),
-            typeof(SalesOrder)
-        });
+        await _memory.Initialize(_memoryTypes.Values.ToList());
 
         _memoryInitialized = true;
     }
@@ -96,18 +99,18 @@ public class SemanticKernelRAGService : IRAGService
         // Read the resulting user prompt embedding as soon as possile
         var userPromptEmbedding = memorySkill.LastInputTextEmbedding?.ToArray();
 
-        List<object?> memoryCollection;
+        List<string> memoryCollection;
         if (string.IsNullOrEmpty(memories))
-            memoryCollection = new List<object?>();
+            memoryCollection = new List<string>();
         else
         {
-            var memoryCollectionRaw = JsonConvert.DeserializeObject<List<string>>(memories);
-            memoryCollection = memoryCollectionRaw.Select(m => JsonConvert.DeserializeObject(m)).ToList();
+            memoryCollection = JsonConvert.DeserializeObject<List<string>>(memories);
         }
 
         var chatHistory = new ChatBuilder(
                 _semanticKernel,
                 _settings.OpenAI.CompletionsDeploymentMaxTokens,
+                _memoryTypes,
                 promptOptimizationSettings: _settings.OpenAI.PromptOptimization)
             .WithSystemPrompt(
                 await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName))
