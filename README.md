@@ -160,7 +160,7 @@ This solution can be run locally post deployment. Below are the prerequisites an
 
 ### Prerequisites for running/debugging locally
 
-- Visual Studio, VS Code, or some editor if you want to edit or view the source for this sample.
+- Visual Studio 2022
 - .NET 7 SDK
 
 ### Local steps
