@@ -24,6 +24,8 @@ The application frontend is a Blazor application with Intelligent Agent UI funct
 
 - Azure Subscription
 - Subscription access to Azure OpenAI service. Start here to [Request Access to Azure OpenAI Service](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUOFA5Qk1UWDRBMjg0WFhPMkIzTzhKQ1dWNyQlQCN0PWcu)
+- Visual Studio 2022
+- .NET 7 SDK
 
 ### Deployment
 
@@ -156,15 +158,10 @@ Delete the resource group to delete all deployed resources.
 
 ## Run locally and debug
 
-This solution can be run locally post deployment. Below are the prerequisites and steps.
-
-### Prerequisites for running/debugging locally
-
-- Visual Studio 2022
-- .NET 7 SDK
+This solution can be run locally post deployment. Below are the steps.
 
 ### Local steps
-
+Use the steps that follow to run the solution on your local machine.
 #### Configure local settings
 
 - In the `Search` project, make sure the content of the `appsettings.json` file is similar to this:
@@ -270,6 +267,60 @@ Also, make sure the newly created `appsettings.Development.json` file is copied 
 You are now ready to start debugging the solution locally. To do this, press `F5` or select `Debug > Start Debugging` from the menu.
 
 **NOTE**: With Visual Studio, you can also use alternate ways to manage the secrets and configuration. For example, you can use the `Manage User Secrets` option from the context menu of the `ChatWebServiceApi` project to open the `secrets.json` file and add the configuration values there.
+
+### Uploading New Sample Data
+
+To upload new data, or to extend the solution to ingest your own data, that will be processed by the change feed and then made available as context data for chat completions we recommend you use the [Cosmos DB Desktop Migration Tool](https://github.com/AzureCosmosDB/data-migration-desktop-tool) to copy your source data into the appropriate container within the deployed instance of Cosmos DB. 
+
+Open a PowerShell and run the following lines to download and extract `dmt.exe`:
+```ps
+$dmtUrl="https://github.com/AzureCosmosDB/data-migration-desktop-tool/releases/download/2.1.1/dmt-2.1.1-win-x64.zip"
+Invoke-WebRequest -Uri $dmtUrl -OutFile dmt.zip
+Expand-Archive -Path dmt.zip -DestinationPath .
+```
+
+In the folder containing the extracted files, you will see a `migrationsettings.json` file. You will need to edit this file and provide the configuration for the source (e.g., your local files), and the sink (e.g., a container in Cosmos DB).
+
+Here is an example migrationsettings file setup to load a local JSON file, stored in a data folder, to a container in Cosmos DB. Edit this file to suit your needs and save it.
+
+```json
+{
+  "Source": "JSON",
+  "Sink": "Cosmos-nosql",
+  "Operations": [
+    {
+      "SourceSettings": {
+        "FilePath": "data\\sampleData.json"
+      },
+      "SinkSettings": {
+        "ConnectionString": "AccountEndpoint=YOUR_CONNECTION_STRING_HERE",
+        "Database":"database",
+        "Container":"raw",
+        "PartitionKeyPath":"/id",
+        "RecreateContainer": false,
+        "BatchSize": 100,
+        "ConnectionMode": "Direct",
+        "MaxRetryCount": 5,
+        "InitialRetryDurationMs": 200,
+        "CreatedContainerMaxThroughput": 1000,
+        "UseAutoscaleForCreatedContainer": true,
+        "WriteMode": "InsertStream",
+        "IsServerlessAccount": false
+        }
+    }
+  ]
+}
+```
+
+Then run the tool with the following command.
+
+```ps
+.\dmt.exe
+```
+
+If no errors appear, your new data should now be available in the configured container.
+
+NOTE: If you want to build a reusable, automated script to deploy your files, take a look at the `scripts/Import-Data.ps1` in the source code of this project.
 
 ## Resources
 
