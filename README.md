@@ -26,6 +26,7 @@ The application frontend is a Blazor application with Intelligent Agent UI funct
 - Subscription access to Azure OpenAI service. Start here to [Request Access to Azure OpenAI Service](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUOFA5Qk1UWDRBMjg0WFhPMkIzTzhKQ1dWNyQlQCN0PWcu)
 - Visual Studio 2022
 - .NET 7 SDK
+- Docker Desktop
 - Azure CLI 2.49.0
 - Helm v3.11.1 or greater - https://helm.sh/
 
@@ -37,6 +38,8 @@ Clone the VectorSearchAiAssistant repository and change to the `cognitive-search
 git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant
 git checkout cognitive-search-vector
 ```
+
+#### Standard Deployments
 
 Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
 

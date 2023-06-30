@@ -12,7 +12,7 @@ Push-Location $($MyInvocation.InvocationName | Split-Path)
 
 $script=$template
 
-Write-Host "-------------------------y-------------------------------" -ForegroundColor Yellow
+Write-Host "--------------------------------------------------------" -ForegroundColor Yellow
 Write-Host "Deploying ARM script $script" -ForegroundColor Yellow
 Write-Host "-------------------------------------------------------- " -ForegroundColor Yellow
 
