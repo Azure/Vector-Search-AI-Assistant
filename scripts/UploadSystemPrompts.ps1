@@ -10,7 +10,7 @@ Push-Location ..
 
 $storageAccount = $(az storage account list -g $resourceGroup -o json | ConvertFrom-Json).name
 az storage container create --account-name $storageAccount --name "system-prompt"
-az storage azcopy blob upload -c system-prompt --account-name $storageAccount -s "./SystemPrompts/*" --recursive
+az storage azcopy blob upload -c system-prompt --account-name $storageAccount -s "./SystemPrompts/*" --recursive --auth-mode login
 
 Pop-Location
 Pop-Location
