@@ -4,14 +4,14 @@ Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location
 )
-$spCreated=$false
+
 $sourceFolder=$(Join-Path -Path .. -ChildPath arm)
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
 
 $script="azuredeploy.json"
 
-Write-Host "--------------------------------------------------------" -ForegroundColor Yellow
+Write-Host "-------------------------y-------------------------------" -ForegroundColor Yellow
 Write-Host "Deploying ARM script $script" -ForegroundColor Yellow
 Write-Host "-------------------------------------------------------- " -ForegroundColor Yellow
 
@@ -22,10 +22,12 @@ if (-not $rg) {
     az group create -n $resourceGroup -l $location
 }
 
-Write-Host "Getting last AKS version in location $location" -ForegroundColor Yellow
-$aksVersions=$(az aks get-versions -l $location --query  values[].version -o json | ConvertFrom-Json)
-$aksLastVersion=$aksVersions[$aksVersions.Length-1]
-Write-Host "AKS last version is $aksLastVersion" -ForegroundColor Yellow
+# TODO: Uncomment this when AZ CLI consistently returns a valid semantic version for AKS
+# Write-Host "Getting last AKS version in location $location" -ForegroundColor Yellow
+# $aksVersions=$(az aks get-versions -l $location --query  values[].version -o json | ConvertFrom-Json)
+# $aksLastVersion=$aksVersions[$aksVersions.Length-1]
+# Write-Host "AKS last version is $aksLastVersion" -ForegroundColor Yellow
+$aksLastVersion="1.26.3"
 
 Write-Host "Begining the ARM deployment..." -ForegroundColor Yellow
 Push-Location $sourceFolder
