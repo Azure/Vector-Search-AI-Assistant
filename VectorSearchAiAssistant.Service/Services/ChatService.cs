@@ -166,7 +166,7 @@ public class ChatService : IChatService
 
         try
         {
-            await _ragService.RemoveMemory<Product>(new Product { id = productId });
+            await _ragService.RemoveMemory(new Product { id = productId });
         }
         catch (Exception ex)
         {

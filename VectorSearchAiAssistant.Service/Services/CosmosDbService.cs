@@ -4,10 +4,11 @@ using Microsoft.Extensions.Logging;
 using VectorSearchAiAssistant.Service.Models.Chat;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Search;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using Microsoft.Extensions.Options;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
-using System.Text.Json;
+using Newtonsoft.Json.Linq;
+using VectorSearchAiAssistant.Service.Models;
+using VectorSearchAiAssistant.Service.Utils;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -27,11 +28,10 @@ namespace VectorSearchAiAssistant.Service.Services
         private readonly CosmosDbSettings _settings;
         private readonly ILogger _logger;
 
-        private ChangeFeedProcessor? _productChangeFeedProcessor, _customerChangeFeedProcessor;
-        private bool _productsInitialized = false;
-        private bool _customersInitialized = false;
+        private List<ChangeFeedProcessor> _changeFeedProcessors;
+        private bool _changeFeedsInitialized = false;
 
-        public bool IsInitialized => _productsInitialized && _customersInitialized;
+        public bool IsInitialized => _changeFeedsInitialized;
 
         public CosmosDbService(
             IRAGService ragService,
@@ -88,27 +88,22 @@ namespace VectorSearchAiAssistant.Service.Services
 
         private async Task StartChangeFeedProcessors()
         {
+            _changeFeedProcessors = new List<ChangeFeedProcessor>();
+
             try
             {
-                // TODO: Implement a smarter configuration approach for change feed source containers
-                _productChangeFeedProcessor = _containers["product"]
-                    .GetChangeFeedProcessorBuilder<Product>("productChangeFeed", ProductChangeFeedHandler)
-                    .WithInstanceName("productChangeInstance")
-                    .WithLeaseContainer(_leases)
-                    .Build();
-                await _productChangeFeedProcessor.StartAsync();
+                foreach (string monitoredContainerName in _settings.MonitoredContainers.Split(',').Select(s => s.Trim()))
+                {
+                    var changeFeedProcessor = _containers[monitoredContainerName]
+                        .GetChangeFeedProcessorBuilder<dynamic>($"{monitoredContainerName}ChangeFeed", GenericChangeFeedHandler)
+                        .WithInstanceName($"{monitoredContainerName}ChangeInstance")
+                        .WithLeaseContainer(_leases)
+                        .Build();
+                    await changeFeedProcessor.StartAsync();
+                    _changeFeedProcessors.Add(changeFeedProcessor);
+                }
 
-                _productsInitialized = true;
-
-                // TODO: Implement a smarter configuration approach for change feed source containers
-                _customerChangeFeedProcessor = _containers["customer"]
-                    .GetChangeFeedProcessorBuilder<JsonDocument>("customerChangeFeed", CustomerChangeFeedHandler)
-                    .WithInstanceName("customerChangeInstance")
-                    .WithLeaseContainer(_leases)
-                    .Build();
-                await _customerChangeFeedProcessor.StartAsync();
-
-                _customersInitialized = true;
+                _changeFeedsInitialized = true;
             }
             catch (Exception ex)
             {
@@ -116,72 +111,38 @@ namespace VectorSearchAiAssistant.Service.Services
             }
         }
 
-        private async Task ProductChangeFeedHandler(
+        // This is an example of a dynamic change feed handler that can handle a range of preconfigured entities.
+        private async Task GenericChangeFeedHandler(
             ChangeFeedProcessorContext context,
-            IReadOnlyCollection<Product> changes,
+            IReadOnlyCollection<dynamic> changes,
             CancellationToken cancellationToken)
         {
             if (changes.Count == 0)
                 return;
 
-            _logger.LogInformation("Generating embeddings for " + changes.Count + " Products");
-
-            foreach (var product in changes) 
-            {
-                try
-                {
-                    await _ragService.AddMemory<Product>(
-                        product,
-                        product.name,
-                        (p, v) => { p.vector = v; });
-                    _logger.LogInformation("Add a new memory for product: " + product.name);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("Exception while generating memory for [" + product.name + "]: " + ex.Message);
-                }
-            }
-        }
-
-        private async Task CustomerChangeFeedHandler(
-            ChangeFeedProcessorContext context,
-            IReadOnlyCollection<JsonDocument> changes,
-            CancellationToken cancellationToken)
-        {
-            if (changes.Count == 0)
-                return;
-
-            _logger.LogInformation("Generating embeddings for " + changes.Count + " Customers and Sales Orders");
+            _logger.LogInformation("Generating embeddings for " + changes.Count + " entities.");
 
             // Using dynamic type as this container has two different entities
             foreach (var item in changes)
             {
-                var type = "";
-                using (var doc = JsonDocument.Parse(item.RootElement.GetRawText()))
-                {
-                    var obj = doc.RootElement.GetProperty("type");
-                    type = obj.GetString();
-                }
+                if (cancellationToken.IsCancellationRequested)
+                    break;
 
-                if (type == "customer")
+                var jObject = item as JObject;
+                var typeMetadata = ModelRegistry.IdentifyType(jObject);
+
+                if (typeMetadata == null)
                 {
-                    var customer = JsonSerializer.Deserialize<Customer>(item.RootElement.GetRawText());
-                    await _ragService.AddMemory<Customer>(
-                        customer, 
-                        $"{customer.firstName} {customer.lastName}",
-                        (p, v) => { p.vector = v; });
-                }
-                else if (type == "salesOrder")
-                {
-                    var salesOrder = JsonSerializer.Deserialize<SalesOrder>(item.RootElement.GetRawText());
-                    await _ragService.AddMemory<SalesOrder>(
-                        salesOrder,
-                        salesOrder.id,
-                        (p, v) => { p.vector = v; });
+                    _logger.LogError($"Unsupported entity saved in customer container: {jObject}");
                 }
                 else
                 {
-                    _logger.LogError($"Unsupported entity saved in customer container: {type}");
+                    var entity = jObject.ToObject(typeMetadata.Type);
+
+                    await _ragService.AddMemory(
+                        entity,
+                        string.Join(" ", entity.GetPropertyValues(typeMetadata.NamingProperties)),
+                        (e, v) => { (e as EmbeddedEntity).vector = v; });
                 }
             }
         }

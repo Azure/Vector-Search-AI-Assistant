@@ -1,5 +1,5 @@
 ﻿using Azure.Search.Documents.Indexes;
-using VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding;
+using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
 
 namespace VectorSearchAiAssistant.Service.Models.Search
 {

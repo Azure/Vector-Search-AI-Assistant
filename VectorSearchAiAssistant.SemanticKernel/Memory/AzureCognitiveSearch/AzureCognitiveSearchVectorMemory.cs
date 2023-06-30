@@ -17,9 +17,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Azure.Core.Serialization;
 using System.Reflection.Metadata;
-using VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding;
+using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch
+namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch
 {
     /// <summary>
     /// Semantic Memory implementation using Azure Cognitive Search.
@@ -79,7 +79,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
 
                 var vectorSearchConfigName = "vector-config";
 
-                var fieldBuilder = new Azure.Search.Documents.Indexes.FieldBuilder();
+                var fieldBuilder = new FieldBuilder();
 
                 var fieldsToIndex = typesToIndex
                     .Select(tti => fieldBuilder.Build(tti))
@@ -121,12 +121,12 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
             }
         }
 
-        public async Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer)
+        public async Task AddMemory(object item, string itemName, Action<object, float[]> vectorizer)
         {
             try
             {
                 // Prepare the object for embedding
-                var itemToEmbed = EmbeddingUtility.Transform<T>(item);
+                var itemToEmbed = EmbeddingUtility.Transform(item);
 
                 // Get the embeddings from OpenAI
                 // Use by default the more elaborate text representation based on EmbeddingFieldAttribute
@@ -137,15 +137,15 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
                 // Save to Cognitive Search
                 await _searchClient.IndexDocumentsAsync(IndexDocumentsBatch.Upload(new object[] { item }));
 
-                _logger.LogInformation($"Saved vector for item: {itemName} of type {typeof(T)}");
+                _logger.LogInformation($"Saved vector for item: {itemName} of type {item.GetType().Name}");
             }
             catch (Exception x)
             {
-                _logger.LogError($"Exception while generating vector for [{itemName}]: " + x.Message);
+                _logger.LogError($"Exception while generating vector for [{itemName} of type {item.GetType().Name}]: " + x.Message);
             }
         }
 
-        public async Task RemoveMemory<T>(T item)
+        public async Task RemoveMemory(object item)
         {
             try
             {
@@ -411,7 +411,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiv
             string indexName,
             CancellationToken cancellationToken = default)
         {
-            var fieldBuilder = new Azure.Search.Documents.Indexes.FieldBuilder();
+            var fieldBuilder = new FieldBuilder();
             var fields = fieldBuilder.Build(typeof(AzureCognitiveSearchRecord));
             var newIndex = new SearchIndex(indexName, fields)
             {

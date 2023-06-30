@@ -3,7 +3,7 @@
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
+namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch;
 
 /// <summary>
 /// Azure Cognitive Search record and index definition.

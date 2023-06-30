@@ -5,7 +5,6 @@ using Microsoft.SemanticKernel.AI.Embeddings;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Interfaces;
 using Microsoft.Extensions.Logging;
-using VectorSearchAiAssistant.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using VectorSearchAiAssistant.SemanticKernel.Skills.Core;
 using VectorSearchAiAssistant.Service.Models.Search;
 using System.Text.RegularExpressions;
@@ -15,6 +14,8 @@ using VectorSearchAiAssistant.Service.Models.Chat;
 using Newtonsoft.Json;
 using VectorSearchAiAssistant.SemanticKernel.Chat;
 using VectorSearchAiAssistant.SemanticKernel.Text;
+using VectorSearchAiAssistant.Service.Models;
+using VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -41,12 +42,7 @@ public class SemanticKernelRAGService : IRAGService
         _settings = options.Value;
         _logger = logger;
 
-        _memoryTypes = new Dictionary<string, Type>
-            {
-                { nameof(Customer),  typeof(Customer) },
-                { nameof(Product),  typeof(Product) },
-                { nameof(SalesOrder),  typeof(SalesOrder) }
-            };
+        _memoryTypes = ModelRegistry.Models.ToDictionary(m => m.Key, m => m.Value.Type);
 
         var builder = new KernelBuilder();
 
@@ -149,14 +145,18 @@ public class SemanticKernelRAGService : IRAGService
         return summary;
     }
 
-    public async Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer) where T : EmbeddedEntity
+    public async Task AddMemory(object item, string itemName, Action<object, float[]> vectorizer)
     {
-        item.entityType__ = item.GetType().Name;
-        await _memory.AddMemory<T>(item, itemName, vectorizer);
+        if (item is EmbeddedEntity entity)
+            entity.entityType__ = item.GetType().Name;
+        else
+            throw new ArgumentException("Only objects derived from EmbeddedEntity can be added to memory.");
+
+        await _memory.AddMemory(item, itemName, vectorizer);
     }
 
-    public async Task RemoveMemory<T>(T item)
+    public async Task RemoveMemory(object item)
     {
-        await _memory.RemoveMemory<T>(item);
+        await _memory.RemoveMemory(item);
     }
 }
