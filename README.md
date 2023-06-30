@@ -26,6 +26,8 @@ The application frontend is a Blazor application with Intelligent Agent UI funct
 - Subscription access to Azure OpenAI service. Start here to [Request Access to Azure OpenAI Service](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUOFA5Qk1UWDRBMjg0WFhPMkIzTzhKQ1dWNyQlQCN0PWcu)
 - Visual Studio 2022
 - .NET 7 SDK
+- Azure CLI 2.49.0
+- Helm v3.11.1 or greater - https://helm.sh/
 
 ### Deployment
 
