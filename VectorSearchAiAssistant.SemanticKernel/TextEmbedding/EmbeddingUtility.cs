@@ -2,17 +2,17 @@
 using System.Reflection;
 using System.Text;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding
+namespace VectorSearchAiAssistant.SemanticKernel.TextEmbedding
 {
     public static class EmbeddingUtility
     {
-        public static (JObject ObjectToEmbed, string TextToEmbed) Transform<T>(T item, int maxRecursionLevels = 3)
+        public static (JObject ObjectToEmbed, string TextToEmbed) Transform(object item, int maxRecursionLevels = 3)
         {
             if (maxRecursionLevels < 0)
                 throw new ArgumentException("Invalid recursion level.", nameof(maxRecursionLevels));
 
             var embeddingFields = new Dictionary<string, string>();
-            FindEmbeddingFieldAttributes(typeof(T), embeddingFields, string.Empty, maxRecursionLevels);
+            FindEmbeddingFieldAttributes(item.GetType(), embeddingFields, string.Empty, maxRecursionLevels);
 
             var jObj = JObject.FromObject(item);
             var embeddingTextBuilder = new StringBuilder();
@@ -20,7 +20,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding
 
             // If the object type has no EmbeddingFieldAttribute decorations at all, then use the full JSON representation for embedding
             return (
-                jObj, 
+                jObj,
                 embeddingTextBuilder.Length == 0 ? jObj.ToString() : embeddingTextBuilder.ToString());
         }
 
@@ -47,26 +47,26 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding
                 embeddingTextBuilder.Length == 0 ? jObj.ToString() : embeddingTextBuilder.ToString());
         }
 
-        static void FindEmbeddingFieldAttributes(Type type, Dictionary<string, string> sembeddingFields, string currentPath, int remainingRecursionLevels)
+        static void FindEmbeddingFieldAttributes(Type type, Dictionary<string, string> embeddingFields, string currentPath, int remainingRecursionLevels)
         {
             // TODO: Improve the handling of various types
 
             foreach (var property in type.GetProperties())
             {
-                var embeddingFieldAttribute = (property.GetCustomAttributes(true)
-                    .SingleOrDefault(a => a.GetType() == typeof(EmbeddingFieldAttribute)) as EmbeddingFieldAttribute);
+                var embeddingFieldAttribute = property.GetCustomAttributes(true)
+                    .SingleOrDefault(a => a.GetType() == typeof(EmbeddingFieldAttribute)) as EmbeddingFieldAttribute;
 
                 if (embeddingFieldAttribute != null)
                 {
                     var newCurrentPath = string.IsNullOrEmpty(currentPath) ? property.Name : $"{currentPath}.{property.Name}";
-                    sembeddingFields.Add(newCurrentPath, embeddingFieldAttribute.Label);
+                    embeddingFields.Add(newCurrentPath, embeddingFieldAttribute.Label);
 
                     var propertyInfo = property.PropertyType.GetTypeInfo();
                     if (propertyInfo.ImplementedInterfaces.Select(ii => ii.Name).Contains("IEnumerable")
                         && propertyInfo.IsGenericType
                         && remainingRecursionLevels > 0)
                     {
-                        FindEmbeddingFieldAttributes(propertyInfo.GenericTypeArguments[0], sembeddingFields, newCurrentPath, remainingRecursionLevels - 1);
+                        FindEmbeddingFieldAttributes(propertyInfo.GenericTypeArguments[0], embeddingFields, newCurrentPath, remainingRecursionLevels - 1);
                     }
                 }
             }

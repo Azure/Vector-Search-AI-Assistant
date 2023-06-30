@@ -6,7 +6,12 @@ using VectorSearchAiAssistant.Service.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using VectorSearchAiAssistant.Service.Models.Search;
-using VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding;
+using Newtonsoft.Json.Linq;
+using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
+
+var obj = JObject.Parse("{\"id\":1, \"details\": {\"x\": 2}}");
+
+var properties = obj.Properties().Select(p => p.Name).ToList();
 
 var product = new Product(
     id: "00001",
@@ -24,7 +29,7 @@ var product = new Product(
     });
 product.entityType__ = "Product";
 
-var embItem = EmbeddingUtility.Transform<Product>(product);
+var embItem = EmbeddingUtility.Transform(product);
 
 var builder = Host.CreateApplicationBuilder(args);
 

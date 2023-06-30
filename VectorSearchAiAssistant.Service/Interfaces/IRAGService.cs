@@ -11,8 +11,8 @@ namespace VectorSearchAiAssistant.Service.Interfaces
 
         Task<string> Summarize(string sessionId, string userPrompt);
 
-        Task AddMemory<T>(T item, string itemName, Action<T, float[]> vectorizer) where T : EmbeddedEntity;
+        Task AddMemory(object item, string itemName, Action<object, float[]> vectorizer);
 
-        Task RemoveMemory<T>(T item);
+        Task RemoveMemory(object item);
     }
 }

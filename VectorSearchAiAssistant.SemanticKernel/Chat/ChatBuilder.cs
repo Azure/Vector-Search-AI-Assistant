@@ -2,8 +2,8 @@
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using VectorSearchAiAssistant.SemanticKernel.Connectors.TextEmbedding;
 using VectorSearchAiAssistant.SemanticKernel.Text;
+using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Chat
 {
