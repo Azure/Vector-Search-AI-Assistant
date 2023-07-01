@@ -19,7 +19,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
         const int BufferTokens = 50;
 
         string _systemPrompt = string.Empty;
-        List<JObject> _memories = new List<JObject>();
+        List<object> _memories = new List<object>();
         List<(AuthorRole AuthorRole, string Content)> _messages = new List<(AuthorRole AuthorRole, string Content)>();
 
         public ChatBuilder(
@@ -66,7 +66,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
 
             // Use by default the JSON text representation based on EmbeddingFieldAttribute
             // TODO: Test also using the more elaborate text representation - itemToEmbed.TextToEmbed
-            _memories = memories.Select(m => EmbeddingUtility.Transform(m, _memoryTypes).ObjectToEmbed).ToList();
+            _memories = memories.Select(m => (object) EmbeddingUtility.Transform(m, _memoryTypes).TextToEmbed).ToList();
             return this;
         }
 
@@ -89,7 +89,11 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
                 : _systemPrompt;
 
             if (_memories.Count > 0)
-                systemMessage = $"{systemMessage}{Environment.NewLine}{Environment.NewLine}{JsonConvert.SerializeObject(_memories)}".NormalizeLineEndings();
+            {
+                var memoriesPrompt = string.Join(Environment.NewLine, _memories.Select(
+                    m => $"{JsonConvert.SerializeObject(m)}{Environment.NewLine}---------------------------{Environment.NewLine}").ToArray());
+                systemMessage = $"{systemMessage}{Environment.NewLine}{Environment.NewLine}{memoriesPrompt}".NormalizeLineEndings();
+            }
 
             if (!string.IsNullOrWhiteSpace(systemMessage)) 
                 result.AddSystemMessage(systemMessage);

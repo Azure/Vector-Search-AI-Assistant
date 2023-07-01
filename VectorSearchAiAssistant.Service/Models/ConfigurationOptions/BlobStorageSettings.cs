@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
 {
-    public record DurableSystemPromptServiceSettings : BlobStorageSettings
+    public record BlobStorageSettings
     {
+        public required string BlobStorageContainer { get; set; }
+        public required string BlobStorageConnection { get; set; }
     }
 }

@@ -90,8 +90,11 @@ public class ChatService : IChatService
 
         // Add to prompt and completion to cache, then persist in Cosmos as transaction 
         var promptMessage = new Message(sessionId, nameof(Participants.User), result.UserPromptTokens, userPrompt, result.UserPromptEmbedding, null);
-        var completionMessage = new Message(sessionId, nameof(Participants.Assistant), result.ResponseTokens, result.Completion, null, null);        
-        await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage);
+        var completionMessage = new Message(sessionId, nameof(Participants.Assistant), result.ResponseTokens, result.Completion, null, null);
+        var completionPrompt = new CompletionPrompt(sessionId, completionMessage.Id, result.UserPrompt);
+        completionMessage.CompletionPromptId = completionPrompt.Id;
+
+        await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage, completionPrompt);
 
         return new Completion { Text = result.Completion };
     }
@@ -126,7 +129,7 @@ public class ChatService : IChatService
     /// <summary>
     /// Add user prompt and AI assistance response to the chat session message list object and insert into the data service as a transaction.
     /// </summary>
-    private async Task AddPromptCompletionMessagesAsync(string sessionId, Message promptMessage, Message completionMessage)
+    private async Task AddPromptCompletionMessagesAsync(string sessionId, Message promptMessage, Message completionMessage, CompletionPrompt completionPrompt)
     {
         var session = await _cosmosDbService.GetSessionAsync(sessionId);
 
@@ -134,7 +137,7 @@ public class ChatService : IChatService
         session.TokensUsed += promptMessage.Tokens;
         session.TokensUsed += completionMessage.Tokens;
 
-        await _cosmosDbService.UpsertSessionBatchAsync(promptMessage, completionMessage,session);
+        await _cosmosDbService.UpsertSessionBatchAsync(promptMessage, completionMessage, completionPrompt, session);
     }
 
     /// <summary>
@@ -172,5 +175,13 @@ public class ChatService : IChatService
         {
             _logger.LogError(ex, $"Error attempting to remove memory for product id {productId} (category id {categoryId})");
         }
+    }
+
+    public async Task<CompletionPrompt> GetCompletionPrompt(string sessionId, string completionPromptId)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(sessionId);
+        ArgumentNullException.ThrowIfNullOrEmpty(completionPromptId);
+
+        return await _cosmosDbService.GetCompletionPrompt(sessionId, completionPromptId);
     }
 }

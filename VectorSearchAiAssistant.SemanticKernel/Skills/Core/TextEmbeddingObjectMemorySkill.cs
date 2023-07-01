@@ -4,6 +4,7 @@ using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using System.ComponentModel;
+using System.Numerics;
 using System.Runtime;
 using System.Text.Json;
 
@@ -11,6 +12,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
 {
     /// <summary>
     /// TextEmbeddingObjectMemorySkill provides a skill to recall object information from the long term memory using vector-based similarity.
+    /// Optionally, a short-term, volatile memory can be also used to enahnce the result set.
     /// </summary>
     /// <example>
     /// Usage: kernel.ImportSkill("memory", new TextEmbeddingObjectMemorySkill());
@@ -45,7 +47,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
         }
 
         /// <summary>
-        /// Vector search and return up to N memories related to the input text
+        /// Vector search and return up to N memories related to the input text. The long-term memory and an optional, short-term memory are used.
         /// </summary>
         /// <example>
         /// SKContext["input"] = "what is the capital of France?"
@@ -56,13 +58,15 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
         /// <param name="relevance">The relevance score, from 0.0 to 1.0, where 1.0 means perfect match.</param>
         /// <param name="limit">The maximum number of relevant memories to recall.</param>
         /// <param name="context">Contains the memory to search.</param>
+        /// <param name="shortTermMemory">An optional volatile, short-term memory store.</param>
         [SKFunction("Vector search and return up to N memories related to the input text")]
         public async Task<string> RecallAsync(
             [Description("The input text to find related memories for")] string text,
             [Description("Memories collection to search"), DefaultValue(DefaultCollection)] string collection,
             [Description("The relevance score, from 0.0 to 1.0, where 1.0 means perfect match"), DefaultValue(DefaultRelevance)] double? relevance,
             [Description("The maximum number of relevant memories to recall"), DefaultValue(DefaultLimit)] int? limit,
-            SKContext context)
+            SKContext context,
+            IMemoryStore? shortTermMemory = null)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(collection, nameof(collection));
             relevance ??= DefaultRelevance;
@@ -80,14 +84,32 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
             //Once SK develops a more standardized way to expose embeddings, this should be removed.
             _lastInputTextEmbedding = memories.First().Embedding?.Vector;
 
-            if (memories.Count == 1)
+            var combinedMemories = memories.Skip(1).ToList();
+            if (shortTermMemory != null)
             {
-                context.Log.LogWarning("Memories not found in collection: {0}", collection);
+                List<(MemoryRecord Record, double Relevance)> shortTermRecords = await shortTermMemory
+                    .GetNearestMatchesAsync("short-term", memories.First().Embedding.Value, limit.Value, relevance.Value)
+                    .ToListAsync (context.CancellationToken)
+                    .ConfigureAwait(false);
+
+                var shortTermMemories = shortTermRecords
+                    .Select(r => new MemoryQueryResult(r.Record.Metadata, r.Relevance, null))
+                    .ToList();
+
+                combinedMemories = combinedMemories
+                    .Concat(shortTermMemories)
+                    .OrderByDescending(r => r.Relevance)
+                    .ToList();
+            }
+
+            if (combinedMemories.Count == 0)
+            {
+                context.Log.LogWarning("Neither the collection {0} nor the short term store contain any mathing memories.", collection);
                 return string.Empty;
             }
 
             context.Log.LogTrace("Done looking for memories in collection '{0}')", collection);
-            return JsonSerializer.Serialize(memories.Skip(1).Select(x => x.Metadata.AdditionalMetadata));
+            return JsonSerializer.Serialize(combinedMemories.Select(x => x.Metadata.AdditionalMetadata));
         }
     }
 }

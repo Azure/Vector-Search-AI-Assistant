@@ -47,4 +47,6 @@ public interface IChatService
     Task AddProduct(Product product);
 
     Task DeleteProduct(string productId, string categoryId);
+
+    Task<CompletionPrompt> GetCompletionPrompt(string sessionId, string completionPromptId);
 }
