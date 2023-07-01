@@ -88,7 +88,9 @@ namespace VectorSearchAiAssistant.SemanticKernel.TextEmbedding
                             PrepareOject(value as JObject, embeddingFields, newCurrentPath, remainingRecursionLevels - 1, embeddingTextBuilder);
                     }
                     else
-                        embeddingTextBuilder.AppendLine($"{embeddingFields[newCurrentPath]}: {childItem.Value}");
+                        embeddingTextBuilder.AppendLine(embeddingFields[newCurrentPath] == null
+                            ? childItem.Value.ToString()
+                            : $"{embeddingFields[newCurrentPath]}: {childItem.Value}");
                 }
                 else
                     childrenToRemove.Add(childItem);

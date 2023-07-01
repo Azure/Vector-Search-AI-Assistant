@@ -32,6 +32,11 @@ namespace ChatServiceWebApi
                     await _chatService.RateMessageAsync(messageId, sessionId, rating))
                 .WithName("RateMessage");
 
+            app.MapGet("/sessions/{sessionId}/completionprompts/{completionPromptId}",
+                    async (string sessionId, string completionPromptId) =>
+                    await _chatService.GetCompletionPrompt(sessionId, completionPromptId))
+                .WithName("GetCompletionPrompt");
+
             app.MapPost("/sessions/", async () => await _chatService.CreateNewChatSessionAsync())
                 .WithName("CreateNewChatSession");
 

@@ -103,4 +103,6 @@ public interface ICosmosDbService
     /// </summary>
     /// <param name="vectorDocuments">List string of JSON documents from vector search results</param>
     Task<string> GetVectorSearchDocumentsAsync(List<DocumentVector> vectorDocuments);
+
+    Task<CompletionPrompt> GetCompletionPrompt(string sessionId, string completionPromptId);
 }

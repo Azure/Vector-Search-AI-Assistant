@@ -1,4 +1,4 @@
-using VectorSearchAiAssistant.SemanticKernel.Chat;
+using VectorSearchAiAssistant.SemanticKernel.MemorySource;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Services;
@@ -28,6 +28,14 @@ namespace ChatServiceWebApi
             builder.Services.AddOptions<DurableSystemPromptServiceSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:DurableSystemPrompt"));
             builder.Services.AddSingleton<ISystemPromptService, DurableSystemPromptService>();
+
+            builder.Services.AddOptions<AzureCognitiveSearchMemorySourceSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CognitiveSearchMemorySource"));
+            builder.Services.AddTransient<IMemorySource, AzureCognitiveSearchMemorySource>();
+
+            builder.Services.AddOptions<BlobStorageMemorySourceSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:BlobStorageMemorySource"));
+            builder.Services.AddTransient<IMemorySource, BlobStorageMemorySource>();
 
             builder.Services.AddScoped<ChatEndpoints>();
 

@@ -140,6 +140,12 @@
                                                 </button>
                                             </div>
                                         }
+                                        @if (msg.CompletionPromptId is not null)
+                                        {
+                                            <button class="btn btn-link text-success" @onclick="() => DisplayCompletionPrompt(msg.Id)">
+                                                <i class="bi bi-chat-square-text"></i> View Prompt
+                                            </button>
+                                        }
                                     </div>
                                 }
                             </div>
@@ -165,6 +171,15 @@
     </div>
 </div>
 
+@if (_completionPromptPopUpOpen)
+{
+    <Confirmation Caption="Completion Prompt"
+                  Message="@_completionPromptContent"
+                  OnClose="@OnConfirmationClose"
+                  Type="Confirmation.Category.Okay">
+    </Confirmation>
+}
+
 @code {
 
     [Parameter]
@@ -186,6 +201,15 @@
     private List<Message>? _messagesInChat;
     private static event EventHandler<Session>? _onMessagePosted;
     private bool _loadingComplete;
+
+    private bool _completionPromptPopUpOpen = false;
+    private string _completionPromptContent = string.Empty;
+
+    private async Task OnConfirmationClose(bool isOk)
+    {
+        _completionPromptPopUpOpen = false;
+        _completionPromptContent = string.Empty;
+    }
 
     private async Task ToggleNavMenu()
     {
@@ -247,6 +271,17 @@
         {
             await chatManager.RateMessageAsync(message.Id, message.SessionId, null);
             message.Rating = null;
+        }
+    }
+
+    private async Task DisplayCompletionPrompt(string messageId)
+    {
+        var message = _messagesInChat?.FirstOrDefault(m => m.Id == messageId);
+        if (message != null)
+        {
+            var completionPrompt = await chatManager.GetCompletionPrompt(message.SessionId, message.CompletionPromptId);
+            _completionPromptContent = completionPrompt.Prompt;
+            _completionPromptPopUpOpen = true;
         }
     }
 
