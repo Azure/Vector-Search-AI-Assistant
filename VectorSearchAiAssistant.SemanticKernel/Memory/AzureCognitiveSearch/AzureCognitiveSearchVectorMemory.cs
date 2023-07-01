@@ -65,6 +65,11 @@ namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch
             _textEmbedding = textEmbedding;
         }
 
+        /// <summary>
+        /// Initialize the memory by creating the underlying Azure Cognitive Search index.
+        /// </summary>
+        /// <param name="typesToIndex">The object types supported by the index.</param>
+        /// <returns></returns>
         public async Task Initialize(List<Type> typesToIndex)
         {
             try
@@ -121,6 +126,13 @@ namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch
             }
         }
 
+        /// <summary>
+        /// Add an object instance and its associated vectorization to the underlying memory.
+        /// </summary>
+        /// <param name="item">The object instance to be added to the memory.</param>
+        /// <param name="itemName">The name of the object instance.</param>
+        /// <param name="vectorizer">The logic that sets the embedding vector as a property on the object.</param>
+        /// <returns></returns>
         public async Task AddMemory(object item, string itemName, Action<object, float[]> vectorizer)
         {
             try
@@ -128,13 +140,21 @@ namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch
                 // Prepare the object for embedding
                 var itemToEmbed = EmbeddingUtility.Transform(item);
 
-                // Get the embeddings from OpenAI
+                // Get the embeddings from OpenAI: the ITextEmbeddingGeneration service is exposed by SemanticKernel
+                // and is responsible for calling the text embedding endpoint to get the vectorized representation
+                // of the incoming object.
                 // Use by default the more elaborate text representation based on EmbeddingFieldAttribute
-                // TODO: Test also using the JSON text representation - itemToEmbed.ObjectToEmbed
+                // The purely text representation generated based on the EmbeddingFieldAttribute is well suited for 
+                // embedding and it allows you to control precisely which attributes will be used as inputs in the process.
+                // In general, it is recommended to avoid identifier attributes (e.g., GUIDs) as they do not provide
+                // any meaningful context for the embedding process.
+                // Exercise: Test also using the JSON text representation - itemToEmbed.ObjectToEmbed
                 var embbedding = await _textEmbedding.GenerateEmbeddingAsync(itemToEmbed.TextToEmbed);
+
+                // Add the newly calculated embedding to the entity.
                 vectorizer(item, embbedding.Vector.ToArray());
 
-                // Save to Cognitive Search
+                // This will send the vectorized object to the Azure Cognitive Search index.
                 await _searchClient.IndexDocumentsAsync(IndexDocumentsBatch.Upload(new object[] { item }));
 
                 _logger.LogInformation($"Saved vector for item: {itemName} of type {item.GetType().Name}");
@@ -254,7 +274,17 @@ namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch
             return new MemoryQueryResult(ToMemoryRecordMetadata(result.Value), 1, null);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Retrieve records from the underlying index that are above a specified similarity threshold when compared to a given string.
+        /// </summary>
+        /// <param name="collection">The name of the index.</param>
+        /// <param name="query">The string to be vectorized and compared to the items in the underlying index.</param>
+        /// <param name="limit">The maximum number of items to return.</param>
+        /// <param name="minRelevanceScore">The lower limit of the similarity score.</param>
+        /// <param name="withEmbeddings"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public async IAsyncEnumerable<MemoryQueryResult> SearchAsync(
             string collection,
             string query,
