@@ -62,7 +62,7 @@ $aksName = $(az aks list -g $resourceGroup -o json | ConvertFrom-Json).name
 Write-Host "The name of your AKS: $aksName" -ForegroundColor Yellow
 
 # Write-Host "Retrieving credentials" -ForegroundColor Yellow
-az aks get-credentials -n $aksName -g $resourceGroup
+az aks get-credentials -n $aksName -g $resourceGroup --overwrite-existing
 
 # Generate Config
 $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
