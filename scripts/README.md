@@ -17,7 +17,7 @@ Run the following script to provision the infrastructure and deploy the API and 
 
 ## Deployments using an existing OpenAI service
 
-For deployments that need to use an existing OpenAI service, run the following from the `deploy/powershell`.  This will provision all of the necessary infrastruction except the Azure OpenAI service and will deploy the function apps, the frontend, and Synapse artifacts.
+For deployments that need to use an existing OpenAI service, run the following from the `scripts`.  This will provision all of the necessary infrastruction except the Azure OpenAI service and will deploy the API and frontend to an AKS cluster via Helm.
 
 ```pwsh
 .\Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
@@ -25,7 +25,8 @@ For deployments that need to use an existing OpenAI service, run the following f
                      -subscription <subscription-id> `
                      -openAiName <openAi-service-name> `
                      -openAiRg <openAi-resource-group-name> `
-                     -openAiDeployment <openAi-completions-deployment-name>
+                     -openAiCompletionsDeployment <openAi-completions-deployment-name> `
+                     -openAiEmbeddingsDeployment <openAi-embeddings-deployment-name>
 ```
 
 ## Enabling/Disabling Deployment Steps
