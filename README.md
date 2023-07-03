@@ -1,8 +1,23 @@
 # Vector Search & AI Assistant for Azure Cosmos DB and Cognitive Search Services
 
-This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using a variety of different vector capable databases available from Azure Cosmos DB and Azure.
+This solution demonstrates how to design and implement a RAG Pattern solution that incorporates Azure Cosmos DB with Azure OpenAI to build a vector search solution with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB for MongoDB vCore using Azure OpenAI, then shows how to implment vector search using the vector search capability from Azure Cosmos DB for MongoDB vCore. The solution also includes key concepts such as managing conversational context and history, managing tokens consumed by Azure OpenAI, as well as understanding how to write prompts for large language models such as ChatGPT so they produce the desired responses.
 
 The scenario for this sample centers around a consumer retail "Intelligent Agent" that allows users to ask questions on vectorized product, customer and sales order data stored in the database. The data in this solution is the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB. This data is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
+
+## What is RAG?
+
+RAG is an aconymn for Retrival Augmentmented Generation, a fancy term that essentially means retrieving additional data to provide to a large language model to use when generating a response (completion) to a user's question(prompt). The data can be any kind of text. However, there is a limit to how much text can be sent due to the limit of [tokens for each model](https://platform.openai.com/docs/models/overview) that can be consumed in a single request/response from Azure OpenAI. This solution will highlight these challenges and provide an example of how we addressed it.
+
+## Solution User Experience
+
+The application frontend is a Blazor application with Intelligent Agent UI functionality:
+
+The application includes a left-hand nav that contains individual chat sessions. In a normal retail environment, users would only be able to see their own session but we've included them all here. The chat session includes a count of all of the tokens consumed in each session. When the user types a question and hits enter the service queries the vector data, then sends the response to Azure OpenAI which then generates a completion which is the displayed to the user. The first question also triggers the chat session to be named with whatever the user is asking about. Users can rename a chat if they like or delete it. The chat session displays all of the tokens consumed for that session. Each message in the chat also includes a token count. The `Prompt Tokens` are the tokens used in the call to Azure OpenAI. The Assistant tokens are the ones used to generate the completion text.
+
+<p align="center">
+    <img src="img/ui.png" width="100%">
+</p>
+
 
 ## Solution Architecture
 
@@ -12,11 +27,63 @@ The solution architecture is represented by this diagram:
     <img src="img/architecture.png" width="100%">
 </p>
 
-The application frontend is a Blazor application with Intelligent Agent UI functionality:
+## Overall solution workflow
 
-<p align="center">
-    <img src="img/ui.png" width="100%">
-</p>
+There are four key elements of this solution, generating vectors, searching vectors, generating chat completions and storing chat conversations. Vectors are generated when data is inserted into Azure Cosmos DB, then stored in an Azure Cognitive Search index that is used for vector searches. Users then ask natural language questions using the web-based chat user interface (User Prompts). These prompts are then vectorized and used in the to search the vectorized data. The results are then returned, then sent, along with some of the conversation history, to Azure OpenAI to generate a response (Completion) back to the user. All of the User Prompts and Completions are stored in a Cosmos DB container along with the number of tokens consumed by each Prompt and Completion. A Chat Session, contains all of the prompts and completions and a running total of all tokens consumed for that session. In a retail scenario users would only see their own chat sessions. They are all displayed here to better demonstrate the service and backend architecture for a solution like this.
+
+## Generating vectors
+
+Vectors are generated in two Change Feed handlers contained in the `VectorSearchAiAssistant.Service` project which monitor the `customer` and `products` containers. Anytime a new document is inserted into either of these containers, the Change Feed handler will generate a vector and add the document and its embedding to the `vector-index` Cognitive Search index.
+
+You can see this at work when running locally by setting a break point on [GenericChangeFeedHandler() function](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Services/CosmosDbService.cs#L115).
+
+## Searching vectors
+
+The web-based front-end provides users the means for searching the vectorized retail bike data for this solution. This work is centered around the [AzureCognitiveSearchVectorMemory](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Memory/AzureCognitiveSearch/AzureCognitiveSearchVectorMemory.cs) in the `VectorSearchAiAssistant.SemanticKernel` project. In the chat UX a user starts a new chat session then types in a natural language question. The text is sent to Azure OpenAI's embeddings API to generate vectors on it. The vectors are then used to perform a vector search on the vectors collection in Azure Cognitive Search. The query response which includes the original source data is sent to Azure OpenAI to generate a completion which is then passed back to the user as a response.
+
+## Key concepts this solution highlights
+
+Building a solution like this introduces a number of concepts that may be new to many developers looking to build these types of applications. This solution was developed to surface these key concepts and make it easy for users to follow from a single function in the Chat Service called [GetChatCompletionAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Services/ChatService.cs#L76). Debugging the Azure Web App remotely or running locally will allow you to set a breakpoint at the start of this function and step through each of the subsequent functions called from within it to see these concepts in action as it calls the other services in the solution to complete the request workflow.
+
+### Managing conversational context and history
+
+Large language models such as Chat GPT do not keep any history of what prompts your've sent it, or what completions it has generated. It is up to the developer to do this. Keeping this history is necessary for two reasons. First, it allows users to ask follow up questions without having to provide any context. It also allows for the user to have a conversation with the model. Second, the conversation is useful when doing vector searches on data as it provides additional detail on what the user is looking for. As an example, if I asked our Intelligent Retail Agent what bikes it had available, it would return for me all of the bikes in stock. If I then asked, "what colors are available?", if I did not pass the first prompt and completion, the vector search would not know that the user was asking about bike colors and would likely not produce an accurate or meaningful response.
+
+Another concept surfaced with conversation management centers around tokens. All calls to Azure OpenAI are limited by the number of tokens in a request and response. The number of tokens is dependant on the model being used. You see each model and its token limit on OpenAI's website on their [Models Overview page](https://platform.openai.com/docs/models/overview).
+
+The class that manages conversational history is called, [ChatBuilder()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Chat/ChatBuilder.cs). This class is used to gather the most convesation history up to the token limits defined in configuration, then returns it as a string separating each prompt and completion with a new line character. The new line is not necessary for ChatGPT, but makes it more readible for a user when debugging. This function also returns the number of tokens used in the conversation. This value is used when building the prompt to send.
+
+### Vectorizing the user prompt and conversation history
+
+In a vector search solution, the filter predicate for any query is an array of vectors. This means that the text the user types in to the chat window, plus any conversational context that is gathered, must first be vectorized before the vector search can be done. This is accomplished in the [SemanticKernelRAGService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Services/SemanticKernelRAGService.cs) in the solution in the [GetResponse()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Services/SemanticKernelRAGService.cs#L83) function. This function takes a string and returns an array of vectors, along with the number of tokens used by the service.
+
+### Doing the vector search
+
+The vector search is the key function in this solution and is done against the Azure Cognitive Search index in this solution. The function itself is rather simple and only takes and array of vectors with which to do the search. You can see the vector search at work by debugging the Azure Web App remotely or running locally. Set a break point on [SearchAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Memory/AzureCognitiveSearch/AzureCognitiveSearchVectorMemory.cs#L258), then step through each line to see how of the function calls to see the search and returned data.
+
+### Token management
+
+One of the more challenging aspects to building RAG Pattern solutions is manging the tokens to stay within the maximum number of tokens that can be consumed in a single request (prompt) and response (completion). It's possible to build a prompt that consumes all of the tokens in the requests and leaves too few to produce a useful response. It's also possible to generate an exception from the Azure OpenAI service if the request itself is over the token limit. You will need a way to measure token usage before sending the request. This is handled in the [OptimizePromptSize()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Chat/ChatBuilder.cs#L103) function in the ChatBuilder class. This function uses the SemanticKernel tokenizer, [GPT3Tokenizer](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Chat/SemanticKernelTokenizer.cs). The utility takes text and generates an array of vectors. The number of elements in the array represent the number of tokens that will be consumed. It can also do the reverse and take an array of vectors and output text. In our function here we first generate the vectors on the data returned from our vector search, then if necessary, reduce the amount of data by calculating the number of vectors we can safely pass in our request to Azure OpenAI. Here is the flow of this function.
+
+1. Measure the amount of tokens on the vector search results (rag data).
+2. Measure the amount of tokens for the user prompt. This data is also used to capture what the user prompt tokens would be if processed without any additional data and stored in the user prompt message in the completions collection (more on that later).
+3. Calculate if the amount of tokens used by the `search results` plus the `user prompt` plus the `conversation` + `completion` is greater than what the model will accept. If it is greater, then calculate how much to reduce the amount of data and `Decode` the vector array we generated from the search results, back into text.
+4. Finally, return the text from our search results as well as the number of tokens for the last User Prompt (this will get stored a bit later).
+
+### Generate the completion
+
+We're finally at the most critical part of this entire solution, generating a chat completion from Azure OpenAI using one of its [GPT models](https://platform.openai.com/docs/guides/gpt) wherein the Azure OpenAI service will take in all of the data we've gathered up to this point, then generate a response or completion which the user will see. All of this happens in the [SemanticKernelRAGService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Services/SemanticKernelRAGService.cs) in the [GetResponse()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Services/SemanticKernelRAGService.cs#L83) function. 
+
+This function takes the user prompt and the search results and builds a `System Prompt` with the search data, as well as a user prompt that includes the conversation history plus the users last question (prompt). The call is then made to the service which returns a `ChatCompletions` object which contains the response text itself, plus the number of tokens used in the request (prompt) and the number of tokens used to generate the response (completion). 
+
+One thing to note here is it is necessary to separate the number of tokens from the Prompt with the data versus the number of tokens from the text the user typed into the chat interface. This is necessary because we need an accurate way to estimate the number of tokens for *just the text* of the user prompt and not from the data.
+
+### Saving the results
+
+The last part is to save the results of both our user prompt and completion as well as the amount of tokens used. All of the conversational history and the amount of tokens used in each prompt and completion is stored in the completions collection in the Azure Cosmos DB database in this solution. The call to the service is made by another function within our ChatService called, [AddPromptCompletionMessagesAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Services/ChatService.cs#L129). This function creates two new [Message](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Models/Chat/Message.cs) objects and stores them in a local cache of all the Sessions and Messages for the application. It then adds up all of the tokens used and saves it to the Session object which keeps a running total for the entire [Session](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Models/Chat/Session.cs).
+
+The data is then saved in the [UpdateSessionBatchAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.Service/Services/CosmosDbService.cs#L307) function in the Cosmos DB database. This function creates a new transaction then updates the Session document and inserts two new Message documents into the completions collection.
+
 
 ## Getting Started
 
