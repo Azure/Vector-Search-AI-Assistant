@@ -94,8 +94,8 @@ The data is then saved in the [UpdateSessionBatchAsync()](https://github.com/Azu
 - Visual Studio 2022
 - .NET 7 SDK
 - Docker Desktop
-- Azure CLI 2.49.0
-- Helm v3.11.1 or greater - https://helm.sh/
+- Azure CLI ([v2.49.0 or greater](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli))
+- Helm ([v3.11.1 or greater](https://helm.sh/))
 
 ### Deployment
 
