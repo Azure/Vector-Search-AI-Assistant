@@ -115,9 +115,12 @@ Run the following script to provision the infrastructure and deploy the API and 
                              -location <location> `
                              -subscription <subscription-id>
 ```
+
+>**NOTE**: Make sure to set the `<location>` value to a region that supports Azure OpenAI services.  See [Azure OpenAI service regions](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=cognitive-services&regions=all) for more information.
+
 #### Deployments using an existing OpenAI service
 
-For deployments that need to use an existing OpenAI service, run the following from the `deploy/powershell`.  This will provision all of the necessary infrastruction except the Azure OpenAI service and will deploy the function apps, the frontend, and Synapse artifacts.
+For deployments that need to use an existing OpenAI service, run the following from the `deploy/powershell`.  This will provision all of the necessary infrastruction except the Azure OpenAI service and will deploy the API and web app services into AKS, and import data into Cosmos.
 
 ```pwsh
 .\Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
