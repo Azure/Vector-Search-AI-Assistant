@@ -119,7 +119,7 @@ if ($stepDeployImages) {
 
 if ($stepImportData) {
     # Import Data
-    & ./Import-Data.ps1 -resourceGroup $resourceGroup -location $location
+    & ./Import-Data.ps1
 }
 
 Pop-Location

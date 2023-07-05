@@ -1,7 +1,3 @@
-Param(
-    [parameter(Mandatory=$true)][string]$resourceGroup,
-    [parameter(Mandatory=$true)][string]$location
-)
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
 Push-Location ..
@@ -14,7 +10,7 @@ Invoke-WebRequest -Uri $dmtUrl -OutFile dmt.zip
 Expand-Archive -Path dmt.zip -DestinationPath .
 Push-Location "windows-package"
 Copy-Item -Path "../../migrationsettings.json" -Destination "./migrationsettings.json" -Force
-Start-Process -FilePath "dmt.exe" -Wait
+& "./dmt.exe"
 
 Pop-Location
 Pop-Location
