@@ -1,42 +1,32 @@
 #!/usr/bin/pwsh
 
 Param(
-    [parameter(Mandatory=$false)][string]$name,
+    [parameter(Mandatory=$true)][string]$name,
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
-    [parameter(Mandatory=$false)][string]$completionsDeployment,
-    [parameter(Mandatory=$false)][string]$embeddingsDeployment
+    [parameter(Mandatory=$true)][string]$completionsDeployment,
+    [parameter(Mandatory=$true)][string]$embeddingsDeployment
 )
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
 
-if ($name) {
-    $openAi=$(az cognitiveservices account show -g $resourceGroup -n $name -o json | ConvertFrom-Json)
-    if (-not $openAi) {
-        $openAi=$(az cognitiveservices account create -g $resourceGroup -n $name --kind OpenAI --sku S0 --location $location --yes -o json | ConvertFrom-Json)
-    }
-} else {
-    $openAi=$(az cognitiveservices account list -g $resourceGroup -o json | ConvertFrom-Json)[0]
+if (-Not (az cognitiveservices account list -g $resourceGroup --query '[].name' -o json | ConvertFrom-Json) -Contains $name) {
+    Write-Host("The Azure OpenAI account $($name) was not found, creating it...")
+    az cognitiveservices account create -g $resourceGroup -n $name --kind OpenAI --sku S0 --location $location --yes
 }
 
-if ($completionsDeployment) {
-    $openAiDeployment=$(az cognitiveservices account deployment show -g $resourceGroup -n $openAi.name --deployment-name $completionsDeployment)
-    if (-not $openAiDeployment) {
-        $openAiDeployment=$(az cognitiveservices account deployment create -g $resourceGroup -n $openAi.name --deployment-name $completionsDeployment --model-name 'gpt-35-turbo' --model-version '0301' --model-format OpenAI)
-    }
-} else {
-    $completionsDeployment='completions'
-    $openAiDeployment=$(az cognitiveservices account deployment show -g $resourceGroup -n $openAi.name --deployment-name $completionsDeployment)
+$deployments = (az cognitiveservices account deployment list -g $resourceGroup -n $name --query '[].name' -o json | ConvertFrom-Json)
+Write-Host "Existing deployments: $($deployments)"
+if (-Not ($deployments -Contains $completionsDeployment)) {
+    Write-Host("The Azure OpenAI deployment $($completionsDeployment) under account $($name) was not found, creating it...")
+    az cognitiveservices account deployment create -g $resourceGroup -n $name --deployment-name $completionsDeployment --model-name 'gpt-35-turbo' --model-version '0301' --model-format OpenAI --scale-settings-scale-type Standard
 }
 
-if ($embeddingsDeployment) {
-    $openAiDeployment=$(az cognitiveservices account deployment show -g $resourceGroup -n $openAi.name --deployment-name $embeddingsDeployment)
-    if (-not $openAiDeployment) {
-        $openAiDeployment=$(az cognitiveservices account deployment create -g $resourceGroup -n $openAi.name --deployment-name $embeddingsDeployment --model-name 'text-embedding-ada-002' --model-version '2' --model-format OpenAI)
-    }
-} else {
-    $embeddingsDeployment='embeddings'
-    $openAiDeployment=$(az cognitiveservices account deployment show -g $resourceGroup -n $openAi.name --deployment-name $embeddingsDeployment)
+$deployments = (az cognitiveservices account deployment list -g $resourceGroup -n $name --query '[].name' -o json | ConvertFrom-Json)
+Write-Host "Existing deployments: $($deployments)"
+if (-Not ($deployments -Contains $embeddingsDeployment)) {
+    Write-Host("The Azure OpenAI deployment $($embeddingsDeployment) under account $($name) was not found, creating it...")
+    az cognitiveservices account deployment create -g $resourceGroup -n $name --deployment-name $embeddingsDeployment --model-name 'text-embedding-ada-002' --model-version '2' --model-format OpenAI --scale-settings-scale-type Standard
 }
 
 Pop-Location
