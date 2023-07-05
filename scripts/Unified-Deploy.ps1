@@ -45,7 +45,7 @@ az account set --subscription $subscription
 
 if ($stepDeployArm) {
     # Deploy ARM
-    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate -resourcePrefix $resourcePrefix
+    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate -resourcePrefix $resourcePrefix -cosmosDbAccountName $cosmosDbAccountName
 }
 
 if ($stepDeployOpenAi) {
@@ -119,7 +119,7 @@ if ($stepDeployImages) {
 
 if ($stepImportData) {
     # Import Data
-    & ./Import-Data.ps1
+    & ./Import-Data.ps1 -resourceGroup $resourceGroup -cosmosDbAccountName $cosmosDbAccountName
 }
 
 Pop-Location

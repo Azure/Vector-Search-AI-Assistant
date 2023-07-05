@@ -508,6 +508,10 @@
     "resourcePrefix": {
       "type": "string",
       "value": "[parameters('name')]"
+    },
+    "cosmosDbAccountName": {
+      "type": "string",
+      "value": "[variables('cosmosDbSettings').name]"
     }
   }
 }
