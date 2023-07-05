@@ -132,7 +132,7 @@ if ($charts.Contains("web") -or  $charts.Contains("*")) {
 
 Write-Host " --------------------------------------------------------" 
 Write-Host "Entering holding pattern to wait for proper backend API initialization"
-Write-Host "Attempting to retrieve status every 10 seconds with 30 retries"
+Write-Host "Attempting to retrieve status from https://$($aksHost)/api/status every 10 seconds with 30 retries"
 Write-Host " --------------------------------------------------------" 
 $apiStatus = "initializing"
 $retriesLeft = 30
