@@ -45,7 +45,7 @@ az account set --subscription $subscription
 
 if ($stepDeployArm) {
     # Deploy ARM
-    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate $resourcePrefix
+    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate -resourcePrefix $resourcePrefix
 }
 
 if ($stepDeployOpenAi) {
