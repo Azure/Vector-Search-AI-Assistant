@@ -136,7 +136,7 @@ Write-Host "Attempting to retrieve status from https://$($aksHost)/api/status ev
 Write-Host " --------------------------------------------------------" 
 $apiStatus = "initializing"
 $retriesLeft = 30
-while (($apiStatus.ToString() -ne "readyx") -and ($retriesLeft -gt 0)) {
+while (($apiStatus.ToString() -ne "ready") -and ($retriesLeft -gt 0)) {
     Start-Sleep -Seconds 10
     $apiStatus = Invoke-RestMethod -Uri "https://$($aksHost)/api/status" -Method GET
     Write-Host "API endpoint status: $($apiStatus)"
