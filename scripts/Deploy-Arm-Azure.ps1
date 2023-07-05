@@ -37,8 +37,8 @@ Write-Host "Begining the ARM deployment..." -ForegroundColor Yellow
 Push-Location $sourceFolder
 az deployment group create -g $resourceGroup -n $deploymentName --template-file $script --parameters k8sVersion=$aksLastVersion
 
-$outputVal = (az deployment group show -g $resourceGroup -n $deploymentName --query properties.outputs.resourcePrefix.value)
-Set-Variable -Name resourcePrefix -Value $outputVal -Scope 1
+$outputVal = (az deployment group show -g $resourceGroup -n $deploymentName --query properties.outputs.resourcePrefix.value) | ConvertFrom-Json
+Set-Variable -Name resourcePrefix -Value $outputVal.ToString() -Scope 1
 Write-Host "The resource prefix used in deployment is $outputVal"
 
 Pop-Location 
