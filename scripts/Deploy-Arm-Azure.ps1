@@ -4,7 +4,8 @@ Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$false)][string]$template="azuredeploy.json",
-    [parameter(Mandatory=$false)][string]$resourcePrefix
+    [parameter(Mandatory=$false)][string]$resourcePrefix,
+    [parameter(Mandatory=$false)][string]$cosmosDbAccountName
 )
 
 $sourceFolder=$(Join-Path -Path .. -ChildPath arm)
@@ -40,6 +41,10 @@ az deployment group create -g $resourceGroup -n $deploymentName --template-file 
 $outputVal = (az deployment group show -g $resourceGroup -n $deploymentName --query properties.outputs.resourcePrefix.value) | ConvertFrom-Json
 Set-Variable -Name resourcePrefix -Value $outputVal.ToString() -Scope 1
 Write-Host "The resource prefix used in deployment is $outputVal"
+
+$outputVal = (az deployment group show -g $resourceGroup -n $deploymentName --query properties.outputs.cosmosDbAccountName.value) | ConvertFrom-Json
+Set-Variable -Name cosmosDbAccountName -Value $outputVal.ToString() -Scope 1
+Write-Host "The CosmosDB account name used in deployment is $outputVal"
 
 Pop-Location 
 Pop-Location 
