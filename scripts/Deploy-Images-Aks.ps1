@@ -130,6 +130,23 @@ if ($charts.Contains("web") -or  $charts.Contains("*")) {
     Invoke-Expression "$command"
 }
 
+Write-Host " --------------------------------------------------------" 
+Write-Host "Entering holding pattern to wait for proper backend API initialization"
+Write-Host "Attempting to retrieve status every 10 seconds with 30 retries"
+Write-Host " --------------------------------------------------------" 
+$apiStatus = "initializing"
+$retriesLeft = 30
+while (($apiStatus.ToString() -ne "readyx") -and ($retriesLeft -gt 0)) {
+    Start-Sleep -Seconds 10
+    $apiStatus = Invoke-RestMethod -Uri "https://$($aksHost)/api/status" -Method GET
+    Write-Host "API endpoint status: $($apiStatus)"
+    $retriesLeft -= 1
+} 
+
+if ($apiStatus.ToString() -ne "ready") {
+    throw "The backend API did not enter the ready state."
+}
+
 Pop-Location
 Pop-Location
 
