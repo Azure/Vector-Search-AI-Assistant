@@ -45,12 +45,24 @@ az account set --subscription $subscription
 
 if ($stepDeployArm) {
     # Deploy ARM
-    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate
+    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate $resourcePrefix
 }
 
 if ($stepDeployOpenAi) {
     if (-not $openAiRg) {
         $openAiRg=$resourceGroup
+    }
+
+    if (-not $openAiName) {
+        $openAiName = "$($resourcePrefix)-openai"
+    }
+
+    if (-not $openAiCompletionsDeployment) {
+        $openAiCompletionsDeployment = "completions"
+    }
+
+    if (-not $openAiEmbeddingsDeployment) {
+        $openAiEmbeddingsDeployment = "embeddings"
     }
 
     & ./Deploy-OpenAi.ps1 -name $openAiName -resourceGroup $openAiRg -location $location -completionsDeployment $openAiCompletionsDeployment -embeddingsDeployment $openAiEmbeddingsDeployment

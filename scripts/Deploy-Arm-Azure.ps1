@@ -3,7 +3,8 @@
 Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
-    [parameter(Mandatory=$false)][string]$template="azuredeploy.json"
+    [parameter(Mandatory=$false)][string]$template="azuredeploy.json",
+    [parameter(Mandatory=$false)][string]$resourcePrefix
 )
 
 $sourceFolder=$(Join-Path -Path .. -ChildPath arm)
@@ -30,8 +31,15 @@ if (-not $rg) {
 # Write-Host "AKS last version is $aksLastVersion" -ForegroundColor Yellow
 $aksLastVersion="1.26.3"
 
+$deploymentName = "cosmosdb-openai-azuredeploy"
+
 Write-Host "Begining the ARM deployment..." -ForegroundColor Yellow
 Push-Location $sourceFolder
-az deployment group create -g $resourceGroup --template-file $script --parameters k8sVersion=$aksLastVersion
+az deployment group create -g $resourceGroup -n $deploymentName --template-file $script --parameters k8sVersion=$aksLastVersion
+
+$outputVal = (az deployment group show -g $resourceGroup -n $deploymentName --query properties.outputs.resourcePrefix.value)
+Set-Variable -Name resourcePrefix -Value $outputVal -Scope 1
+Write-Host "The resource prefix used in deployment is $outputVal"
+
 Pop-Location 
 Pop-Location 
