@@ -56,6 +56,8 @@ env:
   values:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
+    - name: MSCosmosDBOpenAI__CosmosDB__MonitoredContainers
+      value: customer, product
     - name: MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer
       value: leases
     - name: MSCosmosDBOpenAI__ShortSummaryPromptName
