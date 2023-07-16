@@ -5,6 +5,7 @@ Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$true)][string]$subscription,
+    [parameter(Mandatory=$false)][string]$armTemplate="azuredeploy.json",
     [parameter(Mandatory=$false)][string]$openAiName=$null,
     [parameter(Mandatory=$false)][string]$openAiRg=$null,
     [parameter(Mandatory=$false)][string]$openAiCompletionsDeployment=$null,
@@ -44,12 +45,24 @@ az account set --subscription $subscription
 
 if ($stepDeployArm) {
     # Deploy ARM
-    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location
+    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate -resourcePrefix $resourcePrefix -cosmosDbAccountName $cosmosDbAccountName
 }
 
 if ($stepDeployOpenAi) {
     if (-not $openAiRg) {
         $openAiRg=$resourceGroup
+    }
+
+    if (-not $openAiName) {
+        $openAiName = "$($resourcePrefix)-openai"
+    }
+
+    if (-not $openAiCompletionsDeployment) {
+        $openAiCompletionsDeployment = "completions"
+    }
+
+    if (-not $openAiEmbeddingsDeployment) {
+        $openAiEmbeddingsDeployment = "embeddings"
     }
 
     & ./Deploy-OpenAi.ps1 -name $openAiName -resourceGroup $openAiRg -location $location -completionsDeployment $openAiCompletionsDeployment -embeddingsDeployment $openAiEmbeddingsDeployment
@@ -61,7 +74,7 @@ $aksName = $(az aks list -g $resourceGroup -o json | ConvertFrom-Json).name
 Write-Host "The name of your AKS: $aksName" -ForegroundColor Yellow
 
 # Write-Host "Retrieving credentials" -ForegroundColor Yellow
-az aks get-credentials -n $aksName -g $resourceGroup
+az aks get-credentials -n $aksName -g $resourceGroup --overwrite-existing
 
 # Generate Config
 $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
@@ -106,7 +119,7 @@ if ($stepDeployImages) {
 
 if ($stepImportData) {
     # Import Data
-    & ./Import-Data.ps1 -resourceGroup $resourceGroup -location $location
+    & ./Import-Data.ps1 -resourceGroup $resourceGroup -cosmosDbAccountName $cosmosDbAccountName
 }
 
 Pop-Location

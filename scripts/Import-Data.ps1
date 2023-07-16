@@ -1,6 +1,6 @@
 Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
-    [parameter(Mandatory=$true)][string]$location
+    [parameter(Mandatory=$true)][string]$cosmosDbAccountName
 )
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
@@ -14,7 +14,14 @@ Invoke-WebRequest -Uri $dmtUrl -OutFile dmt.zip
 Expand-Archive -Path dmt.zip -DestinationPath .
 Push-Location "windows-package"
 Copy-Item -Path "../../migrationsettings.json" -Destination "./migrationsettings.json" -Force
-Start-Process -FilePath "dmt.exe" -Wait
+
+Write-Host "Bumping up the throughput on the customer container to avoid a known DMT issue..."
+az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name database --name customer --resource-group $resourceGroup --max-throughput 2000
+
+& "./dmt.exe"
+
+Write-Host "Restoring the throughput on the customer container..."
+az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name database --name customer --resource-group $resourceGroup --max-throughput 1000
 
 Pop-Location
 Pop-Location
