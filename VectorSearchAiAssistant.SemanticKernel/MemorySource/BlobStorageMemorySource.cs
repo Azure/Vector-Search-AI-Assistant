@@ -41,7 +41,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
                 .SelectMany(x => x));
 
             var chunkedFilesContent = filesContent
-                .Select(txt => TextChunker.SplitPlainTextLines(txt, _config.TextChunkMaxTokens))
+                .Select(txt => txt.SplitIntoChunks ? TextChunker.SplitPlainTextLines(txt.Content, _config.TextChunkMaxTokens) : new List<string>() { txt.Content })
                 .SelectMany(x => x).ToList();
 
             return chunkedFilesContent;
@@ -51,7 +51,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
         {
             if (_config == null)
             {
-                var configContent = await ReadTextFileContent(_settings.ConfigBlobStorageContainer, _settings.ConfigFilePath);
+                var configContent = await ReadConfigContent(_settings.ConfigBlobStorageContainer, _settings.ConfigFilePath);
                 _config = JsonConvert.DeserializeObject<BlobStorageMemorySourceConfig>(configContent);
             }
         }
@@ -68,12 +68,20 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
             return _containerClients[containerName];
         }
 
-        private async Task<string> ReadTextFileContent(string containerName, string filePath)
+        private async Task<string> ReadConfigContent(string containerName, string filePath)
         {
             var containerClient = GetBlobContainerClient(containerName);
             var blobClient = containerClient.GetBlobClient(filePath);
             var reader = new StreamReader(await blobClient.OpenReadAsync());
             return await reader.ReadToEndAsync();
+        }
+
+        private async Task<(string Content, bool SplitIntoChunks)> ReadTextFileContent(string containerName, TextFileMemorySourceFile file)
+        {
+            var containerClient = GetBlobContainerClient(containerName);
+            var blobClient = containerClient.GetBlobClient(file.FileName);
+            var reader = new StreamReader(await blobClient.OpenReadAsync());
+            return (await reader.ReadToEndAsync(), file.SplitIntoChunks);
         }
     }
 }

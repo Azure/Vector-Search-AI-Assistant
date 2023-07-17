@@ -23,4 +23,5 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
     {
         public string FileName { get; init; }
         public bool SplitIntoChunks { get; init; }
+    }
 }
