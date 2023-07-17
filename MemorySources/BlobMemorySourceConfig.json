@@ -3,9 +3,14 @@
     "TextFileMemorySources": [
         {
             "ContainerName": "product-policy",
-            "TextFiles": [
-                "return-policies.txt",
-                "shipping-policies.txt"
+            "TextFiles": [{
+                    "FileName": "return-policies.txt",
+                    "SplitIntoChunks": true
+                },
+                {
+                    "FileName": "shipping-policies.txt",
+                    "SplitIntoChunks": true
+                }
             ]
         }
     ]
