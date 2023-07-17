@@ -16,6 +16,11 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
     public class TextFileMemorySource
     {
         public string ContainerName { get; init; }
-        public List<string> TextFiles { get; init; }
+        public List<TextFileMemorySourceFile> TextFiles { get; init; }
     }
+
+    public class TextFileMemorySourceFile
+    {
+        public string FileName { get; init; }
+        public bool SplitIntoChunks { get; init; }
 }
