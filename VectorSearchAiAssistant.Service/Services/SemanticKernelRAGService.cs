@@ -118,7 +118,7 @@ public class SemanticKernelRAGService : IRAGService
         var memories = await memorySkill.RecallAsync(
             userPrompt,
             _settings.CognitiveSearch.IndexName,
-            null,
+            0.8,
             _settings.CognitiveSearch.MaxVectorSearchResults,
             skContext,
             _shortTermMemory);
