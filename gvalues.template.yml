@@ -5,7 +5,7 @@ cognitiveSearch:
   maxVectorSearchResults: 10
 openAi:
   completionsDeployment: 'completions'
-  completionsDeploymenttMaxTokens: 8096
+  completionsDeploymentMaxTokens: 8096
   embeddingsDeployment: 'embeddings'
   embeddingsDeploymentMaxTokens: 8191
   chatCompletionPromptName: 'RetailAssistant.Default'
