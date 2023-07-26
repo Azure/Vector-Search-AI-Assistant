@@ -25,7 +25,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
                 topP: 0.5);
         }
 
-        [SKFunction("Given a section of a conversation transcript, summarize the part of the conversation")]
+        [SKFunction()]
         public Task<SKContext> SummarizeConversationAsync(
             [Description("A short or long conversation transcript.")] string input,
             SKContext context)

@@ -59,7 +59,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
         /// <param name="limit">The maximum number of relevant memories to recall.</param>
         /// <param name="context">Contains the memory to search.</param>
         /// <param name="shortTermMemory">An optional volatile, short-term memory store.</param>
-        [SKFunction("Vector search and return up to N memories related to the input text")]
+        [SKFunction()]
         public async Task<string> RecallAsync(
             [Description("The input text to find related memories for")] string text,
             [Description("Memories collection to search"), DefaultValue(DefaultCollection)] string collection,
