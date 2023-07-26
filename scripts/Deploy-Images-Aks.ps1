@@ -132,12 +132,12 @@ if ($charts.Contains("web") -or  $charts.Contains("*")) {
 
 Write-Host " --------------------------------------------------------" 
 Write-Host "Entering holding pattern to wait for proper backend API initialization"
-Write-Host "Attempting to retrieve status from https://$($aksHost)/api/status every 10 seconds with 30 retries"
+Write-Host "Attempting to retrieve status from https://$($aksHost)/api/status every 20 seconds with 50 retries"
 Write-Host " --------------------------------------------------------" 
 $apiStatus = "initializing"
-$retriesLeft = 30
+$retriesLeft = 50
 while (($apiStatus.ToString() -ne "ready") -and ($retriesLeft -gt 0)) {
-    Start-Sleep -Seconds 10
+    Start-Sleep -Seconds 20
     $apiStatus = Invoke-RestMethod -Uri "https://$($aksHost)/api/status" -Method GET
     Write-Host "API endpoint status: $($apiStatus)"
     $retriesLeft -= 1
