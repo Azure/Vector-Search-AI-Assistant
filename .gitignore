@@ -360,7 +360,7 @@ __blobstorage__/bb49451b-5984-491a-bf47-800ae14ce60f
 
 docker-compose.yml
 docker-compose.dev.yml
-__values/configFile.yaml
+__values
 .idea
 dMT
 migrationsettings.json
