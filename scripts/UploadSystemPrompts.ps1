@@ -16,7 +16,7 @@ az storage container create --account-name $storageAccount --name "memory-source
 az storage azcopy blob upload -c memory-source --account-name $storageAccount -s "./MemorySources/*.json" --recursive --only-show-errors
 
 az storage container create --account-name $storageAccount --name "product-policy" --only-show-errors
-az storage azcopy blob upload -c memory-source --account-name $storageAccount -s "./MemorySources/*.txt" --recursive --only-show-errors
+az storage azcopy blob upload -c product-policy --account-name $storageAccount -s "./MemorySources/*.txt" --recursive --only-show-errors
 
 Pop-Location
 Pop-Location
