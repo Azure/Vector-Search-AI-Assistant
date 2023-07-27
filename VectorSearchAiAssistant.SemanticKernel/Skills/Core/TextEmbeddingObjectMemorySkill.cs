@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Numerics;
 using System.Runtime;
 using System.Text.Json;
+using VectorSearchAiAssistant.SemanticKernel.MemorySource;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
 {
@@ -39,11 +40,21 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
 
         private IEnumerable<float>? _lastInputTextEmbedding;
 
+        private readonly ISemanticTextMemory _longTermMemory;
+        private readonly IMemoryStore _shortTermMemory;
+        private readonly ILogger _logger;
+
         /// <summary>
         /// Creates a new instance of the TextEmbeddingMemorySkill
         /// </summary>
-        public TextEmbeddingObjectMemorySkill()
+        public TextEmbeddingObjectMemorySkill(
+            ISemanticTextMemory longTermMemory,
+            IMemoryStore shortTermMemory,
+            ILogger logger)
         {
+            _longTermMemory = longTermMemory;
+            _shortTermMemory = shortTermMemory;
+            _logger = logger;
         }
 
         /// <summary>
@@ -64,20 +75,18 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
             [Description("The input text to find related memories for")] string text,
             [Description("Memories collection to search"), DefaultValue(DefaultCollection)] string collection,
             [Description("The relevance score, from 0.0 to 1.0, where 1.0 means perfect match"), DefaultValue(DefaultRelevance)] double? relevance,
-            [Description("The maximum number of relevant memories to recall"), DefaultValue(DefaultLimit)] int? limit,
-            SKContext context,
-            IMemoryStore? shortTermMemory = null)
+            [Description("The maximum number of relevant memories to recall"), DefaultValue(DefaultLimit)] int? limit)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(collection, nameof(collection));
             relevance ??= DefaultRelevance;
             limit ??= DefaultLimit;
 
-            context.Log.LogTrace("Searching memories in collection '{0}', relevance '{1}'", collection, relevance);
+            _logger.LogTrace("Searching memories in collection '{0}', relevance '{1}'", collection, relevance);
 
             // Search memory
-            List<MemoryQueryResult> memories = await context.Memory
-                .SearchAsync(collection, text, limit: limit.Value, minRelevanceScore: relevance.Value, withEmbeddings: true, cancellationToken: context.CancellationToken)
-                .ToListAsync(context.CancellationToken)
+            List<MemoryQueryResult> memories = await _longTermMemory
+                .SearchAsync(collection, text, limit: limit.Value, minRelevanceScore: relevance.Value, withEmbeddings: true)
+                .ToListAsync()
                 .ConfigureAwait(false);
 
             //By convention, the first item in the result is the embedding of the input text.
@@ -85,11 +94,11 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
             _lastInputTextEmbedding = memories.First().Embedding?.Vector;
 
             var combinedMemories = memories.Skip(1).ToList();
-            if (shortTermMemory != null)
+            if (_shortTermMemory != null)
             {
-                List<(MemoryRecord Record, double Relevance)> shortTermRecords = await shortTermMemory
+                List<(MemoryRecord Record, double Relevance)> shortTermRecords = await _shortTermMemory
                     .GetNearestMatchesAsync("short-term", memories.First().Embedding.Value, limit.Value, relevance.Value)
-                    .ToListAsync (context.CancellationToken)
+                    .ToListAsync ()
                     .ConfigureAwait(false);
 
                 var shortTermMemories = shortTermRecords
@@ -104,11 +113,11 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
 
             if (combinedMemories.Count == 0)
             {
-                context.Log.LogWarning("Neither the collection {0} nor the short term store contain any mathing memories.", collection);
+                _logger.LogWarning("Neither the collection {0} nor the short term store contain any matching memories.", collection);
                 return string.Empty;
             }
 
-            context.Log.LogTrace("Done looking for memories in collection '{0}')", collection);
+            _logger.LogTrace("Done looking for memories in collection '{0}')", collection);
             return JsonSerializer.Serialize(combinedMemories.Select(x => x.Metadata.AdditionalMetadata));
         }
     }
