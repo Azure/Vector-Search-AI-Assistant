@@ -111,17 +111,16 @@ public class SemanticKernelRAGService : IRAGService
 
     public async Task<(string Completion, string UserPrompt, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
     {
-        var memorySkill = new TextEmbeddingObjectMemorySkill();
-        //_semanticKernel.ImportSkill(memorySkill);
-        var skContext = _semanticKernel.CreateNewContext();
+        var memorySkill = new TextEmbeddingObjectMemorySkill(
+            _longTermMemory,
+            _shortTermMemory,
+            _logger);
 
         var memories = await memorySkill.RecallAsync(
             userPrompt,
             _settings.CognitiveSearch.IndexName,
             0.8,
-            _settings.CognitiveSearch.MaxVectorSearchResults,
-            skContext,
-            _shortTermMemory);
+            _settings.CognitiveSearch.MaxVectorSearchResults);
 
         // Read the resulting user prompt embedding as soon as possile
         var userPromptEmbedding = memorySkill.LastInputTextEmbedding?.ToArray();
@@ -142,7 +141,7 @@ public class SemanticKernelRAGService : IRAGService
             .WithMemories(
                 memoryCollection)
             .WithMessageHistory(
-                messageHistory.Select(m => (new AuthorRole(m.Sender), m.Text.NormalizeLineEndings())).ToList())
+                messageHistory.Select(m => (new AuthorRole(m.Sender.ToLower()), m.Text.NormalizeLineEndings())).ToList())
             .Build();
 
         chatHistory.AddUserMessage(userPrompt);
