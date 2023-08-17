@@ -112,6 +112,16 @@ namespace Search.Helpers
             return completion.Text;
         }
 
+        public async Task<CompletionPrompt> GetCompletionPrompt(string sessionId, string completionPromptId)
+        {
+            ArgumentNullException.ThrowIfNullOrEmpty(sessionId);
+            ArgumentNullException.ThrowIfNullOrEmpty(completionPromptId);
+
+            var completionPrompt = await SendRequest<CompletionPrompt>(HttpMethod.Get,
+                $"/sessions/{sessionId}/completionprompts/{completionPromptId}");
+            return completionPrompt;
+        }
+
         public async Task<string> SummarizeChatSessionNameAsync(string sessionId, string prompt)
         {
             ArgumentNullException.ThrowIfNull(sessionId);

@@ -28,6 +28,7 @@ public record Message
     public bool? Rating { get; set; }
     [FieldBuilderIgnore]
     public float[]? Vector { get; set; }
+    public string CompletionPromptId { get; set; }
 
     public Message(string sessionId, string sender, int? tokens, string text, float[]? vector, bool? rating)
     {

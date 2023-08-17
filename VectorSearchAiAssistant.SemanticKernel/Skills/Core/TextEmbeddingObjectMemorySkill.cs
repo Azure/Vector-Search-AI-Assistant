@@ -4,13 +4,16 @@ using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using System.ComponentModel;
+using System.Numerics;
 using System.Runtime;
 using System.Text.Json;
+using VectorSearchAiAssistant.SemanticKernel.MemorySource;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
 {
     /// <summary>
     /// TextEmbeddingObjectMemorySkill provides a skill to recall object information from the long term memory using vector-based similarity.
+    /// Optionally, a short-term, volatile memory can be also used to enahnce the result set.
     /// </summary>
     /// <example>
     /// Usage: kernel.ImportSkill("memory", new TextEmbeddingObjectMemorySkill());
@@ -37,15 +40,25 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
 
         private IEnumerable<float>? _lastInputTextEmbedding;
 
+        private readonly ISemanticTextMemory _longTermMemory;
+        private readonly IMemoryStore _shortTermMemory;
+        private readonly ILogger _logger;
+
         /// <summary>
         /// Creates a new instance of the TextEmbeddingMemorySkill
         /// </summary>
-        public TextEmbeddingObjectMemorySkill()
+        public TextEmbeddingObjectMemorySkill(
+            ISemanticTextMemory longTermMemory,
+            IMemoryStore shortTermMemory,
+            ILogger logger)
         {
+            _longTermMemory = longTermMemory;
+            _shortTermMemory = shortTermMemory;
+            _logger = logger;
         }
 
         /// <summary>
-        /// Vector search and return up to N memories related to the input text
+        /// Vector search and return up to N memories related to the input text. The long-term memory and an optional, short-term memory are used.
         /// </summary>
         /// <example>
         /// SKContext["input"] = "what is the capital of France?"
@@ -56,38 +69,56 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
         /// <param name="relevance">The relevance score, from 0.0 to 1.0, where 1.0 means perfect match.</param>
         /// <param name="limit">The maximum number of relevant memories to recall.</param>
         /// <param name="context">Contains the memory to search.</param>
-        [SKFunction("Vector search and return up to N memories related to the input text")]
+        /// <param name="shortTermMemory">An optional volatile, short-term memory store.</param>
+        [SKFunction()]
         public async Task<string> RecallAsync(
             [Description("The input text to find related memories for")] string text,
             [Description("Memories collection to search"), DefaultValue(DefaultCollection)] string collection,
             [Description("The relevance score, from 0.0 to 1.0, where 1.0 means perfect match"), DefaultValue(DefaultRelevance)] double? relevance,
-            [Description("The maximum number of relevant memories to recall"), DefaultValue(DefaultLimit)] int? limit,
-            SKContext context)
+            [Description("The maximum number of relevant memories to recall"), DefaultValue(DefaultLimit)] int? limit)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(collection, nameof(collection));
             relevance ??= DefaultRelevance;
             limit ??= DefaultLimit;
 
-            context.Log.LogTrace("Searching memories in collection '{0}', relevance '{1}'", collection, relevance);
+            _logger.LogTrace("Searching memories in collection '{0}', relevance '{1}'", collection, relevance);
 
             // Search memory
-            List<MemoryQueryResult> memories = await context.Memory
-                .SearchAsync(collection, text, limit: limit.Value, minRelevanceScore: relevance.Value, withEmbeddings: true, cancellationToken: context.CancellationToken)
-                .ToListAsync(context.CancellationToken)
+            List<MemoryQueryResult> memories = await _longTermMemory
+                .SearchAsync(collection, text, limit: limit.Value, minRelevanceScore: relevance.Value, withEmbeddings: true)
+                .ToListAsync()
                 .ConfigureAwait(false);
 
             //By convention, the first item in the result is the embedding of the input text.
             //Once SK develops a more standardized way to expose embeddings, this should be removed.
             _lastInputTextEmbedding = memories.First().Embedding?.Vector;
 
-            if (memories.Count == 1)
+            var combinedMemories = memories.Skip(1).ToList();
+            if (_shortTermMemory != null)
             {
-                context.Log.LogWarning("Memories not found in collection: {0}", collection);
+                List<(MemoryRecord Record, double Relevance)> shortTermRecords = await _shortTermMemory
+                    .GetNearestMatchesAsync("short-term", memories.First().Embedding.Value, limit.Value, relevance.Value)
+                    .ToListAsync ()
+                    .ConfigureAwait(false);
+
+                var shortTermMemories = shortTermRecords
+                    .Select(r => new MemoryQueryResult(r.Record.Metadata, r.Relevance, null))
+                    .ToList();
+
+                combinedMemories = combinedMemories
+                    .Concat(shortTermMemories)
+                    .OrderByDescending(r => r.Relevance)
+                    .ToList();
+            }
+
+            if (combinedMemories.Count == 0)
+            {
+                _logger.LogWarning("Neither the collection {0} nor the short term store contain any matching memories.", collection);
                 return string.Empty;
             }
 
-            context.Log.LogTrace("Done looking for memories in collection '{0}')", collection);
-            return JsonSerializer.Serialize(memories.Skip(1).Select(x => x.Metadata.AdditionalMetadata));
+            _logger.LogTrace("Done looking for memories in collection '{0}')", collection);
+            return JsonSerializer.Serialize(combinedMemories.Select(x => x.Metadata.AdditionalMetadata));
         }
     }
 }

@@ -38,6 +38,15 @@ namespace VectorSearchAiAssistant.Service.Models
                         TypeMatchingProperties = new List<string> { "orderDate", "shipDate" },
                         NamingProperties = new List<string> { "id" }
                     } 
+                },
+                {
+                    nameof(ShortTermMemory),
+                    new ModelRegistryEntry
+                    {
+                        Type = typeof(ShortTermMemory),
+                        TypeMatchingProperties = new List<string> { "memory__" },
+                        NamingProperties = new List<string>()
+                    }
                 }
             };
 

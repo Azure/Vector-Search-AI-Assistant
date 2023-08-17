@@ -455,5 +455,12 @@ namespace VectorSearchAiAssistant.Service.Services
             return resultDocuments;
 
         }
+
+        public async Task<CompletionPrompt> GetCompletionPrompt(string sessionId, string completionPromptId)
+        {
+            return await _completions.ReadItemAsync<CompletionPrompt>(
+                id: completionPromptId,
+                partitionKey: new PartitionKey(sessionId));
+        }
     }
 }

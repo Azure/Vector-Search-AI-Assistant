@@ -18,9 +18,9 @@ Write-Host "--------------------------------------------------------" -Foregroun
 Write-Host "Deploying ARM script $script" -ForegroundColor Yellow
 Write-Host "-------------------------------------------------------- " -ForegroundColor Yellow
 
-$rg = $(az group show -n $resourceGroup -o json | ConvertFrom-Json)
+$rg = $(az group list --query "[?name=='$resourceGroup']" -o json | ConvertFrom-Json)
 # Deployment without AKS can be done in a existing or non-existing resource group.
-if (-not $rg) {
+if ($rg.length -eq 0) {
     Write-Host "Creating resource group $resourceGroup in $location" -ForegroundColor Yellow
     az group create -n $resourceGroup -l $location
 }

@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using VectorSearchAiAssistant.SemanticKernel.Skills.Core;
 using VectorSearchAiAssistant.Service.Models.Search;
 using System.Text.RegularExpressions;
-using System.Linq;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using VectorSearchAiAssistant.Service.Models.Chat;
 using Newtonsoft.Json;
@@ -16,17 +15,23 @@ using VectorSearchAiAssistant.SemanticKernel.Chat;
 using VectorSearchAiAssistant.SemanticKernel.Text;
 using VectorSearchAiAssistant.Service.Models;
 using VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch;
+using VectorSearchAiAssistant.SemanticKernel.MemorySource;
+using Microsoft.SemanticKernel.Memory;
+using VectorSearchAiAssistant.SemanticKernel.Memory;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
 public class SemanticKernelRAGService : IRAGService
 {
     readonly SemanticKernelRAGServiceSettings _settings;
+
     readonly IKernel _semanticKernel;
+    readonly IEnumerable<IMemorySource> _memorySources;
     readonly ILogger<SemanticKernelRAGService> _logger;
     readonly ISystemPromptService _systemPromptService;
     readonly IChatCompletion _chat;
-    readonly AzureCognitiveSearchVectorMemory _memory;
+    readonly AzureCognitiveSearchVectorMemory _longTermMemory;
+    readonly ShortTermVolatileMemoryStore _shortTermMemory;
     readonly Dictionary<string, Type> _memoryTypes;
 
     bool _memoryInitialized = false;
@@ -35,10 +40,13 @@ public class SemanticKernelRAGService : IRAGService
 
     public SemanticKernelRAGService(
         ISystemPromptService systemPromptService,
+        IEnumerable<IMemorySource> memorySources,
         IOptions<SemanticKernelRAGServiceSettings> options,
+        IOptions<AzureCognitiveSearchMemorySourceSettings> cognitiveSearchMemorySourceSettings,
         ILogger<SemanticKernelRAGService> logger)
     {
         _systemPromptService = systemPromptService;
+        _memorySources = memorySources;
         _settings = options.Value;
         _logger = logger;
 
@@ -60,38 +68,60 @@ public class SemanticKernelRAGService : IRAGService
 
         _semanticKernel = builder.Build();
 
-        _memory = new AzureCognitiveSearchVectorMemory(
+        _longTermMemory = new AzureCognitiveSearchVectorMemory(
             _settings.CognitiveSearch.Endpoint,
             _settings.CognitiveSearch.Key,
             _settings.CognitiveSearch.IndexName,
             _semanticKernel.GetService<ITextEmbeddingGeneration>(),
             _logger);
+
+        _shortTermMemory = new ShortTermVolatileMemoryStore(
+            _semanticKernel.GetService<ITextEmbeddingGeneration>(),
+            _logger);
+
         Task.Run(() =>  InitializeMemory());
 
-        _semanticKernel.RegisterMemory(_memory);
+        _semanticKernel.RegisterMemory(_longTermMemory);
 
         _chat = _semanticKernel.GetService<IChatCompletion>();
     }
 
     private async Task InitializeMemory()
     {
-        await _memory.Initialize(_memoryTypes.Values.ToList());
+        await _longTermMemory.Initialize(_memoryTypes.Values.ToList());
+
+        // Get current short term memories
+        // TODO: Explore the option of moving static memories loaded from blob storage into the long-term memory (e.g., the Azure Cognitive Search index).
+        // For now, the static memories are re-loaded each time together with the analytical short-term memories originating from Azure Cognitive Search faceted queries.
+        var shortTermMemories = new List<string>(); 
+        foreach (var memorySource in _memorySources)
+        {
+            shortTermMemories.AddRange(await memorySource.GetMemories());
+        }
+
+        await _shortTermMemory.Initialize(shortTermMemories
+            .Select(m => (object) new ShortTermMemory
+            {
+                entityType__ = nameof(ShortTermMemory),
+                memory__ = m
+            }).ToList());
 
         _memoryInitialized = true;
     }
 
-    public async Task<(string Completion, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
+    public async Task<(string Completion, string UserPrompt, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
     {
-        var memorySkill = new TextEmbeddingObjectMemorySkill();
-        //_semanticKernel.ImportSkill(memorySkill);
-        var skContext = _semanticKernel.CreateNewContext();
+        var memorySkill = new TextEmbeddingObjectMemorySkill(
+            _longTermMemory,
+            _shortTermMemory,
+            _logger);
 
         var memories = await memorySkill.RecallAsync(
             userPrompt,
             _settings.CognitiveSearch.IndexName,
-            null,
-            _settings.CognitiveSearch.MaxVectorSearchResults,
-            skContext);
+            0.8,
+            _settings.CognitiveSearch.MaxVectorSearchResults);
+
         // Read the resulting user prompt embedding as soon as possile
         var userPromptEmbedding = memorySkill.LastInputTextEmbedding?.ToArray();
 
@@ -99,9 +129,7 @@ public class SemanticKernelRAGService : IRAGService
         if (string.IsNullOrEmpty(memories))
             memoryCollection = new List<string>();
         else
-        {
             memoryCollection = JsonConvert.DeserializeObject<List<string>>(memories);
-        }
 
         var chatHistory = new ChatBuilder(
                 _semanticKernel,
@@ -113,7 +141,7 @@ public class SemanticKernelRAGService : IRAGService
             .WithMemories(
                 memoryCollection)
             .WithMessageHistory(
-                messageHistory.Select(m => (new AuthorRole(m.Sender), m.Text.NormalizeLineEndings())).ToList())
+                messageHistory.Select(m => (new AuthorRole(m.Sender.ToLower()), m.Text.NormalizeLineEndings())).ToList())
             .Build();
 
         chatHistory.AddUserMessage(userPrompt);
@@ -125,7 +153,7 @@ public class SemanticKernelRAGService : IRAGService
         var reply = await completionResults[0].GetChatMessageAsync();
         var rawResult = (completionResults[0] as ITextResult).ModelResult.GetOpenAIChatResult();
 
-        return new(reply.Content, rawResult.Usage.PromptTokens, rawResult.Usage.CompletionTokens, userPromptEmbedding);
+        return new(reply.Content, chatHistory[0].Content, rawResult.Usage.PromptTokens, rawResult.Usage.CompletionTokens, userPromptEmbedding);
     }
 
     public async Task<string> Summarize(string sessionId, string userPrompt)
@@ -152,11 +180,11 @@ public class SemanticKernelRAGService : IRAGService
         else
             throw new ArgumentException("Only objects derived from EmbeddedEntity can be added to memory.");
 
-        await _memory.AddMemory(item, itemName, vectorizer);
+        await _longTermMemory.AddMemory(item, itemName, vectorizer);
     }
 
     public async Task RemoveMemory(object item)
     {
-        await _memory.RemoveMemory(item);
+        await _longTermMemory.RemoveMemory(item);
     }
 }
