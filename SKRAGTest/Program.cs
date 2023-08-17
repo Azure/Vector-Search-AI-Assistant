@@ -8,10 +8,9 @@ using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using VectorSearchAiAssistant.Service.Models.Search;
 using Newtonsoft.Json.Linq;
 using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
-
-var obj = JObject.Parse("{\"id\":1, \"details\": {\"x\": 2}}");
-
-var properties = obj.Properties().Select(p => p.Name).ToList();
+using Microsoft.Extensions.Options;
+using VectorSearchAiAssistant.SemanticKernel.MemorySource;
+using Microsoft.Extensions.Logging;
 
 var product = new Product(
     id: "00001",
@@ -48,9 +47,18 @@ builder.Services.AddOptions<DurableSystemPromptServiceSettings>()
     .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:DurableSystemPrompt"));
 builder.Services.AddSingleton<ISystemPromptService, DurableSystemPromptService>();
 
+builder.Services.AddOptions<AzureCognitiveSearchMemorySourceSettings>()
+    .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CognitiveSearchMemorySource"));
+
 var host = builder.Build();
 
 var ragService = host.Services.GetService<IRAGService>();
+var settings = host.Services.GetService<IOptions<SemanticKernelRAGServiceSettings>>().Value.CognitiveSearch;
+
+var cogSearchMemorySource = new AzureCognitiveSearchMemorySource(
+    host.Services.GetService<IOptions<AzureCognitiveSearchMemorySourceSettings>>(),
+    host.Services.GetService<ILogger<AzureCognitiveSearchMemorySource>>());
+var results = await cogSearchMemorySource.GetMemories();
 
 var result = await ragService.Summarize("", "Do you have some nice socks?\nYes, of course we have, and we also have some nice hats if you are interested.");
 await host.RunAsync();

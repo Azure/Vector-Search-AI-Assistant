@@ -12,7 +12,7 @@ Push-Location $($MyInvocation.InvocationName | Split-Path)
 
 if (-Not (az cognitiveservices account list -g $resourceGroup --query '[].name' -o json | ConvertFrom-Json) -Contains $name) {
     Write-Host("The Azure OpenAI account $($name) was not found, creating it...")
-    az cognitiveservices account create -g $resourceGroup -n $name --kind OpenAI --sku S0 --location $location --yes
+    az cognitiveservices account create -g $resourceGroup -n $name --kind OpenAI --sku S0 --location $location --yes --custom-domain $name
 }
 
 $deployments = (az cognitiveservices account deployment list -g $resourceGroup -n $name --query '[].name' -o json | ConvertFrom-Json)

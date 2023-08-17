@@ -77,6 +77,7 @@ Write-Host "The name of your AKS: $aksName" -ForegroundColor Yellow
 az aks get-credentials -n $aksName -g $resourceGroup --overwrite-existing
 
 # Generate Config
+New-Item -ItemType Directory -Force -Path $(./Join-Path-Recursively.ps1 -pathParts ..,__values)
 $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
 & ./Generate-Config.ps1 -resourceGroup $resourceGroup -openAiName $openAiName -openAiRg $openAiRg -openAiDeployment $openAiDeployment -outputFile $gValuesLocation
 
@@ -121,5 +122,10 @@ if ($stepImportData) {
     # Import Data
     & ./Import-Data.ps1 -resourceGroup $resourceGroup -cosmosDbAccountName $cosmosDbAccountName
 }
+
+$webappHostname=$(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
+Write-Host "===========================================================" -ForegroundColor Yellow
+Write-Host "The frontend is hosted at https://$webappHostname" -ForegroundColor Yellow
+Write-Host "===========================================================" -ForegroundColor Yellow
 
 Pop-Location

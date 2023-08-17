@@ -113,10 +113,7 @@ public class OpenAiService : IOpenAiService
 
         try
         {
-            var options = new EmbeddingsOptions(input)
-            {
-                Input = input
-            };
+            var options = new EmbeddingsOptions(input);
             if (!string.IsNullOrWhiteSpace(sessionId))
             {
                 options.User = sessionId;

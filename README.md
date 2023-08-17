@@ -94,7 +94,7 @@ The data is then saved in the [UpdateSessionBatchAsync()](https://github.com/Azu
 - .NET 7 SDK
 - Docker Desktop
 - Azure CLI ([v2.49.0 or greater](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli))
-- Helm ([v3.11.1 or greater](https://helm.sh/))
+- [Helm 3.11.1 or greater](https://helm.sh/docs/intro/install/)
 - Visual Studio 2022 (only needed if you plan to run/debug the solution locally)
 
 ### Deployment
@@ -139,6 +139,7 @@ For deployments that need to use an existing OpenAI service, run the following f
   ```pwsh
   az aks show -n <aks-name> -g <resource-group-name> -o tsv --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName
   ```
+  > Note: The same hostname should also be output upon successful completion of the deployment script invocation.
 
 1. Browse to the web app with the returned hostname.
 1. Click [+ Create New Chat] button to create a new chat session.

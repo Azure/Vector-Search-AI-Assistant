@@ -39,12 +39,28 @@ env:
     - name: MSCosmosDBOpenAI__CognitiveSearch__IndexName
     - name: MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults
     - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeployment
+    - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeploymentMaxTokens
     - name: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment
-    - name: MSCosmosDBOpenAI__OpenAI__MaxConversationBytes
+    - name: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeploymentMaxTokens
+    - name: MSCosmosDBOpenAI__OpenAI__ChatCompletionPromptName
+    - name: MSCosmosDBOpenAI__OpenAI__ShortSummaryPromptName
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMinTokens
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMaxTokens
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__SystemMaxTokens
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMinTokens
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMaxTokens
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMinTokens
+    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMaxTokens
     - name: MSCosmosDBOpenAI__CosmosDB__Containers
+    - name: MSCosmosDBOpenAI__CosmosDB__MonitoredContainers
     - name: MSCosmosDBOpenAI__CosmosDB__Database
+    - name: MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer
     - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer
-    - name: MSCosmosDBOpenAI__SystemPromptName
+    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName
+    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageContainer
+    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigFilePath
+    - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageContainer
+    - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigFilePath
   secret:
     - name: MSCosmosDBOpenAI__CognitiveSearch__Endpoint
     - name: MSCosmosDBOpenAI__CognitiveSearch__Key
@@ -53,38 +69,10 @@ env:
     - name: MSCosmosDBOpenAI__CosmosDB__Endpoint
     - name: MSCosmosDBOpenAI__CosmosDB__Key
     - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection
+    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__Endpoint
+    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__Key
+    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageConnection
+    - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
   values:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
-    - name: MSCosmosDBOpenAI__CosmosDB__MonitoredContainers
-      value: customer, product
-    - name: MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer
-      value: leases
-    - name: MSCosmosDBOpenAI__ShortSummaryPromptName
-      value: Summarizer.TwoWords
-    - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeploymentMaxTokens
-      value: "4096"
-    - name: MSCosmosDBOpenAI__OpenAI__CompletionsMinTokens
-      value: "30"
-    - name: MSCosmosDBOpenAI__OpenAI__CompletionsMaxTokens
-      value: "300"
-    - name: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeploymentMaxTokens
-      value: "8191"
-    - name: MSCosmosDBOpenAI__OpenAI__ChatCompletionPromptName
-      value: RetailAssistant.Default
-    - name: MSCosmosDBOpenAI__OpenAI__ShortSummaryPromptName
-      value: "Summarizer.TwoWords"
-    - name: MSCosmosDBOpenAI__OpenAI__FavorMemoriesInPromptOptimization
-      value: "false"
-    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionMinTokens
-      value: "50"
-    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionMaxTokens
-      value: "300"
-    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMinTokens
-      value: "500"
-    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMaxTokens
-      value: "2500"
-    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMinTokens
-      value: "1000"
-    - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMaxTokens
-      value: "3000"
