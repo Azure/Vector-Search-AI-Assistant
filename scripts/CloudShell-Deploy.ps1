@@ -20,7 +20,7 @@ Param(
     [parameter(Mandatory=$false)][bool]$stepDeployImages=$true,
     [parameter(Mandatory=$false)][bool]$stepUploadSystemPrompts=$true,
     [parameter(Mandatory=$false)][bool]$stepImportData=$true,
-    [parameter(Mandatory=$false)][bool]$stepLoginAzure=$true
+    [parameter(Mandatory=$false)][bool]$stepLoginAzure=$false
 )
 
 $gValuesFile="configFile.yaml"
