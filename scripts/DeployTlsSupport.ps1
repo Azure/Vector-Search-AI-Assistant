@@ -76,17 +76,20 @@ Join-Path .. helm | Push-Location
 
 if ($sslSupport -eq "staging") {
     Write-Host "Adding TLS/SSL support using Let's Encrypt Staging environment" -ForegroundColor Yellow
-    cmd /c "helm upgrade --install $name-ssl-staging tls-support -f $(Join-Path tls-support values-staging.yaml) --set domain=$domain --set ingressClass=$ingressClass"
+    $command = "helm upgrade --install $name-ssl-staging tls-support -f $(Join-Path tls-support values-staging.yaml) --set domain=$domain --set ingressClass=$ingressClass"
+    Invoke-Expression "$command"
 }
 if ($sslSupport -eq "prod") {
     Write-Host "Adding TLS/SSL support using Let's Encrypt PRODUCTION environment" -ForegroundColor Yellow
     Write-Host "helm upgrade --install $name-ssl-prod tls-support -f $(Join-Path tls-support values-prod.yaml) --set domain=$domain --set ingressClass=$ingressClass"
-    cmd /c "helm upgrade --install $name-ssl-prod tls-support -f $(Join-Path tls-support values-prod.yaml) --set domain=$domain --set ingressClass=$ingressClass"
+    $command = "helm upgrade --install $name-ssl-prod tls-support -f $(Join-Path tls-support values-prod.yaml) --set domain=$domain --set ingressClass=$ingressClass"
+    Invoke-Expression "$command"
 }
 if ($sslSupport -eq "custom") {
     Write-Host "TLS support is custom bound to domain $domain" -ForegroundColor Yellow
     Write-Host "Creating secret $tlsSecretName with TLS certificate from file $tlsCertFile and key from $tlsKeyFile"
-    kubectl create secret tls $tlsSecretName --key $tlsKeyFile --cert $tlsCertFile
+    $command = "kubectl create secret tls $tlsSecretName --key $tlsKeyFile --cert $tlsCertFile"
+    Invoke-Expression "$command"
 }
 
 Pop-Location
