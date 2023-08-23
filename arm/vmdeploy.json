@@ -1,0 +1,235 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "eastus",
+            "allowedValues": [
+              "southcentralus",
+              "eastus",
+              "westeurope"
+            ],
+            "metadata": {
+              "description": "Location where all resources will be deployed. This value defaults to the **East US** region."
+            }
+          },
+          "name": {
+            "type": "string",
+            "defaultValue": "[uniqueString(resourceGroup().id)]",
+            "maxLength": 15,
+            "metadata": {
+              "description": "Unique name for the deployed services below. Max length 15 characters, alphanumeric only:\r\n- Azure Cosmos DB for NoSQL\r\n- Azure Cosmos DB for MongoDB vCore\r\n- Azure OpenAI\r\n- Azure App Service\r\n- Azure Functions\r\n\r\nThe name defaults to a unique string generated from the resource group identifier.\r\n"
+            }
+          }
+    },
+    "variables": {
+        "vnetSettings": {
+            "name": "[format('{0}-vnet', parameters('name'))]"
+        },
+        "nsgSettings": {
+            "name": "[format('{0}-nsg', parameters('name'))]"
+        },
+        "publicIpSettings": {
+            "name": "[format('{0}-ip', parameters('name'))]"
+        },
+        "vmSettings": {
+            "name": "[format('{0}vm', parameters('name'))]"
+        },
+        "nicSettings": {
+            "name": "[format('{0}-nic', parameters('name'))]"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-02-01",
+            "name": "[variables('nsgSettings').name]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "RDP",
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups/securityRules', variables('nsgSettings').name, 'RDP')]",
+                        "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 300,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-08-01",
+            "name": "[variables('publicIpSettings').name]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2021-05-01",
+            "name": "[variables('vnetSettings').name]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.2.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "default",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'default')]",
+                        "properties": {
+                            "addressPrefix": "10.2.0.0/24",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/subnets"
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2022-03-01",
+            "name": "[variables('vmSettings').name]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', variables('nicSettings').name)]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D4s_v3"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "microsoftvisualstudio",
+                        "offer": "visualstudio2022",
+                        "sku": "vs-2022-comm-latest-ws2022",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        },
+                        "deleteOption": "Delete"
+                    }
+                },
+                "osProfile": {
+                    "computerName": "[variables('vmSettings').name]",
+                    "adminUsername": "BYDtoChatGPTUser",
+                    "adminPassword": "Test123456789!",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true,
+                        "patchSettings": {
+                            "patchMode": "AutomaticByOS",
+                            "enableHotpatching": false
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicSettings').name)]",
+                            "properties": {
+                                "deleteOption": "Delete"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2022-09-01",
+            "name": "[variables('nicSettings').name]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpSettings').name)]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgSettings').name)]"
+            ],
+            "kind": "Regular",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "id": "[concat(resourceId('Microsoft.Network/networkInterfaces', variables('nicSettings').name), '/ipConfigurations/ipconfig1')]",
+                        "type": "Microsoft.Network/networkInterfaces/ipConfigurations",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpSettings').name)]",
+                                "properties": {
+                                    "deleteOption": "Delete"
+                                }
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'default')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgSettings').name)]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2021-04-01",
+            "name": "[format('{0}/{1}', variables('vmSettings').name, 'VMScriptExtension')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[format('Microsoft.Compute/virtualMachines/{0}',variables('vmSettings').name)]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "protectedSettings": {},
+                "settings": {
+                    "fileUris": [
+                        "https://bydtochatgptsa.blob.core.windows.net/vmscripts/VMScriptExtension.ps1"
+                    ],
+                    "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File VMScriptExtension.ps1"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "deployedVM": {
+            "type": "string",
+            "value": "[variables('vmSettings').name]"
+        },
+        "resourcePrefix": {
+            "type": "string",
+            "value": "[parameters('name')]"
+        }
+    }
+}
