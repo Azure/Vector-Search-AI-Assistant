@@ -1,0 +1,18 @@
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+$Env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+
+choco install --yes kubernetes-helm
+choco install --yes azure-cli
+choco install --yes kubernetes-cli
+choco install --yes git.install
+
+$Env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+
+c:
+cd C:\Temp
+mkdir workspace
+cd workspace
+git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
+cd VectorSearchAiAssistant
+git checkout cognitive-search-vector
