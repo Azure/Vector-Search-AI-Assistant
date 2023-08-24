@@ -1,6 +1,7 @@
 Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
-    [parameter(Mandatory=$true)][string]$cosmosDbAccountName
+    [parameter(Mandatory=$true)][string]$cosmosDbAccountName, 
+    [parameter(Mandatory=$true)][string]$subscription
 )
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
@@ -28,6 +29,10 @@ else
 }
 
 Import-Module CosmosDB
+
+# Write-Host "Choosing your subscription" -ForegroundColor Yellow
+az account set --subscription $subscription
+
 $database = "database"
 
 $cosmosDbContext = New-CosmosDbContext -Account $cosmosDbAccountName -Database $database -ResourceGroup $resourceGroup
