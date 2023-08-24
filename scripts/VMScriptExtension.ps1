@@ -6,13 +6,7 @@ choco install --yes kubernetes-helm
 choco install --yes azure-cli
 choco install --yes kubernetes-cli
 choco install --yes git.install
+choco install --yes docker-desktop
+choco install --yes nodejs.install
+choco install --yes nvm
 
-$Env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
-
-c:
-cd C:\Temp
-mkdir workspace
-cd workspace
-git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
-cd VectorSearchAiAssistant
-git checkout cognitive-search-vector
