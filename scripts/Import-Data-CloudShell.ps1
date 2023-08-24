@@ -30,7 +30,8 @@ else
 
 Import-Module CosmosDB
 
-# Write-Host "Choosing your subscription" -ForegroundColor Yellow
+# Write-Host "Choosing your subscription" -ForegroundColor 
+az account show
 az account set --subscription $subscription
 
 $database = "database"
