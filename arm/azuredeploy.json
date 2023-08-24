@@ -331,7 +331,8 @@
       "name": "[variables('aksSettings').name]",
       "location": "eastus",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet')]"
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet')]",
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name)]"
       ],
       "sku": {
         "name": "Basic",
