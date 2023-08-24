@@ -165,7 +165,7 @@ Use RDP to remote into the freshly provisioned VM with the username `BYDtoChatGP
 git clone https://github.com/hatboyzero/VectorSearchAiAssistant.git
 cd VectorSearchAiAssistant
 git checkout cognitive-search-vector
-./scripts/CloudShell-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription> -stepLoginAzure 1
+./scripts/VmEnvironment-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription> -stepLoginAzure 1
 ```
 
 ### Quickstart
