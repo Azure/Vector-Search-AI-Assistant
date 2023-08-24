@@ -38,6 +38,7 @@ az account set --subscription $subscription
 
 $database = "database"
 
+Connect-AzAccount
 $cosmosDbContext = New-CosmosDbContext -Account $cosmosDbAccountName -Database $database -ResourceGroup $resourceGroup
 
 foreach($product in $products)
