@@ -93,6 +93,9 @@
       "nodeRG": "[format('MC_{0}', parameters('name'))]",
       "sku": "Basic",
       "tier": "Free"
+    },
+    "laSettings": {
+      "name": "[format('{0}-la', parameters('name'))]"
     }
   },
   "resources": [
@@ -303,6 +306,26 @@
       }
     },
     {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2021-12-01-preview",
+      "name": "[variables('laSettings').name]",
+      "location": "eastus",
+      "properties": {
+        "sku": {
+          "name": "Standalone"
+        },
+        "retentionInDays": 31,
+        "features": {
+          "enableLogAccessUsingOnlyResourcePermissions": true
+        },
+        "workspaceCapping": {
+          "dailyQuotaGb": -1
+        },
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      }
+    },
+    {
       "type": "Microsoft.ContainerService/managedClusters",
       "apiVersion": "2023-01-02-preview",
       "name": "[variables('aksSettings').name]",
@@ -367,6 +390,13 @@
           },
           "httpApplicationRouting": {
             "enabled": true
+          },
+          "omsagent": {
+            "enabled": true,
+            "config": {
+              "logAnalyticsWorkspaceResourceID": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name)]",
+              "useAADAuth": "true"
+            }
           }
         },
         "nodeResourceGroup": "[variables('aksSettings').nodeRG]",
@@ -436,7 +466,13 @@
             "enabled": true
           }
         },
-        "workloadAutoScalerProfile": {}
+        "workloadAutoScalerProfile": {},
+        "azureMonitorProfile": {
+          "metrics": {
+            "enabled": true,
+            "kubeStateMetrics": {}
+          }
+        }
       }
     },
     {
