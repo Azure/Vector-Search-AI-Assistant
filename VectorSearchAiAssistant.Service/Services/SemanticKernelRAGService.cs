@@ -50,6 +50,8 @@ public class SemanticKernelRAGService : IRAGService
         _settings = options.Value;
         _logger = logger;
 
+        _logger.LogInformation("Initializing the Semantic Kernel RAG service...");
+
         _memoryTypes = ModelRegistry.Models.ToDictionary(m => m.Key, m => m.Value.Type);
 
         var builder = new KernelBuilder();
@@ -84,10 +86,13 @@ public class SemanticKernelRAGService : IRAGService
         _semanticKernel.RegisterMemory(_longTermMemory);
 
         _chat = _semanticKernel.GetService<IChatCompletion>();
+
+        _logger.LogInformation("Semantic Kernel RAG service initialized.");
     }
 
     private async Task InitializeMemory()
     {
+        _logger.LogInformation("Initializing the Semantic Kernel RAG service memory...");
         await _longTermMemory.Initialize(_memoryTypes.Values.ToList());
 
         // Get current short term memories
@@ -107,6 +112,7 @@ public class SemanticKernelRAGService : IRAGService
             }).ToList());
 
         _memoryInitialized = true;
+        _logger.LogInformation("Semantic Kernel RAG service memory initialized.");
     }
 
     public async Task<(string Completion, string UserPrompt, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
