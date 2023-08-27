@@ -119,7 +119,7 @@ namespace VectorSearchAiAssistant.Service.Services
                 }
 
                 _changeFeedsInitialized = true;
-                _logger.LogInformation("Finished initializing the change feed processors.");
+                _logger.LogInformation("Cosmos DB change feed processors initialized.");
             }
             catch (Exception ex)
             {
