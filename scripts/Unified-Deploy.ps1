@@ -6,12 +6,7 @@ Param(
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$true)][string]$subscription,
     [parameter(Mandatory=$false)][string]$armTemplate="azuredeploy.json",
-    [parameter(Mandatory=$false)][string]$openAiName=$null,
-    [parameter(Mandatory=$false)][string]$openAiRg=$null,
-    [parameter(Mandatory=$false)][string]$openAiCompletionsDeployment=$null,
-    [parameter(Mandatory=$false)][string]$openAiEmbeddingsDeployment=$null,
     [parameter(Mandatory=$false)][bool]$stepDeployArm=$true,
-    [parameter(Mandatory=$false)][bool]$stepDeployOpenAi=$true,
     [parameter(Mandatory=$false)][bool]$stepBuildPush=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployCertManager=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployTls=$true,
@@ -48,26 +43,6 @@ if ($stepDeployArm) {
     & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate -resourcePrefix $resourcePrefix -cosmosDbAccountName $cosmosDbAccountName
 }
 
-if ($stepDeployOpenAi) {
-    if (-not $openAiRg) {
-        $openAiRg=$resourceGroup
-    }
-
-    if (-not $openAiName) {
-        $openAiName = "$($resourcePrefix)-openai"
-    }
-
-    if (-not $openAiCompletionsDeployment) {
-        $openAiCompletionsDeployment = "completions"
-    }
-
-    if (-not $openAiEmbeddingsDeployment) {
-        $openAiEmbeddingsDeployment = "embeddings"
-    }
-
-    & ./Deploy-OpenAi.ps1 -name $openAiName -resourceGroup $openAiRg -location $location -completionsDeployment $openAiCompletionsDeployment -embeddingsDeployment $openAiEmbeddingsDeployment
-}
-
 # Connecting kubectl to AKS
 Write-Host "Retrieving Aks Name" -ForegroundColor Yellow
 $aksName = $(az aks list -g $resourceGroup -o json | ConvertFrom-Json).name
@@ -79,7 +54,7 @@ az aks get-credentials -n $aksName -g $resourceGroup --overwrite-existing
 # Generate Config
 New-Item -ItemType Directory -Force -Path $(./Join-Path-Recursively.ps1 -pathParts ..,__values)
 $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
-& ./Generate-Config.ps1 -resourceGroup $resourceGroup -openAiName $openAiName -openAiRg $openAiRg -openAiDeployment $openAiDeployment -outputFile $gValuesLocation
+& ./Generate-Config.ps1 -resourceGroup $resourceGroup -outputFile $gValuesLocation
 
 # Create Secrets
 if ([string]::IsNullOrEmpty($acrName))
