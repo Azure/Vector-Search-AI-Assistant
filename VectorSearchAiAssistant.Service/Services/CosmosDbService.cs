@@ -9,6 +9,7 @@ using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using Newtonsoft.Json.Linq;
 using VectorSearchAiAssistant.Service.Models;
 using VectorSearchAiAssistant.Service.Utils;
+using System.Diagnostics;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -50,6 +51,14 @@ namespace VectorSearchAiAssistant.Service.Services
 
             _logger.LogInformation("Initializing Cosmos DB service.");
 
+            if (!_settings.EnableTracing)
+            {
+                Type defaultTrace = Type.GetType("Microsoft.Azure.Cosmos.Core.Trace.DefaultTrace,Microsoft.Azure.Cosmos.Direct");
+                TraceSource traceSource = (TraceSource)defaultTrace.GetProperty("TraceSource").GetValue(null);
+                traceSource.Switch.Level = SourceLevels.All;
+                traceSource.Listeners.Clear();
+            }
+
             CosmosSerializationOptions options = new()
             {
                 PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
@@ -57,6 +66,7 @@ namespace VectorSearchAiAssistant.Service.Services
 
             CosmosClient client = new CosmosClientBuilder(_settings.Endpoint, _settings.Key)
                 .WithSerializerOptions(options)
+                .WithConnectionModeGateway()
                 .Build();
 
             Database? database = client?.GetDatabase(_settings.Database);
