@@ -43,7 +43,8 @@ public class SemanticKernelRAGService : IRAGService
         IEnumerable<IMemorySource> memorySources,
         IOptions<SemanticKernelRAGServiceSettings> options,
         IOptions<AzureCognitiveSearchMemorySourceSettings> cognitiveSearchMemorySourceSettings,
-        ILogger<SemanticKernelRAGService> logger)
+        ILogger<SemanticKernelRAGService> logger,
+        ILogger<Kernel> skLogger)
     {
         _systemPromptService = systemPromptService;
         _memorySources = memorySources;
@@ -56,7 +57,7 @@ public class SemanticKernelRAGService : IRAGService
 
         var builder = new KernelBuilder();
 
-        builder.WithLogger(_logger);
+        builder.WithLogger(skLogger);
 
         builder.WithAzureTextEmbeddingGenerationService(
             _settings.OpenAI.EmbeddingsDeployment,
@@ -92,27 +93,35 @@ public class SemanticKernelRAGService : IRAGService
 
     private async Task InitializeMemory()
     {
-        _logger.LogInformation("Initializing the Semantic Kernel RAG service memory...");
-        await _longTermMemory.Initialize(_memoryTypes.Values.ToList());
-
-        // Get current short term memories
-        // TODO: Explore the option of moving static memories loaded from blob storage into the long-term memory (e.g., the Azure Cognitive Search index).
-        // For now, the static memories are re-loaded each time together with the analytical short-term memories originating from Azure Cognitive Search faceted queries.
-        var shortTermMemories = new List<string>(); 
-        foreach (var memorySource in _memorySources)
+        try
         {
-            shortTermMemories.AddRange(await memorySource.GetMemories());
-        }
+            _logger.LogInformation("Initializing the Semantic Kernel RAG service memory...");
+            await _longTermMemory.Initialize(_memoryTypes.Values.ToList());
 
-        await _shortTermMemory.Initialize(shortTermMemories
-            .Select(m => (object) new ShortTermMemory
+            // Get current short term memories
+            // TODO: Explore the option of moving static memories loaded from blob storage into the long-term memory (e.g., the Azure Cognitive Search index).
+            // For now, the static memories are re-loaded each time together with the analytical short-term memories originating from Azure Cognitive Search faceted queries.
+            var shortTermMemories = new List<string>();
+            foreach (var memorySource in _memorySources)
             {
-                entityType__ = nameof(ShortTermMemory),
-                memory__ = m
-            }).ToList());
+                shortTermMemories.AddRange(await memorySource.GetMemories());
+            }
 
-        _memoryInitialized = true;
-        _logger.LogInformation("Semantic Kernel RAG service memory initialized.");
+            await _shortTermMemory.Initialize(shortTermMemories
+                .Select(m => (object)new ShortTermMemory
+                {
+                    entityType__ = nameof(ShortTermMemory),
+                    memory__ = m
+                }).ToList());
+
+            _memoryInitialized = true;
+            _logger.LogInformation("Semantic Kernel RAG service memory initialized.");
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "The Semantic Kernel RAG service memory failed to initialize.");
+        }
     }
 
     public async Task<(string Completion, string UserPrompt, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
