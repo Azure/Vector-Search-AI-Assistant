@@ -22,7 +22,7 @@ openAi:
   key: '{{openAiKey}}'
 cosmosDb:
   containers: 'completions, customer, product'
-  monitoredContainers: 'completions, customer, product'
+  monitoredContainers: 'customer, product'
   database: 'database'
   changeFeedLeaseContainer: 'leases'
   endpoint: '{{cosmosEndpoint}}'
