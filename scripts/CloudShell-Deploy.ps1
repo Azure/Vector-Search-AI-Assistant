@@ -87,6 +87,7 @@ $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFi
 if ([string]::IsNullOrEmpty($acrName))
 {
     $acrName = $(az acr list --resource-group $resourceGroup -o json | ConvertFrom-Json).name
+    $acrResourceGroup = $resourceGroup
 }
 
 Write-Host "The Name of your ACR: $acrName" -ForegroundColor Yellow
