@@ -17,7 +17,7 @@ namespace ChatServiceWebApi
 
         public void Map(WebApplication app)
         {
-            app.MapGet("/status", () => _chatService.IsInitialized ? "ready" : "initializing")
+            app.MapGet("/status", () => _chatService.Status)
                 .WithName("GetServiceStatus");
 
             app.MapGet("/sessions/", async () => await _chatService.GetAllChatSessionsAsync())
