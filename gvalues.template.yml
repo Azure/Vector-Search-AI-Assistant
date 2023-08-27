@@ -42,3 +42,5 @@ blobStorageMemorySource:
   configBlobStorageConnection: '{{blobStorageConnectionString}}'
 apiUrl: {{apiUrl}}
 routePrefix: /api
+applicationInsights:
+  connectionString: "{{aiConnectionString}}"
