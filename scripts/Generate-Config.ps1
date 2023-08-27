@@ -79,7 +79,8 @@ if ($appInsightsName -and $appInsightsName.Length -eq 1) {
     $appinsightsConfig=$(az monitor app-insights component show --app $appInsightsName -g $resourceGroup -o json | ConvertFrom-Json)
 
     if ($appinsightsConfig) {
-        $appinsightsId = $appinsightsConfig.instrumentationKey           
+        $appinsightsId = $appinsightsConfig.instrumentationKey
+        $appinsightsConnectionString = $appinsightsConfig.connectionString 
     }
 }
 Write-Host "App Insights Instrumentation Key: $appinsightsId" -ForegroundColor Yellow
@@ -98,6 +99,7 @@ $tokens.openAiEndpoint=$openAi.properties.endpoint
 $tokens.openAiKey=$openAiKey
 $tokens.searchEndpoint="https://$($search.name).search.windows.net/"
 $tokens.searchAdminKey=$searchKey
+$tokens.aiConnectionString=$appinsightsConnectionString
 
 # Standard fixed tokens
 $tokens.ingressclass=$ingressClass
