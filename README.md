@@ -137,7 +137,7 @@ For deployments that need to use an existing OpenAI service, run the following f
 Create a cloud shell environment in a tenant that contains the target subscription.  Clone the repository and check out the `cognitive-search-vector` branch, and then execute the `CloudShell-Deploy.ps1` script as illustrated in the following snippet.  This will provision all of the required infrastructure and deploy the API and web app services into AKS.
 
 ```pwsh
-git clone https://github.com/hatboyzero/VectorSearchAiAssistant.git
+git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
 cd VectorSearchAiAssistant
 git checkout cognitive-search-vector
 chmod +x ./scripts/*
@@ -162,11 +162,29 @@ The deployed VM name used in deployment is libxarwttxjdevm
 Use RDP to remote into the freshly provisioned VM with the username `BYDtoChatGPTUser` and password `Test123456789!`.  Open up a powershell terminal and run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
 
 ```pwsh
-git clone https://github.com/hatboyzero/VectorSearchAiAssistant.git
+git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
 cd VectorSearchAiAssistant
 git checkout cognitive-search-vector
 ./scripts/VmEnvironment-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription> -stepLoginAzure 1
 ```
+
+### Validate Deployments
+
+Once the deployment script completes, the Application Insights `traces` query should display the following sequence of events:
+
+![API initialization sequence of events](./img/initialization-trace.png)
+
+Next, you should be able to see multiple entries referring to the vectorization of the data that was imported into Cosmos DB:
+
+![API vectorization sequence of events](./img/initialization-embedding.png)
+
+Finally, you should be able to see the Cognitive Search index being populated with the vectorized data:
+
+![Cognitive Search index populated with vectorized data](./img/initialization-vector-index.png)
+
+>**NOTE**:
+>
+>It takes several minutes until all imported data is vectorized and indexed.
 
 ### Quickstart
 
