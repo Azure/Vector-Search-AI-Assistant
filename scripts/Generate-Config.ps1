@@ -2,9 +2,6 @@
 
 Param (
     [parameter(Mandatory=$true)][string]$resourceGroup,
-    [parameter(Mandatory=$false)][string]$openAiName,
-    [parameter(Mandatory=$false)][string]$openAiRg,
-    [parameter(Mandatory=$false)][string]$openAiDeployment,
     [parameter(Mandatory=$false)][string[]]$outputFile=$null,
     [parameter(Mandatory=$false)][string[]]$gvaluesTemplate="..,gvalues.template.yml",
     [parameter(Mandatory=$false)][string[]]$dockerComposeTemplate="..,docker-compose.template.yml",
@@ -59,14 +56,9 @@ $blobAccount=$(az storage account list -g $resourceGroup -o json | ConvertFrom-J
 $blobKey=$(az storage account keys list -g $resourceGroup -n $blobAccount -o json | ConvertFrom-Json)[0].value
 
 ## Getting OpenAI info
-if ($openAiName) {
-    $openAi=$(az cognitiveservices account show -n $openAiName -g $openAiRg -o json | ConvertFrom-Json)
-} else {
-    $openAi=$(az cognitiveservices account list -g $resourceGroup -o json | ConvertFrom-Json)
-    $openAiRg=$resourceGroup
-}
+$openAi=$(az cognitiveservices account list -g $resourceGroup -o json | ConvertFrom-Json)
 
-$openAiKey=$(az cognitiveservices account keys list -g $openAiRg -n $openAi.name -o json --query key1 | ConvertFrom-Json)
+$openAiKey=$(az cognitiveservices account keys list -g $resourceGroup -n $openAi.name -o json --query key1 | ConvertFrom-Json)
 
 ## Getting Cognitive Search info
 $search=$(az search service list -g $resourceGroup --query "[].{name: name, kind:kind}" -o json | ConvertFrom-Json)
@@ -79,7 +71,8 @@ if ($appInsightsName -and $appInsightsName.Length -eq 1) {
     $appinsightsConfig=$(az monitor app-insights component show --app $appInsightsName -g $resourceGroup -o json | ConvertFrom-Json)
 
     if ($appinsightsConfig) {
-        $appinsightsId = $appinsightsConfig.instrumentationKey           
+        $appinsightsId = $appinsightsConfig.instrumentationKey
+        $appinsightsConnectionString = $appinsightsConfig.connectionString 
     }
 }
 Write-Host "App Insights Instrumentation Key: $appinsightsId" -ForegroundColor Yellow
@@ -98,6 +91,7 @@ $tokens.openAiEndpoint=$openAi.properties.endpoint
 $tokens.openAiKey=$openAiKey
 $tokens.searchEndpoint="https://$($search.name).search.windows.net/"
 $tokens.searchAdminKey=$searchKey
+$tokens.aiConnectionString=$appinsightsConnectionString
 
 # Standard fixed tokens
 $tokens.ingressclass=$ingressClass

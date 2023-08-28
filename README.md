@@ -132,6 +132,42 @@ For deployments that need to use an existing OpenAI service, run the following f
                      -openAiEmbeddingsDeployment <openAi-embeddings-deployment-name>
 ```
 
+### Cloud Shell Based Deployments
+
+Create a cloud shell environment in a tenant that contains the target subscription.  Clone the repository and check out the `cognitive-search-vector` branch, and then execute the `CloudShell-Deploy.ps1` script as illustrated in the following snippet.  This will provision all of the required infrastructure and deploy the API and web app services into AKS.
+
+```pwsh
+git clone https://github.com/hatboyzero/VectorSearchAiAssistant.git
+cd VectorSearchAiAssistant
+git checkout cognitive-search-vector
+chmod +x ./scripts/*
+./scripts/CloudShell-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription>
+```
+
+### Azure VM Based Deployments
+
+Run the following script to provision a development VM with Visual Studio 2022 Community and required dependencies preinstalled.
+
+```pwsh
+.\scripts\Deploy-Vm.ps1 -resourceGroup <rg-name> -location EastUS
+```
+
+When the script completes, the console output should display the name of the provisioned VM similar to the following:
+
+```
+The resource prefix used in deployment is libxarwttxjde
+The deployed VM name used in deployment is libxarwttxjdevm
+```
+
+Use RDP to remote into the freshly provisioned VM with the username `BYDtoChatGPTUser` and password `Test123456789!`.  Open up a powershell terminal and run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
+
+```pwsh
+git clone https://github.com/hatboyzero/VectorSearchAiAssistant.git
+cd VectorSearchAiAssistant
+git checkout cognitive-search-vector
+./scripts/VmEnvironment-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription> -stepLoginAzure 1
+```
+
 ### Quickstart
 
 1. Navigate to resource group and obtain the name of the AKS service and execute the following command to obtain the OpenAI Chat endpoint

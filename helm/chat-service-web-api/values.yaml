@@ -73,6 +73,7 @@ env:
     - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__Key
     - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageConnection
     - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
+    - name: ApplicationInsights__ConnectionString
   values:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
