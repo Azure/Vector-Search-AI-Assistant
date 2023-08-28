@@ -1,19 +1,21 @@
 #! /usr/bin/pwsh
 
 Param(
-    [parameter(Mandatory=$false)][string]$acrName=$null,
+    [parameter(Mandatory=$false)][string]$acrName="bydtochatgptcr",
+    [parameter(Mandatory=$false)][string]$acrResourceGroup="ms-byd-to-chatgpt",
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$true)][string]$subscription,
     [parameter(Mandatory=$false)][string]$armTemplate="azuredeploy.json",
     [parameter(Mandatory=$false)][bool]$stepDeployArm=$true,
-    [parameter(Mandatory=$false)][bool]$stepBuildPush=$true,
+    [parameter(Mandatory=$false)][bool]$stepBuildImages=$false,
+    [parameter(Mandatory=$false)][bool]$stepPushImages=$false,
     [parameter(Mandatory=$false)][bool]$stepDeployCertManager=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployTls=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployImages=$true,
     [parameter(Mandatory=$false)][bool]$stepUploadSystemPrompts=$true,
     [parameter(Mandatory=$false)][bool]$stepImportData=$true,
-    [parameter(Mandatory=$false)][bool]$stepLoginAzure=$true
+    [parameter(Mandatory=$false)][bool]$stepLoginAzure=$false
 )
 
 $gValuesFile="configFile.yaml"
@@ -60,11 +62,12 @@ $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFi
 if ([string]::IsNullOrEmpty($acrName))
 {
     $acrName = $(az acr list --resource-group $resourceGroup -o json | ConvertFrom-Json).name
+    $acrResourceGroup = $resourceGroup
 }
 
 Write-Host "The Name of your ACR: $acrName" -ForegroundColor Yellow
 # & ./Create-Secret.ps1 -resourceGroup $resourceGroup -acrName $acrName
-az aks update -n $aksName -g $resourceGroup --attach-acr $acrName
+# az aks update -n $aksName -g $resourceGroup --attach-acr $acrName
 
 if ($stepDeployCertManager) {
     # Deploy Cert Manager
@@ -76,9 +79,14 @@ if ($stepDeployTls) {
     & ./DeployTlsSupport.ps1 -sslSupport prod -resourceGroup $resourceGroup -aksName $aksName
 }
 
-if ($stepBuildPush) {
-    # Build an Push
-    & ./BuildPush.ps1 -resourceGroup $resourceGroup -acrName $acrName
+if ($stepBuildImages) {
+    # Build
+    & ./BuildImages.ps1 -resourceGroup $acrResourceGroup -acrName $acrName
+}
+
+if ($stepPushImages) {
+    # Push
+    & ./PushImages.ps1 -resourceGroup $acrResourceGroup -acrName $acrName
 }
 
 if ($stepUploadSystemPrompts) {
@@ -90,12 +98,12 @@ if ($stepDeployImages) {
     # Deploy images in AKS
     $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
     $chartsToDeploy = "*"
-    & ./Deploy-Images-Aks.ps1 -aksName $aksName -resourceGroup $resourceGroup -charts $chartsToDeploy -acrName $acrName -valuesFile $gValuesLocation
+    & ./Deploy-Images-Aks.ps1 -aksName $aksName -resourceGroup $resourceGroup -charts $chartsToDeploy -acrName $acrName -acrResourceGroup $acrResourceGroup -valuesFile $gValuesLocation
 }
 
 if ($stepImportData) {
     # Import Data
-    & ./Import-Data.ps1 -resourceGroup $resourceGroup -cosmosDbAccountName $cosmosDbAccountName
+    & ./Import-Data-CloudShell.ps1 -resourceGroup $resourceGroup -cosmosDbAccountName $cosmosDbAccountName -subscription $subscription
 }
 
 $webappHostname=$(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)

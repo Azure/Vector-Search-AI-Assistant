@@ -5,6 +5,7 @@ Param(
     [parameter(Mandatory=$false)][string]$aksName,
     [parameter(Mandatory=$false)][string]$resourceGroup,
     [parameter(Mandatory=$false)][string]$acrName,
+    [parameter(Mandatory=$false)][string]$acrResourceGroup=$resourceGroup,
     [parameter(Mandatory=$false)][string]$tag="latest",
     [parameter(Mandatory=$false)][string]$charts = "*",
     [parameter(Mandatory=$false)][string]$valuesFile = "",
@@ -87,7 +88,13 @@ Write-Host " TLS/SSL environment to enable: $tlsEnv"  -ForegroundColor Yellow
 Write-Host " Namespace (empty means the one in .kube/config): $namespace"  -ForegroundColor Yellow
 Write-Host " --------------------------------------------------------" 
 
-$acrLogin=$(az acr show -n $acrName -g $resourceGroup -o json| ConvertFrom-Json).loginServer
+if ($acrName -ne "bydtochatgptcr") {
+    $acrLogin=$(az acr show -n $acrName -g $acrResourceGroup -o json| ConvertFrom-Json).loginServer
+    Write-Host "acr login server is $acrLogin" -ForegroundColor Yellow
+}
+else {
+    $acrLogin="bydtochatgptcr.azurecr.io"
+}
 
 if ($tlsEnv -ne "custom" -and [String]::IsNullOrEmpty($tlsHost)) {
     $aksHost=$(az aks show -n $aksName -g $resourceGroup --query addonProfiles.httpapplicationrouting.config.HTTPApplicationRoutingZoneName -o json | ConvertFrom-Json)

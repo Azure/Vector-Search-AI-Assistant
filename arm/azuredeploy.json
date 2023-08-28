@@ -46,6 +46,32 @@
       "name": "[format('{0}-cog-search', parameters('name'))]",
       "sku": "basic"
     },
+    "openAiSettings": {
+      "name": "[format('{0}-openai', parameters('name'))]",
+      "sku": "S0",
+      "deployments": {
+        "completions": {
+          "sku": {
+            "name": "Standard",
+            "capacity": 120
+          },
+          "model": {
+            "name": "gpt-35-turbo",
+            "version": "0301"
+          }
+        },
+        "embeddings": {
+          "sku": {
+            "name": "Standard",
+            "capacity": 120
+          },
+          "model": {
+            "name": "text-embedding-ada-002",
+            "version": "2"
+          }
+        }
+      }
+    },
     "cosmosContainers": {
       "embeddingContainer": {
         "name": "embedding",
@@ -93,6 +119,12 @@
       "nodeRG": "[format('MC_{0}', parameters('name'))]",
       "sku": "Basic",
       "tier": "Free"
+    },
+    "laSettings": {
+      "name": "[format('{0}-la', parameters('name'))]"
+    },
+    "aiSettings": {
+      "name": "[format('{0}-ai', parameters('name'))]"
     }
   },
   "resources": [
@@ -157,6 +189,61 @@
       "dependsOn": [
         "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosDbSettings').name, variables('cosmosDbSettings').databaseName)]"
       ]
+    },
+    {
+        "type": "Microsoft.CognitiveServices/accounts",
+        "apiVersion": "2023-05-01",
+        "name": "[variables('openAiSettings').name]",
+        "location": "EastUS",
+        "sku": {
+            "name": "[variables('openAiSettings').sku]"
+        },
+        "kind": "OpenAI",
+        "properties": {
+            "customSubDomainName": "[variables('openAiSettings').name]",
+            "publicNetworkAccess": "Enabled"
+        }
+    },
+    {
+        "type": "Microsoft.CognitiveServices/accounts/deployments",
+        "apiVersion": "2023-05-01",
+        "name": "[concat(variables('openAiSettings').name, '/completions')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]"
+        ],
+        "sku": {
+            "name": "[variables('openAiSettings').deployments.completions.sku.name]",
+            "capacity": "[variables('openAiSettings').deployments.completions.sku.capacity]"
+        },
+        "properties": {
+            "model": {
+                "format": "OpenAI",
+                "name": "[variables('openAiSettings').deployments.completions.model.name]",
+                "version": "[variables('openAiSettings').deployments.completions.model.version]"
+            },
+            "versionUpgradeOption": "OnceNewDefaultVersionAvailable"
+        }
+    },
+    {
+        "type": "Microsoft.CognitiveServices/accounts/deployments",
+        "apiVersion": "2023-05-01",
+        "name": "[concat(variables('openAiSettings').name, '/embeddings')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
+            "[concat(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '/deployments/completions')]"
+        ],
+        "sku": {
+            "name": "[variables('openAiSettings').deployments.embeddings.sku.name]",
+            "capacity": "[variables('openAiSettings').deployments.embeddings.sku.capacity]"
+        },
+        "properties": {
+            "model": {
+                "format": "OpenAI",
+                "name": "[variables('openAiSettings').deployments.embeddings.model.name]",
+                "version": "[variables('openAiSettings').deployments.embeddings.model.version]"
+            },
+            "versionUpgradeOption": "OnceNewDefaultVersionAvailable"
+        }
     },
     {
       "type": "Microsoft.Search/searchServices",
@@ -303,12 +390,53 @@
       }
     },
     {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2021-12-01-preview",
+      "name": "[variables('laSettings').name]",
+      "location": "eastus",
+      "properties": {
+        "sku": {
+          "name": "Standalone"
+        },
+        "retentionInDays": 31,
+        "features": {
+          "enableLogAccessUsingOnlyResourcePermissions": true
+        },
+        "workspaceCapping": {
+          "dailyQuotaGb": -1
+        },
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('aiSettings').name]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "Flow_Type": "Bluefield",
+        "Request_Source": "rest",
+        "RetentionInDays": 30,
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name)]",
+        "IngestionMode": "LogAnalytics",
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name)]"
+      ]
+    },
+    {
       "type": "Microsoft.ContainerService/managedClusters",
       "apiVersion": "2023-01-02-preview",
       "name": "[variables('aksSettings').name]",
       "location": "eastus",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet')]"
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet')]",
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name)]"
       ],
       "sku": {
         "name": "Basic",
@@ -367,6 +495,13 @@
           },
           "httpApplicationRouting": {
             "enabled": true
+          },
+          "omsagent": {
+            "enabled": true,
+            "config": {
+              "logAnalyticsWorkspaceResourceID": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name)]",
+              "useAADAuth": "true"
+            }
           }
         },
         "nodeResourceGroup": "[variables('aksSettings').nodeRG]",
@@ -436,7 +571,13 @@
             "enabled": true
           }
         },
-        "workloadAutoScalerProfile": {}
+        "workloadAutoScalerProfile": {},
+        "azureMonitorProfile": {
+          "metrics": {
+            "enabled": true,
+            "kubeStateMetrics": {}
+          }
+        }
       }
     },
     {
