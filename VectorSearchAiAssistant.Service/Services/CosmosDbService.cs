@@ -9,6 +9,7 @@ using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using Newtonsoft.Json.Linq;
 using VectorSearchAiAssistant.Service.Models;
 using VectorSearchAiAssistant.Service.Utils;
+using System.Diagnostics;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -48,6 +49,16 @@ namespace VectorSearchAiAssistant.Service.Services
 
             _logger = logger;
 
+            _logger.LogInformation("Initializing Cosmos DB service.");
+
+            if (!_settings.EnableTracing)
+            {
+                Type defaultTrace = Type.GetType("Microsoft.Azure.Cosmos.Core.Trace.DefaultTrace,Microsoft.Azure.Cosmos.Direct");
+                TraceSource traceSource = (TraceSource)defaultTrace.GetProperty("TraceSource").GetValue(null);
+                traceSource.Switch.Level = SourceLevels.All;
+                traceSource.Listeners.Clear();
+            }
+
             CosmosSerializationOptions options = new()
             {
                 PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
@@ -55,6 +66,7 @@ namespace VectorSearchAiAssistant.Service.Services
 
             CosmosClient client = new CosmosClientBuilder(_settings.Endpoint, _settings.Key)
                 .WithSerializerOptions(options)
+                .WithConnectionModeGateway()
                 .Build();
 
             Database? database = client?.GetDatabase(_settings.Database);
@@ -84,10 +96,12 @@ namespace VectorSearchAiAssistant.Service.Services
                 ?? throw new ArgumentException($"Unable to connect to the {_settings.ChangeFeedLeaseContainer} container required to listen to the CosmosDB change feed.");
 
             Task.Run(() => StartChangeFeedProcessors());
+            _logger.LogInformation("Cosmos DB service initialized.");
         }
 
         private async Task StartChangeFeedProcessors()
         {
+            _logger.LogInformation("Initializing the change feed processors...");
             _changeFeedProcessors = new List<ChangeFeedProcessor>();
 
             try
@@ -97,13 +111,16 @@ namespace VectorSearchAiAssistant.Service.Services
                     var changeFeedProcessor = _containers[monitoredContainerName]
                         .GetChangeFeedProcessorBuilder<dynamic>($"{monitoredContainerName}ChangeFeed", GenericChangeFeedHandler)
                         .WithInstanceName($"{monitoredContainerName}ChangeInstance")
+                        .WithErrorNotification(GenericChangeFeedErrorHandler)
                         .WithLeaseContainer(_leases)
                         .Build();
                     await changeFeedProcessor.StartAsync();
                     _changeFeedProcessors.Add(changeFeedProcessor);
+                    _logger.LogInformation($"Initialized the change feed processor for the {monitoredContainerName} container.");
                 }
 
                 _changeFeedsInitialized = true;
+                _logger.LogInformation("Cosmos DB change feed processors initialized.");
             }
             catch (Exception ex)
             {
@@ -120,35 +137,61 @@ namespace VectorSearchAiAssistant.Service.Services
             if (changes.Count == 0)
                 return;
 
-            _logger.LogInformation("Generating embeddings for " + changes.Count + " entities.");
+            var batchRef = Guid.NewGuid().ToString();
+            _logger.LogInformation($"Starting to generate embeddings for {changes.Count} entities (batch ref {batchRef}).");
 
             // Using dynamic type as this container has two different entities
             foreach (var item in changes)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    break;
-
-                var jObject = item as JObject;
-                var typeMetadata = ModelRegistry.IdentifyType(jObject);
-
-                if (typeMetadata == null)
+                try
                 {
-                    _logger.LogError($"Unsupported entity saved in customer container: {jObject}");
+                    if (cancellationToken.IsCancellationRequested)
+                        break;
+
+                    var jObject = item as JObject;
+                    var typeMetadata = ModelRegistry.IdentifyType(jObject);
+
+                    if (typeMetadata == null)
+                    {
+                        _logger.LogError($"Unsupported entity type in Cosmos DB change feed handler: {jObject}");
+                    }
+                    else
+                    {
+                        var entity = jObject.ToObject(typeMetadata.Type);
+
+                        // Add the entity to the Semantic Kernel memory used by the RAG service
+                        // We want to keep the VectorSearchAiAssistant.SemanticKernel project isolated from any domain-specific
+                        // references/dependencies, so we use a generic mechanism to get the name of the entity as well as to 
+                        // set the vector property on the entity.
+                        await _ragService.AddMemory(
+                            entity,
+                            string.Join(" ", entity.GetPropertyValues(typeMetadata.NamingProperties)),
+                            (e, v) => { (e as EmbeddedEntity).vector = v; });
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    var entity = jObject.ToObject(typeMetadata.Type);
-
-                    // Add the entity to the Semantic Kernel memory used by the RAG service
-                    // We want to keep the VectorSearchAiAssistant.SemanticKernel project isolated from any domain-specific
-                    // references/dependencies, so we use a generic mechanism to get the name of the entity as well as to 
-                    // set the vector property on the entity.
-                    await _ragService.AddMemory(
-                        entity,
-                        string.Join(" ", entity.GetPropertyValues(typeMetadata.NamingProperties)),
-                        (e, v) => { (e as EmbeddedEntity).vector = v; });
+                    _logger.LogError(ex, $"Error processing an item in the change feed handler: {item}");
                 }
             }
+
+            _logger.LogInformation($"Finished generating embeddings (batch ref {batchRef}).");
+        }
+
+        private async Task GenericChangeFeedErrorHandler(
+            string LeaseToken,
+            Exception exception)
+        {
+            if (exception is ChangeFeedProcessorUserException userException)
+            {
+                Console.WriteLine($"Lease {LeaseToken} processing failed with unhandled exception from user delegate {userException.InnerException}");
+            }
+            else
+            {
+                Console.WriteLine($"Lease {LeaseToken} failed with {exception}");
+            }
+
+            await Task.CompletedTask;
         }
 
         /// <summary>

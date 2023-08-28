@@ -37,6 +37,8 @@ ingress:
 env:
   configmap:
     - name: MSCosmosDBOpenAI__ChatManager__APIUrl
+  secret:
+    - name: ApplicationInsights__ConnectionString    
   values:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
