@@ -11,6 +11,8 @@ namespace ChatServiceWebApi
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddApplicationInsightsTelemetry();
+
             builder.Services.AddOptions<CosmosDbSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CosmosDB"));
 
@@ -47,6 +49,10 @@ namespace ChatServiceWebApi
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            app.UseExceptionHandler(exceptionHandlerApp
+                    => exceptionHandlerApp.Run(async context
+                        => await Results.Problem().ExecuteAsync(context)));
 
             // Configure the HTTP request pipeline.
             app.UseSwagger();

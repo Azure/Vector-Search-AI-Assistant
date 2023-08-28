@@ -12,7 +12,23 @@ public class ChatService : IChatService
     private readonly IRAGService _ragService;
     private readonly ILogger _logger;
 
-    public bool IsInitialized => _cosmosDbService.IsInitialized && _ragService.IsInitialized;
+    public string Status
+    {
+        get
+        {
+            if (_cosmosDbService.IsInitialized && _ragService.IsInitialized)
+                return "ready";
+
+            var status = new List<string>();
+
+            if (!_cosmosDbService.IsInitialized)
+                status.Add("CosmosDBService: initializing");
+            if (!_ragService.IsInitialized)
+                status.Add("SemanticKernelRAGService: initializing");
+
+            return string.Join(",", status);
+        }
+    }
 
     public ChatService(
         ICosmosDbService cosmosDbService,
@@ -75,28 +91,36 @@ public class ChatService : IChatService
     /// </summary>
     public async Task<Completion> GetChatCompletionAsync(string? sessionId, string userPrompt)
     {
-        ArgumentNullException.ThrowIfNull(sessionId);
+        try
+        {
+            ArgumentNullException.ThrowIfNull(sessionId);
 
-        // Retrieve conversation, including latest prompt.
-        // If you put this after the vector search it doesn't take advantage of previous information given so harder to chain prompts together.
-        // However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
+            // Retrieve conversation, including latest prompt.
+            // If you put this after the vector search it doesn't take advantage of previous information given so harder to chain prompts together.
+            // However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
 
-        // Retrieve conversation, including latest prompt.
-        var messages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
+            // Retrieve conversation, including latest prompt.
+            var messages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
 
-        // Generate the completion to return to the user
-        //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAs ync(sessionId, conversation, retrievedDocuments);
-        var result = await _ragService.GetResponse(userPrompt, messages);
+            // Generate the completion to return to the user
+            //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAs ync(sessionId, conversation, retrievedDocuments);
+            var result = await _ragService.GetResponse(userPrompt, messages);
 
-        // Add to prompt and completion to cache, then persist in Cosmos as transaction 
-        var promptMessage = new Message(sessionId, nameof(Participants.User), result.UserPromptTokens, userPrompt, result.UserPromptEmbedding, null);
-        var completionMessage = new Message(sessionId, nameof(Participants.Assistant), result.ResponseTokens, result.Completion, null, null);
-        var completionPrompt = new CompletionPrompt(sessionId, completionMessage.Id, result.UserPrompt);
-        completionMessage.CompletionPromptId = completionPrompt.Id;
+            // Add to prompt and completion to cache, then persist in Cosmos as transaction 
+            var promptMessage = new Message(sessionId, nameof(Participants.User), result.UserPromptTokens, userPrompt, result.UserPromptEmbedding, null);
+            var completionMessage = new Message(sessionId, nameof(Participants.Assistant), result.ResponseTokens, result.Completion, null, null);
+            var completionPrompt = new CompletionPrompt(sessionId, completionMessage.Id, result.UserPrompt);
+            completionMessage.CompletionPromptId = completionPrompt.Id;
 
-        await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage, completionPrompt);
+            await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage, completionPrompt);
 
-        return new Completion { Text = result.Completion };
+            return new Completion { Text = result.Completion };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error getting completion in session {sessionId} for user prompt [{userPrompt}].");
+            return new Completion { Text = "Could not generate a completion due to an internal error." };
+        }
     }
 
     /// <summary>
@@ -104,15 +128,23 @@ public class ChatService : IChatService
     /// </summary>
     public async Task<Completion> SummarizeChatSessionNameAsync(string? sessionId, string prompt)
     {
-        ArgumentNullException.ThrowIfNull(sessionId);
+        try
+        {
+            ArgumentNullException.ThrowIfNull(sessionId);
 
-        await Task.CompletedTask;
+            await Task.CompletedTask;
 
-        var summary = await _ragService.Summarize(sessionId, prompt);
+            var summary = await _ragService.Summarize(sessionId, prompt);
 
-        await RenameChatSessionAsync(sessionId, summary);
+            await RenameChatSessionAsync(sessionId, summary);
 
-        return new Completion { Text = summary };
+            return new Completion { Text = summary };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error getting a summary in session {sessionId} for user prompt [{prompt}].");
+            return new Completion { Text = "[No Summary]" };
+        }
     }
 
     /// <summary>

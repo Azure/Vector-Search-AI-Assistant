@@ -9,7 +9,7 @@
 		<PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.6" />
 		<PackageReference Include="Azure.Search.Documents" Version="11.5.0-alpha.20230531.1" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
-		<PackageReference Include="Microsoft.Azure.Cosmos" Version="3.32.3" />
+		<PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.3" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.1" />
 		<PackageReference Include="Moq" Version="4.18.4" />
