@@ -111,6 +111,7 @@ namespace VectorSearchAiAssistant.Service.Services
                     var changeFeedProcessor = _containers[monitoredContainerName]
                         .GetChangeFeedProcessorBuilder<dynamic>($"{monitoredContainerName}ChangeFeed", GenericChangeFeedHandler)
                         .WithInstanceName($"{monitoredContainerName}ChangeInstance")
+                        .WithErrorNotification(GenericChangeFeedErrorHandler)
                         .WithLeaseContainer(_leases)
                         .Build();
                     await changeFeedProcessor.StartAsync();
@@ -152,7 +153,7 @@ namespace VectorSearchAiAssistant.Service.Services
 
                     if (typeMetadata == null)
                     {
-                        _logger.LogError($"Unsupported entity saved in customer container: {jObject}");
+                        _logger.LogError($"Unsupported entity type in Cosmos DB change feed handler: {jObject}");
                     }
                     else
                     {
@@ -175,6 +176,22 @@ namespace VectorSearchAiAssistant.Service.Services
             }
 
             _logger.LogInformation($"Finished generating embeddings (batch ref {batchRef}).");
+        }
+
+        private async Task GenericChangeFeedErrorHandler(
+            string LeaseToken,
+            Exception exception)
+        {
+            if (exception is ChangeFeedProcessorUserException userException)
+            {
+                Console.WriteLine($"Lease {LeaseToken} processing failed with unhandled exception from user delegate {userException.InnerException}");
+            }
+            else
+            {
+                Console.WriteLine($"Lease {LeaseToken} failed with {exception}");
+            }
+
+            await Task.CompletedTask;
         }
 
         /// <summary>
