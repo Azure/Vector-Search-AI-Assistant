@@ -20,6 +20,7 @@ services:
       MSCosmosDBOpenAI__OpenAI__Endpoint: '{{OpenAiEndpoint}}'
       MSCosmosDBOpenAI__OpenAI__Key: '{{OpenAiKey}}'
       MSCosmosDBOpenAI__CosmosDB__Containers: 'completions, customer, product'
+      MSCosmosDBOpenAI__CosmosDB__MonitoredContainers: 'customer, product'
       MSCosmosDBOpenAI__CosmosDB__Database: 'database'
       MSCosmosDBOpenAI__CosmosDB__Endpoint: '{{cosmosEndpoint}}'
       MSCosmosDBOpenAI__CosmosDB__Key: '{{cosmosKey}}'
