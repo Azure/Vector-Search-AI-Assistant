@@ -17,7 +17,16 @@ Before users in your team can deploy the solution using Cloud Shell, you need to
     git checkout cognitive-search-vector
     ```
 
-4. Execute the `Prepare-CloudShell-Deploy.ps1` script. This will build the portal and API Docker images and push them to the ACR instance created in step 1.
+4. Open the `CloudShell-Deploy.ps1` script from the `scripts` folder with the text editor of your choice. In lines 4 and 5, update the default values for the parameters `acrName` and `acrResourceGroup` with the values corresponding to the ACR instance created in step 1. 
+
+5. Save the changes to the `CloudShell-Deploy.ps1` script, commit them to the `cognitive-search-vector` branch, and push the changes to the remote repository.
+
+    ```cmd
+    git commit -m "Updated ACR details for Cloud Shell deployment"
+    git push
+    ```
+   
+6. Execute the `Prepare-CloudShell-Deploy.ps1` script. This will build the portal and API Docker images and push them to the ACR instance created in step 1.
 
 
     ```pwsh
