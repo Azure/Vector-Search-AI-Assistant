@@ -2,8 +2,7 @@
 
 Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
-    [parameter(Mandatory=$true)][string]$cosmosDbAccountName, 
-    [parameter(Mandatory=$true)][string]$subscription
+    [parameter(Mandatory=$true)][string]$aksName
 )
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
@@ -19,36 +18,26 @@ $result = Invoke-WebRequest -Uri $blobUri
 $customers = $result.Content.Substring(1, $result.Content.Length - 1) | ConvertFrom-Json
 Write-Output "Imported $($customers.Length) customers"
 
-$module = Get-InstalledModule -Name 'CosmosDB'
-if($module -ne $null)
-{
-    write-host "Module CosmosDB is avaiable"
-}
-else
-{
-    write-host "Module CosmosDB is not avaiable, installing..."
-    Install-Module -Name CosmosDB -AllowClobber -force
-}
+$webappHostname=$(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
+$apiUrl = "https://$webappHostname/api"
 
-Import-Module CosmosDB
-
-# Write-Host "Choosing your subscription" -ForegroundColor 
-az account show
-az account set --subscription $subscription
-
-$database = "database"
-
-Set-AzContext -Subscription $subscription
-$cosmosDbContext = New-CosmosDbContext -Account $cosmosDbAccountName -Database $database -ResourceGroup $resourceGroup
+$OldProgressPreference = $ProgressPreference
+$ProgressPreference = "SilentlyContinue"
 
 foreach($product in $products)
 {
-    New-CosmosDbDocument -Context $cosmosDbContext -CollectionId 'product' -DocumentBody ($product | ConvertTo-Json) -PartitionKey $product.categoryId
+    Invoke-RestMethod -Uri $apiUrl/products -Method POST -Body ($product | ConvertTo-Json) -ContentType 'application/json'
 }
 
 foreach($customer in $customers)
 {
-    New-CosmosDbDocument -Context $cosmosDbContext -CollectionId 'customer' -DocumentBody ($customer | ConvertTo-Json) -PartitionKey $customer.customerId
+    if ($customer.type -eq "customer") {
+        Invoke-RestMethod -Uri $apiUrl/customers -Method POST -Body ($customer | ConvertTo-Json) -ContentType 'application/json'
+    } elseif ($customer.type -eq "salesOrder") {
+        Invoke-RestMethod -Uri $apiUrl/salesorders -Method POST -Body ($customer | ConvertTo-Json) -ContentType 'application/json'
+    }
 }
+
+$ProgressPreference = $OldProgressPreference
 
 Pop-Location
