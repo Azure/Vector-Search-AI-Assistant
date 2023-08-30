@@ -27,15 +27,15 @@ $ProgressPreference = "SilentlyContinue"
 
 foreach($product in $products)
 {
-    Invoke-RestMethod -Uri $apiUrl/products -Method POST -Body ($product | ConvertTo-Json) -ContentType 'application/json'
+    Invoke-RestMethod -Uri $apiUrl/products -Method PUT -Body ($product | ConvertTo-Json) -ContentType 'application/json'
 }
 
 foreach($customer in $customers)
 {
     if ($customer.type -eq "customer") {
-        Invoke-RestMethod -Uri $apiUrl/customers -Method POST -Body ($customer | ConvertTo-Json) -ContentType 'application/json'
+        Invoke-RestMethod -Uri $apiUrl/customers -Method PUT -Body ($customer | ConvertTo-Json) -ContentType 'application/json'
     } elseif ($customer.type -eq "salesOrder") {
-        Invoke-RestMethod -Uri $apiUrl/salesorders -Method POST -Body ($customer | ConvertTo-Json) -ContentType 'application/json'
+        Invoke-RestMethod -Uri $apiUrl/salesorders -Method PUT -Body ($customer | ConvertTo-Json) -ContentType 'application/json'
     }
 }
 
