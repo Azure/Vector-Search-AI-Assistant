@@ -152,7 +152,7 @@ while (($apiStatus.ToString() -ne "ready") -and ($retriesLeft -gt 0)) {
         Write-Host "The attempt to invoke the API endpoint failed. Will retry."
     }
     finally {
-        Write-Host "API endpoint status: $($apiStatus)"
+        Write-Host "Last known API endpoint status: $($apiStatus)"
     }
     
     $retriesLeft -= 1
