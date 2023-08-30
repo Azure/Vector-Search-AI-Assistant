@@ -20,7 +20,7 @@ $acrLoginServer=$(az acr show -g $resourceGroup -n $acrName -o json | ConvertFro
 $acrCredentials=$(az acr credential show -g $resourceGroup -n $acrName -o json | ConvertFrom-Json)
 $acrPwd=$acrCredentials.passwords[0].value
 $acrUser=$acrCredentials.username
-$dockerComposeFile="../docker-compose.yml"
+$dockerComposeFile="../docker/docker-compose.yml"
 
 
 if ($dockerBuild) {
