@@ -8,8 +8,6 @@ Param(
     [parameter(Mandatory=$true)][string]$subscription,
     [parameter(Mandatory=$false)][string]$armTemplate="azuredeploy.json",
     [parameter(Mandatory=$false)][bool]$stepDeployArm=$true,
-    [parameter(Mandatory=$false)][bool]$stepBuildImages=$false,
-    [parameter(Mandatory=$false)][bool]$stepPushImages=$false,
     [parameter(Mandatory=$false)][bool]$stepDeployCertManager=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployTls=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployImages=$true,
@@ -77,16 +75,6 @@ if ($stepDeployCertManager) {
 if ($stepDeployTls) {
     # Deploy TLS
     & ./DeployTlsSupport.ps1 -sslSupport prod -resourceGroup $resourceGroup -aksName $aksName
-}
-
-if ($stepBuildImages) {
-    # Build
-    & ./BuildImages.ps1 -resourceGroup $acrResourceGroup -acrName $acrName
-}
-
-if ($stepPushImages) {
-    # Push
-    & ./PushImages.ps1 -resourceGroup $acrResourceGroup -acrName $acrName
 }
 
 if ($stepUploadSystemPrompts) {
