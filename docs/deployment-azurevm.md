@@ -10,8 +10,9 @@
 Run the following script to provision a development VM with Visual Studio 2022 Community and required dependencies preinstalled.
 
 ```pwsh
-.\scripts\Deploy-Vm.ps1 -resourceGroup <rg_name> -location <location>
+.\scripts\Deploy-Vm.ps1 -resourceGroup <rg_name> -location <location> -password <password>
 ```
+`<password`> is the password for the `BYDtoChatGPTUser` account that will be created on the VM. It must be at least 12 characters long and meet the complexity requirements of Azure VMs.
 
 When the script completes, the console output should display the name of the provisioned VM similar to the following:
 
@@ -20,7 +21,11 @@ The resource prefix used in deployment is libxarwttxjde
 The deployed VM name used in deployment is libxarwttxjdevm
 ```
 
-Use RDP to remote into the freshly provisioned VM with the username `BYDtoChatGPTUser` and password `Test123456789!`.  Open up a powershell terminal and run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
+Use RDP to remote into the freshly provisioned VM with the username `BYDtoChatGPTUser` and the password you provided earlier on.  
+
+>**IMPORTANT**: The password for the `BYDtoChatGPTUser` account must be changed on first login.
+
+Open up a powershell terminal and run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
 
 ```pwsh
 git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git

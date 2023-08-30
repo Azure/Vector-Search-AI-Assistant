@@ -5,11 +5,6 @@
         "location": {
             "type": "string",
             "defaultValue": "eastus",
-            "allowedValues": [
-              "southcentralus",
-              "eastus",
-              "westeurope"
-            ],
             "metadata": {
               "description": "Location where all resources will be deployed. This value defaults to the **East US** region."
             }
@@ -20,6 +15,12 @@
             "maxLength": 15,
             "metadata": {
               "description": "Unique name for the deployed services below. Max length 15 characters, alphanumeric only:\r\n- Azure Cosmos DB for NoSQL\r\n- Azure Cosmos DB for MongoDB vCore\r\n- Azure OpenAI\r\n- Azure App Service\r\n- Azure Functions\r\n\r\nThe name defaults to a unique string generated from the resource group identifier.\r\n"
+            }
+          },
+          "password": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the Azure VM. The password must be at least 12 characters long and meet the complexity requirements of Azure VMs."
             }
           }
     },
@@ -140,7 +141,7 @@
                 "osProfile": {
                     "computerName": "[variables('vmSettings').name]",
                     "adminUsername": "BYDtoChatGPTUser",
-                    "adminPassword": "Test123456789!",
+                    "adminPassword": "[parameters('password')]",
                     "windowsConfiguration": {
                         "provisionVMAgent": true,
                         "enableAutomaticUpdates": true,
