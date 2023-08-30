@@ -91,6 +91,20 @@ public interface ICosmosDbService
     Task<Product> InsertProductAsync(Product product);
 
     /// <summary>
+    /// Inserts a customer into the customer container.
+    /// </summary>
+    /// <param name="product">Customer item to create.</param>
+    /// <returns>Newly created customer item.</returns>
+    Task<Customer> InsertCustomerAsync(Customer customer);
+
+    /// <summary>
+    /// Inserts a sales order into the customer container.
+    /// </summary>
+    /// <param name="product">Sales order item to create.</param>
+    /// <returns>Newly created sales order item.</returns>
+    Task<SalesOrder> InsertSalesOrderAsync(SalesOrder salesOrder);
+
+    /// <summary>
     /// Deletes a product by its Id and category (its partition key).
     /// </summary>
     /// <param name="productId">The Id of the product to delete.</param>
