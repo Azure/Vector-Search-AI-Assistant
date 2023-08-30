@@ -91,7 +91,7 @@ if ($stepDeployImages) {
 
 if ($stepImportData) {
     # Import Data
-    & ./Import-Data-CloudShell.ps1 -resourceGroup $resourceGroup -cosmosDbAccountName $cosmosDbAccountName -subscription $subscription
+    & ./Import-Data-CloudShell.ps1 -resourceGroup $resourceGroup -aksName $aksName
 }
 
 $webappHostname=$(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
