@@ -2,8 +2,8 @@ services:
   api:
     image: ${REGISTRY:-ms-openai-cosmosdb}/chat-service-api:${TAG:-latest}
     build:
-      context: ./
-      dockerfile: ./ChatServiceWebApi/Dockerfile
+      context: ../
+      dockerfile: ../ChatServiceWebApi/Dockerfile
     ports:
     - "80:80"
     environment:
@@ -15,8 +15,8 @@ services:
   web:
     image: ${REGISTRY:-ms-openai-cosmosdb}/chat-web-app:${TAG:-latest}
     build:
-      context: ./
-      dockerfile: ./Search/Dockerfile
+      context: ../
+      dockerfile: ../Search/Dockerfile
     ports:
     - "8080:80"
     environment:
