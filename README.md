@@ -144,6 +144,8 @@ chmod +x ./scripts/*
 ./scripts/CloudShell-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription>
 ```
 
+>**NOTE**: If you already used the Cloud Shell in the target subscription, it is recommended to remove the `VectorSearchAiAssistant` folder from the home directory before cloning the repository again. You can do this by running `rm ./VectorSearchAiAssistant -r -f` in the Cloud Shell.
+
 ### Azure VM Based Deployments
 
 Run the following script to provision a development VM with Visual Studio 2022 Community and required dependencies preinstalled.
