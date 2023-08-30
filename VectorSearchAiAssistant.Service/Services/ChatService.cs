@@ -192,6 +192,24 @@ public class ChatService : IChatService
         await _cosmosDbService.InsertProductAsync(product);
     }
 
+    public async Task AddCustomer(Customer customer)
+    {
+        ArgumentNullException.ThrowIfNull(customer);
+        ArgumentNullException.ThrowIfNullOrEmpty(customer.id);
+        ArgumentNullException.ThrowIfNullOrEmpty(customer.customerId);
+
+        await _cosmosDbService.InsertCustomerAsync(customer);
+    }
+
+    public async Task AddSalesOrder(SalesOrder salesOrder)
+    {
+        ArgumentNullException.ThrowIfNull(salesOrder);
+        ArgumentNullException.ThrowIfNullOrEmpty(salesOrder.id);
+        ArgumentNullException.ThrowIfNullOrEmpty(salesOrder.customerId);
+
+        await _cosmosDbService.InsertSalesOrderAsync(salesOrder);
+    }
+
     public async Task DeleteProduct(string productId, string categoryId)
     {
         ArgumentNullException.ThrowIfNullOrEmpty(productId);
