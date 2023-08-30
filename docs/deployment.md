@@ -12,6 +12,12 @@ The following table summarizes the deployment choices available for the solution
 
 Select the links in the table above to learn more about each deployment choice.
 
+>**NOTE**:
+>The Cloud Shell deployment type requires additional setup steps. If you are involved in managing the infrastructure that enables cloud shell deployments for your team, see [Prepare Cloud Shell Setup](./deployment-cloudshell-setup.md) for more information.
+
+>**NOTE**:
+>The Azure VM deployment type requires additional setup steps. If you are involved in managing the infrastructure that enables Azure VM deployments for your team, see [Prepare Azure VM Setup](./deployment-azurevm-setup.md) for more information.
+
 ## Deployment validation
 
 Use the steps below to validate that the solution was deployed successfully.
