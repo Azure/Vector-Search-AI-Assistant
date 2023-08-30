@@ -87,104 +87,10 @@ The data is then saved in the [UpdateSessionBatchAsync()](https://github.com/Azu
 
 ## Getting Started
 
-### Prerequisites
-
-- Azure Subscription
-- Subscription access to Azure OpenAI service. Start here to [Request Access to Azure OpenAI Service](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUOFA5Qk1UWDRBMjg0WFhPMkIzTzhKQ1dWNyQlQCN0PWcu)
-- .NET 7 SDK
-- Docker Desktop
-- Azure CLI ([v2.49.0 or greater](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli))
-- [Helm 3.11.1 or greater](https://helm.sh/docs/intro/install/)
-- Visual Studio 2022 (only needed if you plan to run/debug the solution locally)
-
 ### Deployment
 
-Clone the VectorSearchAiAssistant repository and change to the `cognitive-search-vector` branch
-
-```pwsh
-git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant
-git checkout cognitive-search-vector
-```
-
-#### Standard Deployments
-
-Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
-
-```pwsh
-./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
-                             -location <location> `
-                             -subscription <subscription-id>
-```
-
->**NOTE**: Make sure to set the `<location>` value to a region that supports Azure OpenAI services.  See [Azure OpenAI service regions](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=cognitive-services&regions=all) for more information.
-
-#### Deployments using an existing OpenAI service
-
-For deployments that need to use an existing OpenAI service, run the following from the `scripts`.  This will provision all of the necessary infrastruction except the Azure OpenAI service and will deploy the API and frontend to an AKS cluster via Helm.
-
-```pwsh
-.\Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
-                     -location <location> `
-                     -subscription <subscription-id> `
-                     -openAiName <openAi-service-name> `
-                     -openAiRg <openAi-resource-group-name> `
-                     -openAiCompletionsDeployment <openAi-completions-deployment-name> `
-                     -openAiEmbeddingsDeployment <openAi-embeddings-deployment-name>
-```
-
-### Cloud Shell Based Deployments
-
-Create a cloud shell environment in a tenant that contains the target subscription.  Clone the repository and check out the `cognitive-search-vector` branch, and then execute the `CloudShell-Deploy.ps1` script as illustrated in the following snippet.  This will provision all of the required infrastructure and deploy the API and web app services into AKS.
-
-```pwsh
-git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
-cd VectorSearchAiAssistant
-git checkout cognitive-search-vector
-chmod +x ./scripts/*
-./scripts/CloudShell-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription>
-```
-
-### Azure VM Based Deployments
-
-Run the following script to provision a development VM with Visual Studio 2022 Community and required dependencies preinstalled.
-
-```pwsh
-.\scripts\Deploy-Vm.ps1 -resourceGroup <rg-name> -location EastUS
-```
-
-When the script completes, the console output should display the name of the provisioned VM similar to the following:
-
-```
-The resource prefix used in deployment is libxarwttxjde
-The deployed VM name used in deployment is libxarwttxjdevm
-```
-
-Use RDP to remote into the freshly provisioned VM with the username `BYDtoChatGPTUser` and password `Test123456789!`.  Open up a powershell terminal and run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
-
-```pwsh
-git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
-cd VectorSearchAiAssistant
-git checkout cognitive-search-vector
-./scripts/VmEnvironment-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription> -stepLoginAzure 1
-```
-
-### Validate Deployments
-
-Once the deployment script completes, the Application Insights `traces` query should display the following sequence of events:
-
-![API initialization sequence of events](./img/initialization-trace.png)
-
-Next, you should be able to see multiple entries referring to the vectorization of the data that was imported into Cosmos DB:
-
-![API vectorization sequence of events](./img/initialization-embedding.png)
-
-Finally, you should be able to see the Cognitive Search index being populated with the vectorized data:
-
-![Cognitive Search index populated with vectorized data](./img/initialization-vector-index.png)
-
->**NOTE**:
->
->It takes several minutes until all imported data is vectorized and indexed.
+Check the [Deployment](./docs/deployment.md) page for instructions on how to deploy the solution to your Azure subscription.
+Once your deployment is complete, you can proceed to the [Quickstart](#quickstart) section.
 
 ### Quickstart
 

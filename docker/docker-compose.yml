@@ -1,0 +1,28 @@
+services:
+  api:
+    image: ${REGISTRY:-ms-openai-cosmosdb}/chat-service-api:${TAG:-latest}
+    build:
+      context: ../
+      dockerfile: ./ChatServiceWebApi/Dockerfile
+    ports:
+    - "80:80"
+    environment:
+      DOTNET_URLS: http://+:80
+      ASPNETCORE_ENVIRONMENT: Production
+      AllowedHosts: '*'
+      Logging__Loglevel__Default: 'Debug'
+      Logging__Loglevel__Microsoft__AspNetCore: 'Debug'
+  web:
+    image: ${REGISTRY:-ms-openai-cosmosdb}/chat-web-app:${TAG:-latest}
+    build:
+      context: ../
+      dockerfile: ./Search/Dockerfile
+    ports:
+    - "8080:80"
+    environment:
+      DOTNET_URLS: http://+:80
+      ASPNETCORE_ENVIRONMENT: Production
+      AllowedHosts: '*'
+      DetailedErrors: 'true'
+      Logging__Loglevel__Default: 'Debug'
+      Logging__Loglevel__Microsoft__AspNetCore: 'Debug'

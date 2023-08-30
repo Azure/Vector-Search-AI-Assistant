@@ -60,6 +60,14 @@ namespace ChatServiceWebApi
                     await _chatService.AddProduct(product))
                 .WithName("AddProduct");
 
+            app.MapPut("/customers", async ([FromBody] Customer customer) =>
+                    await _chatService.AddCustomer(customer))
+                .WithName("AddCustomer");
+
+            app.MapPut("/salesorders", async ([FromBody] SalesOrder salesOrder) =>
+                    await _chatService.AddSalesOrder(salesOrder))
+                .WithName("AddSalesOrder");
+
             app.MapDelete("/products/{productId}", async (string productId, string categoryId) =>
                     await _chatService.DeleteProduct(productId, categoryId))
                 .WithName("DeleteProduct");
