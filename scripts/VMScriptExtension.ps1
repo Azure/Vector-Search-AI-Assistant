@@ -9,5 +9,5 @@ choco install --yes git.install
 choco install --yes docker-desktop
 choco install --yes nodejs.install
 choco install --yes nvm
-choco install wsl2 --params "/Version:2 /Retry:true"
+choco install --yes wsl2 --params "/Version:2 /Retry:true"
 
