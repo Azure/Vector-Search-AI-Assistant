@@ -20,6 +20,7 @@ Write-Output "Imported $($customers.Length) customers"
 
 $webappHostname=$(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
 $apiUrl = "https://$webappHostname/api"
+Write-Output "API Url is $apiUrl"
 
 $OldProgressPreference = $ProgressPreference
 $ProgressPreference = "SilentlyContinue"
