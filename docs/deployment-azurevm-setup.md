@@ -26,6 +26,6 @@ Before users in your team can deploy the solution using Azure VM, you need to pe
 7. Save the changes to the `vmdeploy` script, commit them to the `cognitive-search-vector` branch, and push the changes to the remote repository.
 
     ```cmd
-    git commit -m "Updated ACR details for Cloud Shell deployment"
+    git commit -m "Updated VM extensions script for Azure VM deployment"
     git push
     ```
