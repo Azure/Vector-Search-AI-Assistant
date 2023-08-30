@@ -37,3 +37,22 @@ Finally, you should be able to see the Cognitive Search index being populated wi
 >**NOTE**:
 >
 >It takes several minutes until all imported data is vectorized and indexed.
+
+## Monitoring with Application Insights
+
+Use the steps below to monitor the solution with Application Insights:
+
+1. Navigate to the `Application Insights` resource that was created as part of the deployment.
+
+2. Select the `Logs` section and create a new query with the following statement. Select the `Run` button to execute the query:
+
+    ```kql
+    traces
+    | order by desc timestamp
+    ```
+
+    ![Application Insights query](../img/monitoring-traces.png)
+
+3. Select the `Export` button to explort the results the query.
+
+4. In the query, replace `traces` with `requests` or `exceptions` to view the corresponding telemetry.
