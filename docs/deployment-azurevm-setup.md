@@ -20,3 +20,12 @@ Before users in your team can deploy the solution using Azure VM, you need to pe
     ```
 
 5. Upload the `VMScriptExtension.ps1` script from the `scripts` folder to the `vmscripts` container created in step 2. This script is used by the Azure VM deployment script to install the required software on the VM.
+
+6. Open the `vmdeploy.json` file from the `arm` folder with the text editor of your choice. In line 219, update the value of the `fileUris` property to point to the `VMScriptExtension.ps1` script uploaded in step 5.
+
+7. Save the changes to the `vmdeploy` script, commit them to the `cognitive-search-vector` branch, and push the changes to the remote repository.
+
+    ```cmd
+    git commit -m "Updated ACR details for Cloud Shell deployment"
+    git push
+    ```
