@@ -105,7 +105,7 @@ namespace Search.Helpers
         {
             ArgumentNullException.ThrowIfNull(sessionId);
 
-            var completion = await SendRequest<Completion>(HttpMethod.Post, 
+            var completion = await SendRequest<Completion>(HttpMethod.Post,
                 $"/sessions/{sessionId}/completion", userPrompt);
             // Refresh the local messages cache:
             await GetChatSessionMessagesAsync(sessionId);
@@ -126,7 +126,7 @@ namespace Search.Helpers
         {
             ArgumentNullException.ThrowIfNull(sessionId);
 
-            var response = await SendRequest<Completion>(HttpMethod.Post, 
+            var response = await SendRequest<Completion>(HttpMethod.Post,
                 $"/sessions/{sessionId}/summarize-name", prompt);
 
             await RenameChatSessionAsync(sessionId, response.Text, true);
@@ -142,8 +142,11 @@ namespace Search.Helpers
             ArgumentNullException.ThrowIfNull(id);
             ArgumentNullException.ThrowIfNull(sessionId);
 
-            return await SendRequest<Message>(HttpMethod.Post, 
-                $"/sessions/{sessionId}/message/{sessionId}/rate?rating={rating}");
+            string url = rating == null 
+                        ? $"/sessions/{sessionId}/message/{id}/rate" 
+                        : $"/sessions/{sessionId}/message/{id}/rate?rating={rating}";
+
+            return await SendRequest<Message>(HttpMethod.Post, url);
         }
 
         private async Task<T> SendRequest<T>(HttpMethod method, string requestUri, object payload = null)
