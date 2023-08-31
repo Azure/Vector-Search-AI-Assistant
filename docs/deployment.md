@@ -7,8 +7,8 @@ The following table summarizes the deployment choices available for the solution
  Deployment type | Description | When to use
 --- | --- | ---
 [Cloud Shell](./deployment-cloudshell.md) | Use Azure Cloud Shell to deploy the solution to your Azure subscription. | Best suited for quick deployment. All you need is an Azure subscription and a browser.
-[Azure VM](./deployment-azurevm.md) | Use an Azure VM to deploy the solution to your Azure subscription. | Best suited for situations where you need the flebility of a full development environment (e.g. to customize the solution) but you don't have a local development environment available.
-[Standard](./deployment-standard.md) | Use your local development environment to deploy the solution to your Azure subscription. | Best suited for situations where you need the flebility of a full development environment (e.g. to customize the solution) and you have a local development environment available.
+[Azure VM](./deployment-azurevm.md) | Use an Azure VM to deploy the solution to your Azure subscription. | Best suited for situations where you need the flexibility of a full development environment (e.g. to customize the solution) but you don't have a local development environment available.
+[Standard](./deployment-standard.md) | Use your local development environment to deploy the solution to your Azure subscription. | Best suited for situations where you need the flexibility of a full development environment (e.g. to customize the solution) and you have a local development environment available.
 
 Select the links in the table above to learn more about each deployment choice.
 
