@@ -9,10 +9,11 @@ The scenario for this sample centers around a consumer retail "Intelligent Agent
 RAG is an aconymn for Retrival Augmentmented Generation, a fancy term that essentially means retrieving additional data to provide to a large language model to use when generating a response (completion) to a user's question(prompt). The data can be any kind of text. However, there is a limit to how much text can be sent due to the limit of [tokens for each model](https://platform.openai.com/docs/models/overview) that can be consumed in a single request/response from Azure OpenAI. This solution will highlight these challenges and other challenges faced when designing and building this type of solution and provide  examples of how we addressed them.
 
 ## Explore the different solutions
-This repository has multiple versions of this solution which can be downloaded via One-Click Azure Deploy and used:
+This repository has multiple versions of this solution which can be used:
 
-- Azure Cosmos DB for MongoDB vCore version, https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/mongovcorev2
-- Redis Enterprise version, https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis
+- [Official Version: Azure Cosmos DB + Azure Cognitive Search + Azure Kubernetes Service](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/cognitive-search-vector)
+- [Azure Cosmos DB for MongoDB vCore](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/mongovcorev2)
+- [Redis Enterprise](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/Redis)
 - More versions are Coming Soon!!!
 
 
