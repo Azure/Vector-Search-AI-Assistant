@@ -8,8 +8,6 @@ Param(
     [parameter(Mandatory=$true)][string]$subscription,
     [parameter(Mandatory=$false)][string]$armTemplate="azuredeploy.json",
     [parameter(Mandatory=$false)][bool]$stepDeployArm=$true,
-    [parameter(Mandatory=$false)][bool]$stepBuildImages=$false,
-    [parameter(Mandatory=$false)][bool]$stepPushImages=$false,
     [parameter(Mandatory=$false)][bool]$stepDeployCertManager=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployTls=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployImages=$true,
@@ -79,16 +77,6 @@ if ($stepDeployTls) {
     & ./DeployTlsSupport.ps1 -sslSupport prod -resourceGroup $resourceGroup -aksName $aksName
 }
 
-if ($stepBuildImages) {
-    # Build
-    & ./BuildImages.ps1 -resourceGroup $acrResourceGroup -acrName $acrName
-}
-
-if ($stepPushImages) {
-    # Push
-    & ./PushImages.ps1 -resourceGroup $acrResourceGroup -acrName $acrName
-}
-
 if ($stepUploadSystemPrompts) {
     # Upload System Prompts
     & ./UploadSystemPrompts.ps1 -resourceGroup $resourceGroup -location $location
@@ -103,7 +91,7 @@ if ($stepDeployImages) {
 
 if ($stepImportData) {
     # Import Data
-    & ./Import-Data-CloudShell.ps1 -resourceGroup $resourceGroup -cosmosDbAccountName $cosmosDbAccountName -subscription $subscription
+    & ./Import-Data-CloudShell.ps1 -resourceGroup $resourceGroup -aksName $aksName
 }
 
 $webappHostname=$(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)

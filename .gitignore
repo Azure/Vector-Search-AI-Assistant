@@ -358,8 +358,6 @@ __blobstorage__/7af3d269-0e18-4d4d-8058-ace79fb798d5
 __blobstorage__/9bfc53a5-c7a0-4f23-badc-bd1ec352fd5f
 __blobstorage__/bb49451b-5984-491a-bf47-800ae14ce60f
 
-docker-compose.yml
-docker-compose.dev.yml
 __values
 .idea
 dMT

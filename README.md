@@ -1,6 +1,6 @@
 # Vector Search & AI Assistant for Azure Cosmos DB and Cognitive Search Services
 
-This solution demonstrates how to design and implement a RAG Pattern solution that incorporates Azure Cosmos DB with Azure OpenAI to build a vector search solution with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB for MongoDB vCore using Azure OpenAI, then shows how to implment vector search using the vector search capability from Azure Cosmos DB for MongoDB vCore. The solution also includes key concepts such as managing conversational context and history, managing tokens consumed by Azure OpenAI, as well as understanding how to write prompts for large language models such as ChatGPT so they produce the desired responses.
+This solution demonstrates how to design and implement a RAG Pattern solution that incorporates Azure Cosmos DB with Azure OpenAI and Azure Cognitive Search to build a vector search solution with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search using the vector search capability from Azure Cognitive Search. The solution is hosted on Azure Kubetnetes Service. The solution also includes key concepts such as managing conversational context and history, managing tokens consumed by Azure OpenAI, as well as understanding how to write prompts for large language models such as ChatGPT so they produce the desired responses.
 
 The scenario for this sample centers around a consumer retail "Intelligent Agent" that allows users to ask questions on vectorized product, customer and sales order data stored in the database. The data in this solution is the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB. This data is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
 
@@ -29,7 +29,7 @@ The solution architecture is represented by this diagram:
 
 ## Overall solution workflow
 
-There are four key elements of this solution, generating vectors, searching vectors, generating chat completions and storing chat conversations. Vectors are generated when data is inserted into Azure Cosmos DB, then stored in an Azure Cognitive Search index that is used for vector searches. Users then ask natural language questions using the web-based chat user interface (User Prompts). These prompts are then vectorized and used in the to search the vectorized data. The results are then returned, then sent, along with some of the conversation history, to Azure OpenAI to generate a response (Completion) back to the user. All of the User Prompts and Completions are stored in a Cosmos DB container along with the number of tokens consumed by each Prompt and Completion. A Chat Session, contains all of the prompts and completions and a running total of all tokens consumed for that session. In a retail scenario users would only see their own chat sessions. They are all displayed here to better demonstrate the service and backend architecture for a solution like this.
+There are four key elements of this solution, generating vectors, searching vectors, generating chat completions and storing chat conversations. Vectors are generated when data is inserted into Azure Cosmos DB, then stored in an Azure Cognitive Search index that is used for vector searches. Users then ask natural language questions using the web-based chat user interface (User Prompts). These prompts are then vectorized and used to search the vectorized data. The results are then returned, then sent, along with some of the conversation history, to Azure OpenAI to generate a response (Completion) back to the user. All of the User Prompts and Completions are stored in a Cosmos DB container along with the number of tokens consumed by each Prompt and Completion. A Chat Session, contains all of the prompts and completions and a running total of all tokens consumed for that session. In a retail scenario users would only see their own chat sessions. They are all displayed here to better demonstrate the service and backend architecture for a solution like this.
 
 ## Generating vectors
 
@@ -51,7 +51,7 @@ Large language models such as Chat GPT do not keep any history of what prompts y
 
 Another concept surfaced with conversation management centers around tokens. All calls to Azure OpenAI are limited by the number of tokens in a request and response. The number of tokens is dependant on the model being used. You see each model and its token limit on OpenAI's website on their [Models Overview page](https://platform.openai.com/docs/models/overview).
 
-The class that manages conversational history is called, [ChatBuilder()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Chat/ChatBuilder.cs). This class is used to gather the most convesation history up to the token limits defined in configuration, then returns it as a string separating each prompt and completion with a new line character. The new line is not necessary for ChatGPT, but makes it more readible for a user when debugging. This function also returns the number of tokens used in the conversation. This value is used when building the prompt to send.
+The class that manages conversational history is called, [ChatBuilder()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Chat/ChatBuilder.cs). This class is used to gather the most convesation history up to the token limits defined in configuration, then returns it as a string separating each prompt and completion with a new line character. The new line is not necessary for ChatGPT, but makes it more readable for a user when debugging. This function also returns the number of tokens used in the conversation. This value is used when building the prompt to send.
 
 ### Vectorizing the user prompt and conversation history
 
@@ -65,7 +65,7 @@ The vector search is the key function in this solution and is done against the A
 
 One of the more challenging aspects to building RAG Pattern solutions is manging the tokens to stay within the maximum number of tokens that can be consumed in a single request (prompt) and response (completion). It's possible to build a prompt that consumes all of the tokens in the requests and leaves too few to produce a useful response. It's also possible to generate an exception from the Azure OpenAI service if the request itself is over the token limit. You will need a way to measure token usage before sending the request. This is handled in the [OptimizePromptSize()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Chat/ChatBuilder.cs#L103) function in the ChatBuilder class. This function uses the SemanticKernel tokenizer, [GPT3Tokenizer](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Chat/SemanticKernelTokenizer.cs). The utility takes text and generates an array of vectors. The number of elements in the array represent the number of tokens that will be consumed. It can also do the reverse and take an array of vectors and output text. In our function here we first generate the vectors on the data returned from our vector search, then if necessary, reduce the amount of data by calculating the number of vectors we can safely pass in our request to Azure OpenAI. Here is the flow of this function.
 
-1. Measure the amount of tokens on the vector search results (rag data).
+1. Measure the amount of tokens for the vector search results (rag data).
 2. Measure the amount of tokens for the user prompt. This data is also used to capture what the user prompt tokens would be if processed without any additional data and stored in the user prompt message in the completions collection (more on that later).
 3. Calculate if the amount of tokens used by the `search results` plus the `user prompt` plus the `conversation` + `completion` is greater than what the model will accept. If it is greater, then calculate how much to reduce the amount of data and `Decode` the vector array we generated from the search results, back into text.
 4. Finally, return the text from our search results as well as the number of tokens for the last User Prompt (this will get stored a bit later).
@@ -87,104 +87,10 @@ The data is then saved in the [UpdateSessionBatchAsync()](https://github.com/Azu
 
 ## Getting Started
 
-### Prerequisites
-
-- Azure Subscription
-- Subscription access to Azure OpenAI service. Start here to [Request Access to Azure OpenAI Service](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUOFA5Qk1UWDRBMjg0WFhPMkIzTzhKQ1dWNyQlQCN0PWcu)
-- .NET 7 SDK
-- Docker Desktop
-- Azure CLI ([v2.49.0 or greater](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli))
-- [Helm 3.11.1 or greater](https://helm.sh/docs/intro/install/)
-- Visual Studio 2022 (only needed if you plan to run/debug the solution locally)
-
 ### Deployment
 
-Clone the VectorSearchAiAssistant repository and change to the `cognitive-search-vector` branch
-
-```pwsh
-git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant
-git checkout cognitive-search-vector
-```
-
-#### Standard Deployments
-
-Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
-
-```pwsh
-./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
-                             -location <location> `
-                             -subscription <subscription-id>
-```
-
->**NOTE**: Make sure to set the `<location>` value to a region that supports Azure OpenAI services.  See [Azure OpenAI service regions](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=cognitive-services&regions=all) for more information.
-
-#### Deployments using an existing OpenAI service
-
-For deployments that need to use an existing OpenAI service, run the following from the `scripts`.  This will provision all of the necessary infrastruction except the Azure OpenAI service and will deploy the API and frontend to an AKS cluster via Helm.
-
-```pwsh
-.\Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
-                     -location <location> `
-                     -subscription <subscription-id> `
-                     -openAiName <openAi-service-name> `
-                     -openAiRg <openAi-resource-group-name> `
-                     -openAiCompletionsDeployment <openAi-completions-deployment-name> `
-                     -openAiEmbeddingsDeployment <openAi-embeddings-deployment-name>
-```
-
-### Cloud Shell Based Deployments
-
-Create a cloud shell environment in a tenant that contains the target subscription.  Clone the repository and check out the `cognitive-search-vector` branch, and then execute the `CloudShell-Deploy.ps1` script as illustrated in the following snippet.  This will provision all of the required infrastructure and deploy the API and web app services into AKS.
-
-```pwsh
-git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
-cd VectorSearchAiAssistant
-git checkout cognitive-search-vector
-chmod +x ./scripts/*
-./scripts/CloudShell-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription>
-```
-
-### Azure VM Based Deployments
-
-Run the following script to provision a development VM with Visual Studio 2022 Community and required dependencies preinstalled.
-
-```pwsh
-.\scripts\Deploy-Vm.ps1 -resourceGroup <rg-name> -location EastUS
-```
-
-When the script completes, the console output should display the name of the provisioned VM similar to the following:
-
-```
-The resource prefix used in deployment is libxarwttxjde
-The deployed VM name used in deployment is libxarwttxjdevm
-```
-
-Use RDP to remote into the freshly provisioned VM with the username `BYDtoChatGPTUser` and password `Test123456789!`.  Open up a powershell terminal and run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
-
-```pwsh
-git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
-cd VectorSearchAiAssistant
-git checkout cognitive-search-vector
-./scripts/VmEnvironment-Deploy.ps1 -resourceGroup <rg-name> -location EastUS -subscription <target-subscription> -stepLoginAzure 1
-```
-
-### Validate Deployments
-
-Once the deployment script completes, the Application Insights `traces` query should display the following sequence of events:
-
-![API initialization sequence of events](./img/initialization-trace.png)
-
-Next, you should be able to see multiple entries referring to the vectorization of the data that was imported into Cosmos DB:
-
-![API vectorization sequence of events](./img/initialization-embedding.png)
-
-Finally, you should be able to see the Cognitive Search index being populated with the vectorized data:
-
-![Cognitive Search index populated with vectorized data](./img/initialization-vector-index.png)
-
->**NOTE**:
->
->It takes several minutes until all imported data is vectorized and indexed.
+Check the [Deployment](./docs/deployment.md) page for instructions on how to deploy the solution to your Azure subscription.
+Once your deployment is complete, you can proceed to the [Quickstart](#quickstart) section.
 
 ### Quickstart
 

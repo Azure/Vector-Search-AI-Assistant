@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using VectorSearchAiAssistant.Service.Models;
 using VectorSearchAiAssistant.Service.Utils;
 using System.Diagnostics;
+using Castle.Core.Resource;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -416,7 +417,7 @@ namespace VectorSearchAiAssistant.Service.Services
                 // Ignore conflict errors.
                 if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
                 {
-                    _logger.LogInformation("Product Already added.");
+                    _logger.LogInformation("Product already added.");
                 }
                 else
                 {
@@ -424,6 +425,60 @@ namespace VectorSearchAiAssistant.Service.Services
                     throw;
                 }
                 return product;
+            }
+        }
+
+        /// <summary>
+        /// Inserts a customer into the customer container.
+        /// </summary>
+        /// <param name="product">Customer item to create.</param>
+        /// <returns>Newly created customer item.</returns>
+        public async Task<Customer> InsertCustomerAsync(Customer customer)
+        {
+            try
+            {
+                return await _customer.CreateItemAsync(customer);
+            }
+            catch (CosmosException ex)
+            {
+                // Ignore conflict errors.
+                if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    _logger.LogInformation("Customer already added.");
+                }
+                else
+                {
+                    _logger.LogError(ex.Message);
+                    throw;
+                }
+                return customer;
+            }
+        }
+
+        /// <summary>
+        /// Inserts a sales order into the customer container.
+        /// </summary>
+        /// <param name="product">Sales order item to create.</param>
+        /// <returns>Newly created sales order item.</returns>
+        public async Task<SalesOrder> InsertSalesOrderAsync(SalesOrder salesOrder)
+        {
+            try
+            {
+                return await _customer.CreateItemAsync(salesOrder);
+            }
+            catch (CosmosException ex)
+            {
+                // Ignore conflict errors.
+                if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    _logger.LogInformation("Sales order already added.");
+                }
+                else
+                {
+                    _logger.LogError(ex.Message);
+                    throw;
+                }
+                return salesOrder;
             }
         }
 
