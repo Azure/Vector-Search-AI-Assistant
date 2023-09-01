@@ -3,8 +3,8 @@
 Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
-    [parameter(Mandatory=$false)][string]$template="vmdeploy.json",
-    [parameter(Mandatory=$false)][string]$resourcePrefix
+    [parameter(Mandatory=$true)][string]$password,
+    [parameter(Mandatory=$false)][string]$template="vmdeploy.json"
 )
 
 $sourceFolder=$(Join-Path -Path .. -ChildPath arm)
@@ -35,14 +35,12 @@ $deploymentName = "cosmosdb-openai-vmdeploy"
 
 Write-Host "Begining the ARM deployment..." -ForegroundColor Yellow
 Push-Location $sourceFolder
-az deployment group create -g $resourceGroup -n $deploymentName --template-file $script --parameters location=$($location.ToLower())
+az deployment group create -g $resourceGroup -n $deploymentName --template-file $script --parameters location=$($location.ToLower()) password=$password
 
 $outputVal = (az deployment group show -g $resourceGroup -n $deploymentName --query properties.outputs.resourcePrefix.value) | ConvertFrom-Json
-Set-Variable -Name resourcePrefix -Value $outputVal.ToString() -Scope 1
 Write-Host "The resource prefix used in deployment is $outputVal"
 
 $outputVal = (az deployment group show -g $resourceGroup -n $deploymentName --query properties.outputs.deployedVM.value) | ConvertFrom-Json
-Set-Variable -Name cosmosDbAccountName -Value $outputVal.ToString() -Scope 1
 Write-Host "The deployed VM name used in deployment is $outputVal"
 
 Pop-Location 

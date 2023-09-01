@@ -4,7 +4,6 @@ Param (
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$false)][string[]]$outputFile=$null,
     [parameter(Mandatory=$false)][string[]]$gvaluesTemplate="..,gvalues.template.yml",
-    [parameter(Mandatory=$false)][string[]]$dockerComposeTemplate="..,docker-compose.template.yml",
     [parameter(Mandatory=$false)][string[]]$migrationSettingsTemplate="..,migrationsettings.template.json",
     [parameter(Mandatory=$false)][string]$ingressClass="addon-http-application-routing",
     [parameter(Mandatory=$false)][string]$domain
@@ -110,12 +109,6 @@ Push-Location $($MyInvocation.InvocationName | Split-Path)
 $gvaluesTemplatePath=$(./Join-Path-Recursively -pathParts $gvaluesTemplate.Split(","))
 $outputFilePath=$(./Join-Path-Recursively -pathParts $outputFile.Split(","))
 & ./Token-Replace.ps1 -inputFile $gvaluesTemplatePath -outputFile $outputFilePath -tokens $tokens
-Pop-Location
-
-Push-Location $($MyInvocation.InvocationName | Split-Path)
-$dockerComposeTemplatePath=$(./Join-Path-Recursively -pathParts $dockerComposeTemplate.Split(","))
-$outputFilePath=$(./Join-Path-Recursively -pathParts ..,docker-compose.yml)
-& ./Token-Replace.ps1 -inputFile $dockerComposeTemplatePath -outputFile $outputFilePath -tokens $tokens
 Pop-Location
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)

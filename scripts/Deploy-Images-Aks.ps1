@@ -145,8 +145,16 @@ $apiStatus = "initializing"
 $retriesLeft = 50
 while (($apiStatus.ToString() -ne "ready") -and ($retriesLeft -gt 0)) {
     Start-Sleep -Seconds 20
-    $apiStatus = Invoke-RestMethod -Uri "https://$($aksHost)/api/status" -Method GET
-    Write-Host "API endpoint status: $($apiStatus)"
+    try {
+        $apiStatus = Invoke-RestMethod -Uri "https://$($aksHost)/api/status" -Method GET
+    }
+    catch {
+        Write-Host "The attempt to invoke the API endpoint failed. Will retry."
+    }
+    finally {
+        Write-Host "Last known API endpoint status: $($apiStatus)"
+    }
+    
     $retriesLeft -= 1
 } 
 
