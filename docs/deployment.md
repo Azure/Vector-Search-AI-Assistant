@@ -44,11 +44,11 @@ Use the steps below to monitor the solution with Application Insights:
 
 1. Navigate to the `Application Insights` resource that was created as part of the deployment.
 
-2. Select the `Logs` section and create a new query with the following statement. Select the `Run` button to execute the query:
+2. Select the `Logs` section and create a new query with the following statement. Change the "Time range" setting on top tool bar to reflect the required time range. Click the `Run` button to execute the query:
 
     ```kql
     traces
-    | order by desc timestamp
+    | order by timestamp desc
     ```
 
     ![Application Insights query](../img/monitoring-traces.png)
