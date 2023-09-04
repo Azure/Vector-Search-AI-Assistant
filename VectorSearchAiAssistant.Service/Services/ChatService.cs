@@ -106,7 +106,7 @@ public class ChatService : IChatService
             //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAs ync(sessionId, conversation, retrievedDocuments);
             var result = await _ragService.GetResponse(userPrompt, messages);
 
-            // Add to prompt and completion to cache, then persist in Cosmos as transaction 
+            // Add both prompt and completion to cache, then persist in Cosmos DB
             var promptMessage = new Message(sessionId, nameof(Participants.User), result.UserPromptTokens, userPrompt, result.UserPromptEmbedding, null);
             var completionMessage = new Message(sessionId, nameof(Participants.Assistant), result.ResponseTokens, result.Completion, null, null);
             var completionPrompt = new CompletionPrompt(sessionId, completionMessage.Id, result.UserPrompt);
