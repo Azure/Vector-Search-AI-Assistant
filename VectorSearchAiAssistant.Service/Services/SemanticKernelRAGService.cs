@@ -137,7 +137,7 @@ public class SemanticKernelRAGService : IRAGService
             0.8,
             _settings.CognitiveSearch.MaxVectorSearchResults);
 
-        // Read the resulting user prompt embedding as soon as possile
+        // Read the resulting user prompt embedding as soon as possible
         var userPromptEmbedding = memorySkill.LastInputTextEmbedding?.ToArray();
 
         List<string> memoryCollection;
