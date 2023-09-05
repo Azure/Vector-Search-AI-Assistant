@@ -102,23 +102,29 @@ namespace VectorSearchAiAssistant.Service.Services
 
         private async Task StartChangeFeedProcessors()
         {
+            /* TODO: Challenge 2.  
+             * Uncomment and complete the following lines as instructed.
+             */
+
             _logger.LogInformation("Initializing the change feed processors...");
             _changeFeedProcessors = new List<ChangeFeedProcessor>();
 
             try
             {
-                foreach (string monitoredContainerName in _settings.MonitoredContainers.Split(',').Select(s => s.Trim()))
-                {
-                    var changeFeedProcessor = _containers[monitoredContainerName]
-                        .GetChangeFeedProcessorBuilder<dynamic>($"{monitoredContainerName}ChangeFeed", GenericChangeFeedHandler)
-                        .WithInstanceName($"{monitoredContainerName}ChangeInstance")
-                        .WithErrorNotification(GenericChangeFeedErrorHandler)
-                        .WithLeaseContainer(_leases)
-                        .Build();
-                    await changeFeedProcessor.StartAsync();
-                    _changeFeedProcessors.Add(changeFeedProcessor);
-                    _logger.LogInformation($"Initialized the change feed processor for the {monitoredContainerName} container.");
-                }
+                // TODO: Create a change feed processor that listens for new JsonDocument instances added to the tracked containers.
+                // Note that the function GenericChangeFeedHandler has been started for you below.
+                //foreach (string __ in ____.Split(',').Select(s => s.Trim()))
+                //{
+                //    var changeFeedProcessor = _containers[__]
+                //        .GetChangeFeedProcessorBuilder<dynamic>($"{__}ChangeFeed", GenericChangeFeedHandler)
+                //        .WithInstanceName($"{__}ChangeInstance")
+                //        .WithErrorNotification(GenericChangeFeedErrorHandler)
+                //        .WithLeaseContainer(_leases)
+                //        .Build();
+                //    await changeFeedProcessor.StartAsync();
+                //    _changeFeedProcessors.Add(changeFeedProcessor);
+                //    _logger.LogInformation($"Initialized the change feed processor for the {__} container.");
+                //}
 
                 _changeFeedsInitialized = true;
                 _logger.LogInformation("Cosmos DB change feed processors initialized.");

@@ -90,7 +90,11 @@ public class ChatService : IChatService
     /// Receive a prompt from a user, vectorize it from the OpenAI service, and get a completion from the OpenAI service.
     /// </summary>
     public async Task<Completion> GetChatCompletionAsync(string? sessionId, string userPrompt)
-    {
+    {        
+        /* TODO: Challenge 3. 
+        * Complete the todo tasks as instructed by the comments
+        */
+
         try
         {
             ArgumentNullException.ThrowIfNull(sessionId);
@@ -107,8 +111,11 @@ public class ChatService : IChatService
             var result = await _ragService.GetResponse(userPrompt, messages);
 
             // Add both prompt and completion to cache, then persist in Cosmos DB
-            var promptMessage = new Message(sessionId, nameof(Participants.User), result.UserPromptTokens, userPrompt, result.UserPromptEmbedding, null);
-            var completionMessage = new Message(sessionId, nameof(Participants.Assistant), result.ResponseTokens, result.Completion, null, null);
+            // TODO: Replace the default parameters on the following lines
+            // to create the promptMessage and completionMessage objects that will be persisted to Cosmos DB
+            var promptMessage = new Message(sessionId, "", 0, "", null, null);
+            var completionMessage = new Message(sessionId, "", 0, "", null, null);
+
             var completionPrompt = new CompletionPrompt(sessionId, completionMessage.Id, result.UserPrompt);
             completionMessage.CompletionPromptId = completionPrompt.Id;
 

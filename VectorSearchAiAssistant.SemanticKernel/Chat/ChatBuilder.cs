@@ -81,6 +81,10 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
         {
             OptimizePromptSize();
 
+            /* TODO: Challenge 3.  
+             * Uncomment and complete the following lines as instructed.
+             */
+
             var result = _kernel.GetService<IChatCompletion>()
                 .CreateNewChat();
 
@@ -88,18 +92,23 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
                 ? string.Empty
                 : _systemPrompt;
 
+            /* TODO: Serialize _memories to a JSON string 
+             * Build the sytemMessage string so that it has the form:
+             *  "systemMessage newline newline jsonMemories"  
+             */
             if (_memories.Count > 0)
             {
-                var memoriesPrompt = string.Join(Environment.NewLine, _memories.Select(
-                    m => $"{JsonConvert.SerializeObject(m)}{Environment.NewLine}---------------------------{Environment.NewLine}").ToArray());
-                systemMessage = $"{systemMessage}{Environment.NewLine}{Environment.NewLine}{memoriesPrompt}".NormalizeLineEndings();
+                //var memoriesPrompt = ____
+                //systemMessage = $"____".NormalizeLineEndings();
             }
 
-            if (!string.IsNullOrWhiteSpace(systemMessage)) 
-                result.AddSystemMessage(systemMessage);
+            // TODO: add the non-empty or non-null systemMessage to the chatHistory
+            //if (!string.IsNullOrWhiteSpace(systemMessage))
+            //  result.
 
-            foreach (var message in _messages)
-                result.AddMessage(message.AuthorRole, message.Content);
+            //TODO: Add each system message to the history
+            //foreach (var __ in ____)
+            //    result.AddMessage(message.__, message.__);
 
             return result;
         }

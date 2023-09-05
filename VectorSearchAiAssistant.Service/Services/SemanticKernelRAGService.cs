@@ -126,6 +126,10 @@ public class SemanticKernelRAGService : IRAGService
 
     public async Task<(string Completion, string UserPrompt, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
     {
+        /* TODO: Challenge 3. 
+         * Complete the todo tasks as instructed by the comments
+         */
+
         var memorySkill = new TextEmbeddingObjectMemorySkill(
             _longTermMemory,
             _shortTermMemory,
@@ -150,25 +154,39 @@ public class SemanticKernelRAGService : IRAGService
                 _semanticKernel,
                 _settings.OpenAI.CompletionsDeploymentMaxTokens,
                 _memoryTypes,
-                promptOptimizationSettings: _settings.OpenAI.PromptOptimization)
-            .WithSystemPrompt(
-                await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName))
-            .WithMemories(
-                memoryCollection)
-            .WithMessageHistory(
-                messageHistory.Select(m => (new AuthorRole(m.Sender.ToLower()), m.Text.NormalizeLineEndings())).ToList())
-            .Build();
+                promptOptimizationSettings: _settings.OpenAI.PromptOptimization);
 
-        chatHistory.AddUserMessage(userPrompt);
+        /* TODO: 
+         * Uncomment and complete the following chain to add the
+         * SystemPrompt, Memories, and MessageHistory in the correct order.
+         */
+        //chatHistory
+        //    .With_____(
+        //        await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName))
+        //    .With_____(
+        //        memoryCollection)
+        //    .With_____(
+        //        messageHistory.Select(m => (new AuthorRole(m.Sender.ToLower()), m.Text.NormalizeLineEndings())).ToList())
+        //    .Build();
 
-        var chat = _semanticKernel.GetService<IChatCompletion>();
-        var completionResults = await chat.GetChatCompletionsAsync(chatHistory);
+        //chatHistory.AddUserMessage(userPrompt);
 
-        // TODO: Add validation and perhaps fall back to a standard response if no completions are generated.
-        var reply = await completionResults[0].GetChatMessageAsync();
-        var rawResult = (completionResults[0] as ITextResult).ModelResult.GetOpenAIChatResult();
+        /* TODO: 
+         * Get the ChatCompletionService
+         * Invoke the GetChatCompletions method asynchronously 
+         */
 
-        return new(reply.Content, chatHistory[0].Content, rawResult.Usage.PromptTokens, rawResult.Usage.CompletionTokens, userPromptEmbedding);
+        //var chat = _semanticKernel.GetService<IChatCompletion>();
+        //var completionResults = await chat.GetChatCompletionsAsync(chatHistory);
+
+        // TODO: Get the first completionResults and retrieve the ChatMessage from that
+        //var reply = await ______[0]._______();
+
+        // TODO: Extract the OpenAIChatResult to get to the prompt and completion token counts
+        //var rawResult = (completionResults[0] as ITextResult).ModelResult.GetOpenAIChatResult();
+
+        //TODO: Replace the following return value with the correct values according to function signature
+        return new("", "", 0, 0, null);
     }
 
     public async Task<string> Summarize(string sessionId, string userPrompt)

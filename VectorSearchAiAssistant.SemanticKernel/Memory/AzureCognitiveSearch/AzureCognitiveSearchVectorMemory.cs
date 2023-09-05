@@ -72,6 +72,10 @@ namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch
         /// <returns></returns>
         public async Task Initialize(List<Type> typesToIndex)
         {
+            /* TODO: Challenge 2.  
+             * Uncomment and complete the following lines as instructed.
+             */
+
             try
             {
                 var indexNames = await _adminClient.GetIndexNamesAsync().ToListAsync().ConfigureAwait(false);
@@ -95,25 +99,33 @@ namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch
                     .GroupBy(field => field.Name)
                     .Select(group => group.First())
                     .ToList();
-                allFields.Add(
-                    new SearchField(VectorFieldName, SearchFieldDataType.Collection(SearchFieldDataType.Single))
-                    {
-                        IsSearchable = true,
-                        Dimensions = ModelDimensions,
-                        VectorSearchConfiguration = vectorSearchConfigName
-                    });
 
-                SearchIndex searchIndex = new(_searchIndexName)
-                {
-                    VectorSearch = new()
-                    {
-                        AlgorithmConfigurations =
-                        {
-                            new VectorSearchAlgorithmConfiguration(vectorSearchConfigName, "hnsw")
-                        }
-                    },
-                    Fields = allFields
-                };
+                // TODO: Create the Cognitive Search vector SearchFields for the list of distinct fields across all types
+                // Make sure that all fields are searchable, have the appropriate dimensions (1536) 
+                // and use the configuration specified by the vectorSearchConfigName variable.
+                //allFields.Add(
+                //    new SearchField(VectorFieldName, SearchFieldDataType.Collection(SearchFieldDataType.Single))
+                //    {
+                //        IsSearchable = _____,
+                //        Dimensions = _____,
+                //        VectorSearchConfiguration = vectorSearchConfigName
+                //    });
+
+                // TODO: Replace the following line with the TODO that follows.
+                SearchIndex searchIndex = new(_searchIndexName);
+                // TODO: Create the SearchIndex to use the VectorSearchAlgorithmConfiguration with
+                // the vectorSearchConfigName and the "hnsw" kind
+                //SearchIndex searchIndex = new(_searchIndexName)
+                //{
+                //    VectorSearch = new()
+                //    {
+                //        AlgorithmConfigurations =
+                //        {
+                //            new ______(vectorSearchConfigName, "hnsw")
+                //        }
+                //    },
+                //    Fields = ______
+                //};
 
                 await _adminClient.CreateIndexAsync(searchIndex);
                 _searchClient = _adminClient.GetSearchClient(_searchIndexName);
