@@ -29,7 +29,7 @@ The application includes a left-hand nav that contains individual chat sessions.
 
 ## Support
 
-The purpose of these solutions is to provide users with examples of how to design and build this type of solution using the various services available in Azure. While these solutions are hosted within the Azure Cosmos DB GitHub organization, they are not officially supported. Users are welcome to submit issues, any fixes are done on a best effort bassi. Users are most welcome and to submit Pull Requests.
+The purpose of these solutions is to provide users with examples of how to design and build this type of solution using the various services available in Azure. While these solutions are hosted within the Azure GitHub organization, they are not officially supported. Users are welcome to submit issues, any fixes are done on a best effort basis by volunteers. Users are also welcome and to submit Pull Requests.
 
 
 ## Resources
