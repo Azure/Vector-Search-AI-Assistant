@@ -1,6 +1,6 @@
-# Vector Search & AI Assistant for Azure Cosmos DB & Redis
+# Vector Search & AI Assistant for Azure Cosmos DB & Azure Cache for Redis Enterprise
 
-This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI, then shows how to implment vector search capabilities using a variety of different vector capable databases available from Azure Cosmos DB and Azure.
+This solution is a series of samples that demonstrate how to build solutions that incorporate Azure Cosmos DB with Azure OpenAI Service to build vector search solutions with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB using Azure OpenAI Service, then shows how to implment vector search capabilities using a variety of different vector capable databases available from Azure Cosmos DB and Azure.
 
 The scenario for this sample centers around a consumer retail "Intelligent Agent" that allows users to ask questions on vectorized product, customer and sales order data stored in the database. The data in this solution is the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB. This data is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
 
@@ -23,7 +23,7 @@ This solution is composed of the following services:
 
 1.	Azure Cosmos DB - Stores the operational retail data, generated embeddings and chat prompts and completions.
 1.	Azure Functions - Hosts a Cosmos DB trigger to generate embeddings, Cosmos DB output binding to save the embeddings and Redis.
-1.	Azure OpenAI - Generates embeddings using the Embeddings API and chat completions using the Completion API.
+1.	Azure OpenAI Service - Generates embeddings using the Embeddings API and chat completions using the Completion API.
 1.	Azure Cache for Redis Enterprise - Performs vector matching.
 1.	Azure App Service - Hosts Intelligent Agent UI.
 
@@ -62,11 +62,11 @@ You can see this at work by debugging the Azure Web App remotely or running loca
 The provided ARM or Bicep Template will provision the following resources:
 1. Azure Cosmos DB account with a database and 5 containers at 1000 RU/s autoscale. These will scale down to 500 RU/s when not in use.
 1. Azure App service. This will be configured to deploy the Search web application from **this** GitHub repository. This will work fine if no changes are made. If you want it to deploy from your forked repository, modify the Deploy To Azure button below.
-1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
+1. Azure Open AI Service account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
 1. Azure Functions. This will run on the same hosting plan as the Azure App Service.
 1. Azure Cache for Redis Enterprise. **Please note that this service costs a minimum of $700 per month.**
 
-**Note:** You must have access to Azure OpenAI service from your subscription before attempting to deploy this application.
+**Note:** You must have access to Azure OpenAI Service from your subscription before attempting to deploy this application.
 
 All connection information for Azure Cosmos DB, Azure OpenAI and Azure Cache for Redis is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
 
