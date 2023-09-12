@@ -605,7 +605,50 @@
       }
     },
     {
-      "type": "Microsoft.ContainerService/managedClusters/agentPools",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2023-04-01",
+      "name": "[concat(variables('vnetSettings').name, '-aks-subnet-nsg')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet')]"
+      ],
+      "properties": {
+        "properties": {
+          "flushConnection": true,
+          "securityRules": [
+            {
+              "name": "AllowHTTPInbound",
+              "properties": {
+                "access": "Allow",
+                "destinationAddressPrefix": "Any",
+                "destinationPortRange": "80",
+                "direction": "Inbound",
+                "priority": 500,
+                "protocol": "Tcp",
+                "sourceAddressPrefix": "Internet",
+                "sourcePortRange": "*"
+              },
+              "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+            },
+            {
+              "name": "AllowHTTPSInbound",
+              "properties": {
+                "access": "Allow",
+                "destinationAddressPrefix": "Any",
+                "destinationPortRange": "443",
+                "direction": "Inbound",
+                "priority": 501,
+                "protocol": "Tcp",
+                "sourceAddressPrefix": "Internet",
+                "sourcePortRange": "*"
+              },
+              "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+            }
+          ]
+        }
+      }
+    },
+    {      "type": "Microsoft.ContainerService/managedClusters/agentPools",
       "apiVersion": "2023-01-02-preview",
       "name": "[concat(variables('aksSettings').name, '/agentpool')]",
       "dependsOn": [
