@@ -612,15 +612,14 @@
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet')]"
       ],
-      "properties": {
         "properties": {
-          "flushConnection": true,
+          "flushConnection": false,
           "securityRules": [
             {
               "name": "AllowHTTPInbound",
               "properties": {
                 "access": "Allow",
-                "destinationAddressPrefix": "Any",
+                "destinationAddressPrefix": "*",
                 "destinationPortRange": "80",
                 "direction": "Inbound",
                 "priority": 500,
@@ -634,7 +633,7 @@
               "name": "AllowHTTPSInbound",
               "properties": {
                 "access": "Allow",
-                "destinationAddressPrefix": "Any",
+                "destinationAddressPrefix": "*",
                 "destinationPortRange": "443",
                 "direction": "Inbound",
                 "priority": 501,
@@ -646,7 +645,6 @@
             }
           ]
         }
-      }
     },
     {      
       "type": "Microsoft.ContainerService/managedClusters/agentPools",
