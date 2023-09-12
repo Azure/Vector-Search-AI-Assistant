@@ -648,7 +648,8 @@
         }
       }
     },
-    {      "type": "Microsoft.ContainerService/managedClusters/agentPools",
+    {      
+      "type": "Microsoft.ContainerService/managedClusters/agentPools",
       "apiVersion": "2023-01-02-preview",
       "name": "[concat(variables('aksSettings').name, '/agentpool')]",
       "dependsOn": [
