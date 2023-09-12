@@ -595,13 +595,51 @@
       "apiVersion": "2022-09-01",
       "name": "[concat(variables('vnetSettings').name, '/aks-subnet')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSettings').name)]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSettings').name)]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('vnetSettings').name, '-aks-subnet-nsg'))]"
       ],
       "properties": {
         "addressPrefix": "[variables('vnetSettings').subnets['aks-subnet'].addressPrefix]",
         "delegations": [],
         "privateEndpointNetworkPolicies": "Disabled",
-        "privateLinkServiceNetworkPolicies": "Enabled"
+        "privateLinkServiceNetworkPolicies": "Enabled",
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('vnetSettings').name, '-aks-subnet-nsg'))]",
+          "name": "[concat(variables('vnetSettings').name, '-aks-subnet-nsg')]",
+          "properties": { 
+            "flushConnection": false,
+            "securityRules": [
+              {
+                "name": "AllowHTTPInbound",
+                "properties": {
+                  "access": "Allow",
+                  "destinationAddressPrefix": "*",
+                  "destinationPortRange": "80",
+                  "direction": "Inbound",
+                  "priority": 500,
+                  "protocol": "Tcp",
+                  "sourceAddressPrefix": "Internet",
+                  "sourcePortRange": "*"
+                },
+                "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+              },
+              {
+                "name": "AllowHTTPSInbound",
+                "properties": {
+                  "access": "Allow",
+                  "destinationAddressPrefix": "*",
+                  "destinationPortRange": "443",
+                  "direction": "Inbound",
+                  "priority": 501,
+                  "protocol": "Tcp",
+                  "sourceAddressPrefix": "Internet",
+                  "sourcePortRange": "*"
+                },
+                "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+              }
+            ]
+          }
+        }
       }
     },
     {
@@ -609,9 +647,6 @@
       "apiVersion": "2023-04-01",
       "name": "[concat(variables('vnetSettings').name, '-aks-subnet-nsg')]",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet')]"
-      ],
         "properties": {
           "flushConnection": false,
           "securityRules": [
