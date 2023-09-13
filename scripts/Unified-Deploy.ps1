@@ -68,11 +68,6 @@ if ($deployAks)
 
     # Write-Host "Retrieving credentials" -ForegroundColor Yellow
     az aks get-credentials -n $aksName -g $resourceGroup --overwrite-existing
-
-    # Generate Config
-    New-Item -ItemType Directory -Force -Path $(./Join-Path-Recursively.ps1 -pathParts ..,__values)
-    $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
-    & ./Generate-Config.ps1 -resourceGroup $resourceGroup -outputFile $gValuesLocation
 }
 else
 {
@@ -82,6 +77,11 @@ else
     }
 }
 
+# Generate Config
+New-Item -ItemType Directory -Force -Path $(./Join-Path-Recursively.ps1 -pathParts ..,__values)
+$gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
+& ./Generate-Config.ps1 -resourceGroup $resourceGroup -outputFile $gValuesLocation
+
 # Create Secrets
 if ([string]::IsNullOrEmpty($acrName))
 {
@@ -90,7 +90,11 @@ if ([string]::IsNullOrEmpty($acrName))
 
 Write-Host "The Name of your ACR: $acrName" -ForegroundColor Yellow
 # & ./Create-Secret.ps1 -resourceGroup $resourceGroup -acrName $acrName
-az aks update -n $aksName -g $resourceGroup --attach-acr $acrName
+
+if ($deployAks)
+{
+    az aks update -n $aksName -g $resourceGroup --attach-acr $acrName
+}
 
 if ($deployAks -And $stepDeployCertManager) {
     # Deploy Cert Manager
