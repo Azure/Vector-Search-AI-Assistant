@@ -1,5 +1,7 @@
 # Deployment
 
+## Using AKS
+
 Clone the VectorSearchAiAssistant repository and change to the `cognitive-search-vector` branch
 
 ```pwsh
@@ -13,6 +15,17 @@ Run the following script to provision the infrastructure and deploy the API and 
 ./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
                              -location <location> `
                              -subscription <subscription-id>
+```
+
+## Using ACA
+
+Deployment using ACA instead of AKS requires the addition of the argument `-deployAks 0` to the command line call.
+
+```pwsh
+./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
+                             -location <location> `
+                             -subscription <subscription-id> `
+                             -deployAks 0
 ```
 
 ## Deployments using an existing OpenAI service
