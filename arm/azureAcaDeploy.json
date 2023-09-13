@@ -623,6 +623,10 @@
                       "name": "[format('{0}chatapiaca', parameters('name'))]",
                       "env": [
                           {
+                              "name": "ASPNETCORE_ENVIRONMENT",
+                              "value": "Production"
+                          },
+                          {
                               "name": "MSCosmosDBOpenAI__CognitiveSearch__IndexName",
                               "value": "vector-index"
                           },
@@ -728,7 +732,7 @@
                           },
                           {
                               "name": "MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection",
-                              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', format('{0}promptsa', parameters('name')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name'))), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, 'EndpointSuffix=core.windows.net')]"
+                              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', format('{0}promptsa', parameters('name')), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name'))), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';EndpointSuffix=core.windows.net')]"
                           },
                           {
                               "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName",
@@ -752,7 +756,7 @@
                           },
                           {
                               "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageConnection",
-                              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', format('{0}promptsa', parameters('name')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name'))), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, 'EndpointSuffix=core.windows.net')]"
+                              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', format('{0}promptsa', parameters('name')), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name'))), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';EndpointSuffix=core.windows.net')]"
                           },
                           {
                               "name": "MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageContainer",
@@ -764,7 +768,7 @@
                           },
                           {
                               "name": "MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection",
-                              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', format('{0}promptsa', parameters('name')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name'))), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, 'EndpointSuffix=core.windows.net')]"
+                              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', format('{0}promptsa', parameters('name')), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name'))), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';EndpointSuffix=core.windows.net')]"
                           },
                           {
                               "name": "ApplicationInsights__ConnectionString",
