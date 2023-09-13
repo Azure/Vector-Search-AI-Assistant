@@ -837,7 +837,7 @@
                           },
                           {
                               "name": "MSCosmosDBOpenAI__ChatManager__APIRoutePrefix",
-                              "value": "/api"
+                              "value": ""
                           },
                           {
                               "name": "MSCosmosDBOpenAI__ChatManager__APIUrl",
@@ -873,6 +873,10 @@
     "webFqdn": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.App/containerApps', format('{0}chatwebaca', parameters('name'))), providers('Microsoft.App', 'containerApps').apiVersions[0]).configuration.ingress.fqdn]"
+    },
+    "apiFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.App/containerApps', format('{0}chatapiaca', parameters('name'))), providers('Microsoft.App', 'containerApps').apiVersions[0]).configuration.ingress.fqdn]"
     },
     "apiAcaName": {
       "type": "string",

@@ -59,14 +59,14 @@ Invoke-Expression "$command"
 
 Write-Host " --------------------------------------------------------" 
 Write-Host "Entering holding pattern to wait for proper backend API initialization"
-Write-Host "Attempting to retrieve status from https://$($deploymentOutputs.webFqdn.value)/api/status every 20 seconds with 50 retries"
+Write-Host "Attempting to retrieve status from https://$($deploymentOutputs.apiFqdn.value)/status every 20 seconds with 50 retries"
 Write-Host " --------------------------------------------------------" 
 $apiStatus = "initializing"
 $retriesLeft = 50
 while (($apiStatus.ToString() -ne "ready") -and ($retriesLeft -gt 0)) {
     Start-Sleep -Seconds 20
     try {
-        $apiStatus = Invoke-RestMethod -Uri "https://$($deploymentOutputs.webFqdn.value)/api/status" -Method GET
+        $apiStatus = Invoke-RestMethod -Uri "https://$($deploymentOutputs.apiFqdn.value)/status" -Method GET
     }
     catch {
         Write-Host "The attempt to invoke the API endpoint failed. Will retry."
