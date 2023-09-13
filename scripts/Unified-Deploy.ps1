@@ -74,6 +74,13 @@ if ($deployAks)
     $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
     & ./Generate-Config.ps1 -resourceGroup $resourceGroup -outputFile $gValuesLocation
 }
+else
+{
+    if ([string]::IsNullOrEmpty($cosmosDbAccountName))
+    {
+        $cosmosDbAccountName=$(az deployment group show -g $resourceGroup -n cosmosdb-openai-azuredeploy -o json --query properties.outputs.cosmosDbAccountName.value | ConvertFrom-Json)
+    }
+}
 
 # Create Secrets
 if ([string]::IsNullOrEmpty($acrName))
