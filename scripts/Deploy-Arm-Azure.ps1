@@ -3,9 +3,7 @@
 Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$true)][string]$location,
-    [parameter(Mandatory=$false)][string]$template="azuredeploy.json",
-    [parameter(Mandatory=$false)][string]$resourcePrefix,
-    [parameter(Mandatory=$false)][string]$cosmosDbAccountName
+    [parameter(Mandatory=$true)][string]$template
 )
 
 $sourceFolder=$(Join-Path -Path .. -ChildPath arm)
