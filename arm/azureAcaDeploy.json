@@ -814,6 +814,9 @@
                   "external": true,
                   "targetPort": 80,
                   "exposedPort": 0,
+                  "stickySessions": {
+                    "affinity": "sticky"
+                  },
                   "transport": "Auto",
                   "traffic": [
                       {
