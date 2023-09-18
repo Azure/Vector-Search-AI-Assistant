@@ -7,7 +7,7 @@ Param(
     [parameter(Mandatory=$true)][string]$subscription,
     [parameter(Mandatory=$false)][string]$armTemplate=$null,
     [parameter(Mandatory=$false)][bool]$stepDeployArm=$true,
-    [parameter(Mandatory=$false)][bool]$deployAks=$true,
+    [parameter(Mandatory=$false)][bool]$deployAks=$false,
     [parameter(Mandatory=$false)][bool]$stepBuildPush=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployCertManager=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployTls=$true,

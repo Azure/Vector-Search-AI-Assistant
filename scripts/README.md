@@ -1,6 +1,6 @@
 # Deployment
 
-## Using AKS
+## Using ACA
 
 Clone the VectorSearchAiAssistant repository and change to the `cognitive-search-vector` branch
 
@@ -9,7 +9,7 @@ git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant
 git checkout cognitive-search-vector
 ```
 
-Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos.
+Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into ACA, and import data into Cosmos.
 
 ```pwsh
 ./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
@@ -17,15 +17,15 @@ Run the following script to provision the infrastructure and deploy the API and 
                              -subscription <subscription-id>
 ```
 
-## Using ACA
+## Using AKS
 
-Deployment using ACA instead of AKS requires the addition of the argument `-deployAks 0` to the command line call.
+Deployment using AKS instead of ACA requires the addition of the argument `-deployAks 1` to the command line call.
 
 ```pwsh
 ./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
                              -location <location> `
                              -subscription <subscription-id> `
-                             -deployAks 0
+                             -deployAks 1
 ```
 
 ## Deployments using an existing OpenAI service

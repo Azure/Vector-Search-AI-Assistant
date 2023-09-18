@@ -84,4 +84,4 @@ if ($apiStatus.ToString() -ne "ready") {
 
 Pop-Location
 
-Write-Host "MS OpenAI Chat deployed on AKS" -ForegroundColor Yellow
+Write-Host "MS OpenAI Chat deployed to ACA" -ForegroundColor Yellow
