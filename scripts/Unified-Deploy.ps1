@@ -6,7 +6,12 @@ Param(
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$true)][string]$subscription,
     [parameter(Mandatory=$false)][string]$armTemplate=$null,
+    [parameter(Mandatory=$false)][string]$openAiName=$null,
+    [parameter(Mandatory=$false)][string]$openAiRg=$null,
+    [parameter(Mandatory=$false)][string]$openAiCompletionsDeployment=$null,
+    [parameter(Mandatory=$false)][string]$openAiEmbeddingsDeployment=$null,
     [parameter(Mandatory=$false)][bool]$stepDeployArm=$true,
+    [parameter(Mandatory=$false)][bool]$stepDeployOpenAi=$true,
     [parameter(Mandatory=$false)][bool]$deployAks=$false,
     [parameter(Mandatory=$false)][bool]$stepBuildPush=$true,
     [parameter(Mandatory=$false)][bool]$stepDeployCertManager=$true,
@@ -14,7 +19,8 @@ Param(
     [parameter(Mandatory=$false)][bool]$stepDeployImages=$true,
     [parameter(Mandatory=$false)][bool]$stepUploadSystemPrompts=$true,
     [parameter(Mandatory=$false)][bool]$stepImportData=$true,
-    [parameter(Mandatory=$false)][bool]$stepLoginAzure=$true
+    [parameter(Mandatory=$false)][bool]$stepLoginAzure=$true,
+    [parameter(Mandatory=$false)][string]$resourcePrefix=$null
 )
 
 $gValuesFile="configFile.yaml"
@@ -42,6 +48,49 @@ if ($stepLoginAzure) {
 # Write-Host "Choosing your subscription" -ForegroundColor Yellow
 az account set --subscription $subscription
 
+$rg = $(az group show -g $resourceGroup -o json | ConvertFrom-Json)
+if (-not $rg) {
+    $rg=$(az group create -g $resourceGroup -l $location --subscription $subscription)
+}
+
+if (-not $resourcePrefix) {
+    $crypt = New-Object -TypeName System.Security.Cryptography.SHA256Managed
+    $utf8 = New-Object -TypeName System.Text.UTF8Encoding
+    $hash = [System.BitConverter]::ToString($crypt.ComputeHash($utf8.GetBytes($resourceGroup)))
+    $hash = $hash.replace('-','').toLower()
+    $resourcePrefix = $hash.Substring(0,5)
+}
+
+if ($stepDeployOpenAi) {
+    if (-not $openAiRg) {
+        $openAiRg=$resourceGroup
+    }
+
+    if (-not $openAiName) {
+        $openAiName = "$($resourcePrefix)-openai"
+    }
+
+    if (-not $openAiCompletionsDeployment) {
+        $openAiCompletionsDeployment = "completions"
+    }
+
+    if (-not $openAiEmbeddingsDeployment) {
+        $openAiEmbeddingsDeployment = "embeddings"
+    }
+
+    & ./Deploy-OpenAi.ps1 -name $openAiName -resourceGroup $openAiRg -location $location -completionsDeployment $openAiCompletionsDeployment -embeddingsDeployment $openAiEmbeddingsDeployment
+}
+
+## Getting OpenAI info
+if ($openAiName) {
+    $openAi=$(az cognitiveservices account show -n $openAiName -g $openAiRg -o json | ConvertFrom-Json)
+} else {
+    $openAi=$(az cognitiveservices account list -g $resourceGroup -o json | ConvertFrom-Json)
+    $openAiRg=$resourceGroup
+}
+
+$openAiKey=$(az cognitiveservices account keys list -g $openAiRg -n $openAi.name -o json --query key1 | ConvertFrom-Json)
+
 if ($stepDeployArm) {
 
     if ([string]::IsNullOrEmpty($armTemplate))
@@ -56,7 +105,7 @@ if ($stepDeployArm) {
         }
     }
     # Deploy ARM
-    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate
+    & ./Deploy-Arm-Azure.ps1 -resourceGroup $resourceGroup -location $location -template $armTemplate -deployAks $deployAks -openAiEndpoint $openAi.properties.endpoint -openAiKey $openAiKey -openAiCompletionsDeployment $openAiCompletionsDeployment -openAiEmbeddingsDeployment $openAiEmbeddingsDeployment
 }
 
 if ($deployAks)
@@ -80,7 +129,7 @@ else
 # Generate Config
 New-Item -ItemType Directory -Force -Path $(./Join-Path-Recursively.ps1 -pathParts ..,__values)
 $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
-& ./Generate-Config.ps1 -resourceGroup $resourceGroup -outputFile $gValuesLocation
+& ./Generate-Config.ps1 -resourceGroup $resourceGroup -openAiName $openAiName -openAiRg $openAiRg -openAiDeployment $openAiDeployment -outputFile $gValuesLocation
 
 # Create Secrets
 if ([string]::IsNullOrEmpty($acrName))
