@@ -46,32 +46,6 @@
       "name": "[format('{0}-cog-search', parameters('name'))]",
       "sku": "basic"
     },
-    "openAiSettings": {
-      "name": "[format('{0}-openai', parameters('name'))]",
-      "sku": "S0",
-      "deployments": {
-        "completions": {
-          "sku": {
-            "name": "Standard",
-            "capacity": 120
-          },
-          "model": {
-            "name": "gpt-35-turbo",
-            "version": "0301"
-          }
-        },
-        "embeddings": {
-          "sku": {
-            "name": "Standard",
-            "capacity": 120
-          },
-          "model": {
-            "name": "text-embedding-ada-002",
-            "version": "2"
-          }
-        }
-      }
-    },
     "cosmosContainers": {
       "embeddingContainer": {
         "name": "embedding",
@@ -189,61 +163,6 @@
       "dependsOn": [
         "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosDbSettings').name, variables('cosmosDbSettings').databaseName)]"
       ]
-    },
-    {
-        "type": "Microsoft.CognitiveServices/accounts",
-        "apiVersion": "2023-05-01",
-        "name": "[variables('openAiSettings').name]",
-        "location": "EastUS",
-        "sku": {
-            "name": "[variables('openAiSettings').sku]"
-        },
-        "kind": "OpenAI",
-        "properties": {
-            "customSubDomainName": "[variables('openAiSettings').name]",
-            "publicNetworkAccess": "Enabled"
-        }
-    },
-    {
-        "type": "Microsoft.CognitiveServices/accounts/deployments",
-        "apiVersion": "2023-05-01",
-        "name": "[concat(variables('openAiSettings').name, '/completions')]",
-        "dependsOn": [
-            "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]"
-        ],
-        "sku": {
-            "name": "[variables('openAiSettings').deployments.completions.sku.name]",
-            "capacity": "[variables('openAiSettings').deployments.completions.sku.capacity]"
-        },
-        "properties": {
-            "model": {
-                "format": "OpenAI",
-                "name": "[variables('openAiSettings').deployments.completions.model.name]",
-                "version": "[variables('openAiSettings').deployments.completions.model.version]"
-            },
-            "versionUpgradeOption": "OnceNewDefaultVersionAvailable"
-        }
-    },
-    {
-        "type": "Microsoft.CognitiveServices/accounts/deployments",
-        "apiVersion": "2023-05-01",
-        "name": "[concat(variables('openAiSettings').name, '/embeddings')]",
-        "dependsOn": [
-            "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
-            "[concat(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '/deployments/completions')]"
-        ],
-        "sku": {
-            "name": "[variables('openAiSettings').deployments.embeddings.sku.name]",
-            "capacity": "[variables('openAiSettings').deployments.embeddings.sku.capacity]"
-        },
-        "properties": {
-            "model": {
-                "format": "OpenAI",
-                "name": "[variables('openAiSettings').deployments.embeddings.model.name]",
-                "version": "[variables('openAiSettings').deployments.embeddings.model.version]"
-            },
-            "versionUpgradeOption": "OnceNewDefaultVersionAvailable"
-        }
     },
     {
       "type": "Microsoft.Search/searchServices",
@@ -595,16 +514,93 @@
       "apiVersion": "2022-09-01",
       "name": "[concat(variables('vnetSettings').name, '/aks-subnet')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSettings').name)]"
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSettings').name)]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('vnetSettings').name, '-aks-subnet-nsg'))]"
       ],
       "properties": {
         "addressPrefix": "[variables('vnetSettings').subnets['aks-subnet'].addressPrefix]",
         "delegations": [],
         "privateEndpointNetworkPolicies": "Disabled",
-        "privateLinkServiceNetworkPolicies": "Enabled"
+        "privateLinkServiceNetworkPolicies": "Enabled",
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('vnetSettings').name, '-aks-subnet-nsg'))]",
+          "name": "[concat(variables('vnetSettings').name, '-aks-subnet-nsg')]",
+          "properties": { 
+            "flushConnection": false,
+            "securityRules": [
+              {
+                "name": "AllowHTTPInbound",
+                "properties": {
+                  "access": "Allow",
+                  "destinationAddressPrefix": "*",
+                  "destinationPortRange": "80",
+                  "direction": "Inbound",
+                  "priority": 500,
+                  "protocol": "Tcp",
+                  "sourceAddressPrefix": "Internet",
+                  "sourcePortRange": "*"
+                },
+                "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+              },
+              {
+                "name": "AllowHTTPSInbound",
+                "properties": {
+                  "access": "Allow",
+                  "destinationAddressPrefix": "*",
+                  "destinationPortRange": "443",
+                  "direction": "Inbound",
+                  "priority": 501,
+                  "protocol": "Tcp",
+                  "sourceAddressPrefix": "Internet",
+                  "sourcePortRange": "*"
+                },
+                "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+              }
+            ]
+          }
+        }
       }
     },
     {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2023-04-01",
+      "name": "[concat(variables('vnetSettings').name, '-aks-subnet-nsg')]",
+      "location": "[parameters('location')]",
+        "properties": {
+          "flushConnection": false,
+          "securityRules": [
+            {
+              "name": "AllowHTTPInbound",
+              "properties": {
+                "access": "Allow",
+                "destinationAddressPrefix": "*",
+                "destinationPortRange": "80",
+                "direction": "Inbound",
+                "priority": 500,
+                "protocol": "Tcp",
+                "sourceAddressPrefix": "Internet",
+                "sourcePortRange": "*"
+              },
+              "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+            },
+            {
+              "name": "AllowHTTPSInbound",
+              "properties": {
+                "access": "Allow",
+                "destinationAddressPrefix": "*",
+                "destinationPortRange": "443",
+                "direction": "Inbound",
+                "priority": 501,
+                "protocol": "Tcp",
+                "sourceAddressPrefix": "Internet",
+                "sourcePortRange": "*"
+              },
+              "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+            }
+          ]
+        }
+    },
+    {      
       "type": "Microsoft.ContainerService/managedClusters/agentPools",
       "apiVersion": "2023-01-02-preview",
       "name": "[concat(variables('aksSettings').name, '/agentpool')]",
