@@ -5,7 +5,12 @@ Param(
     [parameter(Mandatory=$true)][string]$location,
     [parameter(Mandatory=$false)][string]$template="azuredeploy.json",
     [parameter(Mandatory=$false)][string]$resourcePrefix,
-    [parameter(Mandatory=$false)][string]$cosmosDbAccountName
+    [parameter(Mandatory=$false)][string]$cosmosDbAccountName, 
+    [parameter(Mandatory=$false)][bool]$deployAks,
+    [parameter(Mandatory=$true)][string]$openAiEndpoint,
+    [parameter(Mandatory=$true)][string]$openAiKey,
+    [parameter(Mandatory=$true)][string]$openAiCompletionsDeployment,
+    [parameter(Mandatory=$true)][string]$openAiEmbeddingsDeployment
 )
 
 $sourceFolder=$(Join-Path -Path .. -ChildPath arm)
@@ -36,7 +41,14 @@ $deploymentName = "cosmosdb-openai-azuredeploy"
 
 Write-Host "Begining the ARM deployment..." -ForegroundColor Yellow
 Push-Location $sourceFolder
-az deployment group create -g $resourceGroup -n $deploymentName --template-file $script --parameters k8sVersion=$aksLastVersion
+if ($deployAks)
+{
+    az deployment group create -g $resourceGroup -n $deploymentName --template-file $script --parameters k8sVersion=$aksLastVersion
+}
+else
+{
+    az deployment group create -g $resourceGroup -n $deploymentName --template-file $script --parameters openAiEndpoint=$openAiEndpoint --parameters openAiKey=$openAiKey --parameters openAiCompletionsDeployment=$openAiCompletionsDeployment --parameters openAiEmbeddingsDeployment=$openAiEmbeddingsDeployment
+}
 
 $outputVal = (az deployment group show -g $resourceGroup -n $deploymentName --query properties.outputs.resourcePrefix.value) | ConvertFrom-Json
 Set-Variable -Name resourcePrefix -Value $outputVal.ToString() -Scope 1

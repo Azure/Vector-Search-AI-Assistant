@@ -1,0 +1,917 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.17.1.54307",
+      "templateHash": "5692427675602515188"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus",
+      "allowedValues": [
+        "southcentralus",
+        "eastus",
+        "westeurope"
+      ],
+      "metadata": {
+        "description": "Location where all resources will be deployed. This value defaults to the **East US** region."
+      }
+    },
+    "name": {
+      "type": "string",
+      "defaultValue": "[uniqueString(resourceGroup().id)]",
+      "maxLength": 15,
+      "metadata": {
+        "description": "Unique name for the deployed services below. Max length 15 characters, alphanumeric only:\r\n- Azure Cosmos DB for NoSQL\r\n- Azure Cosmos DB for MongoDB vCore\r\n- Azure OpenAI\r\n- Azure App Service\r\n- Azure Functions\r\n\r\nThe name defaults to a unique string generated from the resource group identifier.\r\n"
+      }
+    },
+    "openAiEndpoint": {
+      "type": "string",
+      "metadata": {
+        "description": "The OpenAI Endpoint"
+      }
+    },
+    "openAiKey": {
+      "type": "string",
+      "metadata": {
+        "description": "The OpenAI API key"
+      }
+    },
+    "openAiCompletionsDeployment": {
+      "type": "string",
+      "metadata": {
+        "description": "The OpenAI Completions Deployment"
+      }
+    },
+    "openAiEmbeddingsDeployment": {
+      "type": "string",
+      "metadata": {
+        "description": "The OpenAI Embeddings Deployment"
+      }
+    }
+  },
+  "variables": {
+    "cosmosDbSettings": {
+      "name": "[format('{0}-cosmos-nosql', parameters('name'))]",
+      "databaseName": "database"
+    },
+    "cognitiveSearchSettings": {
+      "name": "[format('{0}-cog-search', parameters('name'))]",
+      "sku": "basic"
+    },
+    "openAiSettings": {
+      "name": "[format('{0}-openai', parameters('name'))]",
+      "sku": "S0",
+      "deployments": {
+        "completions": {
+          "sku": {
+            "name": "Standard",
+            "capacity": 120
+          },
+          "model": {
+            "name": "gpt-35-turbo",
+            "version": "0301"
+          }
+        },
+        "embeddings": {
+          "sku": {
+            "name": "Standard",
+            "capacity": 120
+          },
+          "model": {
+            "name": "text-embedding-ada-002",
+            "version": "2"
+          }
+        }
+      }
+    },
+    "cosmosContainers": {
+      "embeddingContainer": {
+        "name": "embedding",
+        "partitionKeyPath": "/id",
+        "maxThroughput": 1000
+      },
+      "completionsContainer": {
+        "name": "completions",
+        "partitionKeyPath": "/sessionId",
+        "maxThroughput": 1000
+      },
+      "productContainer": {
+        "name": "product",
+        "partitionKeyPath": "/categoryId",
+        "maxThroughput": 1000
+      },
+      "customerContainer": {
+        "name": "customer",
+        "partitionKeyPath": "/customerId",
+        "maxThroughput": 1000
+      },
+      "leasesContainer": {
+        "name": "leases",
+        "partitionKeyPath": "/id",
+        "maxThroughput": 1000
+      }
+    },
+    "vnetSettings": {
+      "name": "[format('{0}-vnet', parameters('name'))]",
+      "addressPrefix": "10.244.0.0/16",
+      "subnets": {
+        "aks-subnet": {
+          "addressPrefix": "10.244.0.0/16"
+        }
+      }
+    },
+    "acrSettings": {
+      "name": "[format('{0}cr', parameters('name'))]",
+      "sku": "Standard",
+      "tier": "Standard"
+    },
+    "laSettings": {
+      "name": "[format('{0}-la', parameters('name'))]"
+    },
+    "aiSettings": {
+      "name": "[format('{0}-ai', parameters('name'))]"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "apiVersion": "2022-08-15",
+      "name": "[variables('cosmosDbSettings').name]",
+      "location": "[parameters('location')]",
+      "kind": "GlobalDocumentDB",
+      "properties": {
+        "consistencyPolicy": {
+          "defaultConsistencyLevel": "Session"
+        },
+        "databaseAccountOfferType": "Standard",
+        "locations": [
+          {
+            "failoverPriority": 0,
+            "isZoneRedundant": false,
+            "locationName": "[parameters('location')]"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+      "apiVersion": "2022-08-15",
+      "name": "[format('{0}/{1}', variables('cosmosDbSettings').name, variables('cosmosDbSettings').databaseName)]",
+      "properties": {
+        "resource": {
+          "id": "[variables('cosmosDbSettings').databaseName]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name)]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "cosmosContainer",
+        "count": "[length(items(variables('cosmosContainers')))]"
+      },
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+      "apiVersion": "2022-08-15",
+      "name": "[format('{0}/{1}/{2}', variables('cosmosDbSettings').name, variables('cosmosDbSettings').databaseName, items(variables('cosmosContainers'))[copyIndex()].value.name)]",
+      "properties": {
+        "resource": {
+          "id": "[items(variables('cosmosContainers'))[copyIndex()].value.name]",
+          "partitionKey": {
+            "paths": [
+              "[items(variables('cosmosContainers'))[copyIndex()].value.partitionKeyPath]"
+            ],
+            "kind": "Hash",
+            "version": 2
+          }
+        },
+        "options": {
+          "autoscaleSettings": {
+            "maxThroughput": "[items(variables('cosmosContainers'))[copyIndex()].value.maxThroughput]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('cosmosDbSettings').name, variables('cosmosDbSettings').databaseName)]"
+      ]
+    },
+    // {
+    //     "type": "Microsoft.CognitiveServices/accounts",
+    //     "apiVersion": "2023-05-01",
+    //     "name": "[variables('openAiSettings').name]",
+    //     "location": "EastUS",
+    //     "sku": {
+    //         "name": "[variables('openAiSettings').sku]"
+    //     },
+    //     "kind": "OpenAI",
+    //     "properties": {
+    //         "customSubDomainName": "[variables('openAiSettings').name]",
+    //         "publicNetworkAccess": "Enabled"
+    //     }
+    // },
+    // {
+    //     "type": "Microsoft.CognitiveServices/accounts/deployments",
+    //     "apiVersion": "2023-05-01",
+    //     "name": "[concat(variables('openAiSettings').name, '/completions')]",
+    //     "dependsOn": [
+    //         "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]"
+    //     ],
+    //     "sku": {
+    //         "name": "[variables('openAiSettings').deployments.completions.sku.name]",
+    //         "capacity": "[variables('openAiSettings').deployments.completions.sku.capacity]"
+    //     },
+    //     "properties": {
+    //         "model": {
+    //             "format": "OpenAI",
+    //             "name": "[variables('openAiSettings').deployments.completions.model.name]",
+    //             "version": "[variables('openAiSettings').deployments.completions.model.version]"
+    //         },
+    //         "versionUpgradeOption": "OnceNewDefaultVersionAvailable"
+    //     }
+    // },
+    // {
+    //     "type": "Microsoft.CognitiveServices/accounts/deployments",
+    //     "apiVersion": "2023-05-01",
+    //     "name": "[concat(variables('openAiSettings').name, '/embeddings')]",
+    //     "dependsOn": [
+    //         "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
+    //         "[concat(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name), '/deployments/completions')]"
+    //     ],
+    //     "sku": {
+    //         "name": "[variables('openAiSettings').deployments.embeddings.sku.name]",
+    //         "capacity": "[variables('openAiSettings').deployments.embeddings.sku.capacity]"
+    //     },
+    //     "properties": {
+    //         "model": {
+    //             "format": "OpenAI",
+    //             "name": "[variables('openAiSettings').deployments.embeddings.model.name]",
+    //             "version": "[variables('openAiSettings').deployments.embeddings.model.version]"
+    //         },
+    //         "versionUpgradeOption": "OnceNewDefaultVersionAvailable"
+    //     }
+    // },
+    {
+      "type": "Microsoft.Search/searchServices",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('cognitiveSearchSettings').name]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[variables('cognitiveSearchSettings').sku]"
+      },
+      "properties": {
+        "replicaCount": 1,
+        "partitionCount": 1,
+        "hostingMode": "default",
+        "publicNetworkAccess": "Enabled",
+        "networkRuleSet": {
+          "ipRules": []
+        },
+        "encryptionWithCmk": {
+          "enforcement": "Unspecified"
+        },
+        "disableLocalAuth": false,
+        "authOptions": {
+          "apiKeyOnly": {}
+        }
+      }
+    },
+    {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2023-01-01-preview",
+      "name": "[variables('acrSettings').name]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[variables('acrSettings').sku]",
+        "tier": "[variables('acrSettings').tier]"
+      },
+      "properties": {
+        "adminUserEnabled": true,
+        "policies": {
+          "quarantinePolicy": {
+            "status": "disabled"
+          },
+          "trustPolicy": {
+            "type": "Notary",
+            "status": "disabled"
+          },
+          "retentionPolicy": {
+            "days": 7,
+            "status": "disabled"
+          },
+          "exportPolicy": {
+            "status": "enabled"
+          },
+          "azureADAuthenticationAsArmPolicy": {
+            "status": "enabled"
+          },
+          "softDeletePolicy": {
+            "retentionDays": 7,
+            "status": "disabled"
+          }
+        },
+        "encryption": {
+          "status": "disabled"
+        },
+        "dataEndpointEnabled": false,
+        "publicNetworkAccess": "Enabled",
+        "networkRuleBypassOptions": "AzureServices",
+        "zoneRedundancy": "Disabled",
+        "anonymousPullEnabled": true
+      }
+    },
+    {
+      "type": "Microsoft.ContainerRegistry/registries/scopeMaps",
+      "apiVersion": "2023-01-01-preview",
+      "name": "[concat(variables('acrSettings').name, '/_repositories_admin')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('acrSettings').name)]"
+      ],
+      "properties": {
+        "description": "Can perform all read, write and delete operations on the registry",
+        "actions": [
+          "repositories/*/metadata/read",
+          "repositories/*/metadata/write",
+          "repositories/*/content/read",
+          "repositories/*/content/write",
+          "repositories/*/content/delete"
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.ContainerRegistry/registries/scopeMaps",
+      "apiVersion": "2023-01-01-preview",
+      "name": "[concat(variables('acrSettings').name, '/_repositories_pull')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('acrSettings').name)]"
+      ],
+      "properties": {
+        "description": "Can pull any repository of the registry",
+        "actions": [
+          "repositories/*/content/read"
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.ContainerRegistry/registries/scopeMaps",
+      "apiVersion": "2023-01-01-preview",
+      "name": "[concat(variables('acrSettings').name, '/_repositories_push')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('acrSettings').name)]"
+      ],
+      "properties": {
+        "description": "Can push to any repository of the registry",
+        "actions": [
+          "repositories/*/content/read",
+          "repositories/*/content/write"
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2021-12-01-preview",
+      "name": "[variables('laSettings').name]",
+      "location": "eastus",
+      "properties": {
+        "sku": {
+          "name": "Standalone"
+        },
+        "retentionInDays": 31,
+        "features": {
+          "enableLogAccessUsingOnlyResourcePermissions": true
+        },
+        "workspaceCapping": {
+          "dailyQuotaGb": -1
+        },
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('aiSettings').name]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "Flow_Type": "Bluefield",
+        "Request_Source": "rest",
+        "RetentionInDays": 30,
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name)]",
+        "IngestionMode": "LogAnalytics",
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name)]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-09-01",
+      "name": "[format('{0}promptsa', parameters('name'))]",
+      "location": "[parameters('location')]",
+      "kind": "Storage",
+      "sku": {
+        "name": "Standard_LRS"
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2022-09-01",
+      "name": "[variables('vnetSettings').name]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('vnetSettings').addressPrefix]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "aks-subnet",
+            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet')]",
+            "properties": {
+              "addressPrefix": "[variables('vnetSettings').subnets['aks-subnet'].addressPrefix]",
+              "delegations": [
+                {
+                  "name": "Microsoft.App.environments",
+                  "id": "[concat(resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet'), '/delegations/Microsoft.App.environments')]",
+                  "properties": {
+                      "serviceName": "Microsoft.App/environments"
+                  },
+                  "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+                }
+              ],
+              "privateEndpointNetworkPolicies": "Disabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
+            },
+            "type": "Microsoft.Network/virtualNetworks/subnets"
+          }
+        ],
+        "virtualNetworkPeerings": [],
+        "enableDdosProtection": false
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "apiVersion": "2022-09-01",
+      "name": "[concat(variables('vnetSettings').name, '/aks-subnet')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSettings').name)]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('vnetSettings').name, '-aks-subnet-nsg'))]"
+      ],
+      "properties": {
+        "addressPrefix": "[variables('vnetSettings').subnets['aks-subnet'].addressPrefix]",
+        "delegations": [
+          {
+            "name": "Microsoft.App.environments",
+            "id": "[concat(resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet'), '/delegations/Microsoft.App.environments')]",
+            "properties": {
+                "serviceName": "Microsoft.App/environments"
+            },
+            "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+          }
+        ],
+        "privateEndpointNetworkPolicies": "Disabled",
+        "privateLinkServiceNetworkPolicies": "Enabled",
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(variables('vnetSettings').name, '-aks-subnet-nsg'))]",
+          "name": "[concat(variables('vnetSettings').name, '-aks-subnet-nsg')]",
+          "properties": { 
+            "flushConnection": false,
+            "securityRules": [
+              {
+                "name": "AllowHTTPInbound",
+                "properties": {
+                  "access": "Allow",
+                  "destinationAddressPrefix": "*",
+                  "destinationPortRange": "80",
+                  "direction": "Inbound",
+                  "priority": 500,
+                  "protocol": "Tcp",
+                  "sourceAddressPrefix": "Internet",
+                  "sourcePortRange": "*"
+                },
+                "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+              },
+              {
+                "name": "AllowHTTPSInbound",
+                "properties": {
+                  "access": "Allow",
+                  "destinationAddressPrefix": "*",
+                  "destinationPortRange": "443",
+                  "direction": "Inbound",
+                  "priority": 501,
+                  "protocol": "Tcp",
+                  "sourceAddressPrefix": "Internet",
+                  "sourcePortRange": "*"
+                },
+                "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2023-04-01",
+      "name": "[concat(variables('vnetSettings').name, '-aks-subnet-nsg')]",
+      "location": "[parameters('location')]",
+        "properties": {
+          "flushConnection": false,
+          "securityRules": [
+            {
+              "name": "AllowHTTPInbound",
+              "properties": {
+                "access": "Allow",
+                "destinationAddressPrefix": "*",
+                "destinationPortRange": "80",
+                "direction": "Inbound",
+                "priority": 500,
+                "protocol": "Tcp",
+                "sourceAddressPrefix": "Internet",
+                "sourcePortRange": "*"
+              },
+              "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+            },
+            {
+              "name": "AllowHTTPSInbound",
+              "properties": {
+                "access": "Allow",
+                "destinationAddressPrefix": "*",
+                "destinationPortRange": "443",
+                "direction": "Inbound",
+                "priority": 501,
+                "protocol": "Tcp",
+                "sourceAddressPrefix": "Internet",
+                "sourcePortRange": "*"
+              },
+              "type": "Microsoft.Network/networkSecurityGroups/securityRules"
+            }
+          ]
+        }
+    },
+    {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}acaenv', parameters('name'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+          "vnetConfiguration": {
+              "internal": false,
+              "infrastructureSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetSettings').name, 'aks-subnet')]"
+          },
+          "appLogsConfiguration": {
+              "destination": "log-analytics",
+              "logAnalyticsConfiguration": {
+                  "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name), '2021-12-01-preview').customerId]",
+                  "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('laSettings').name), providers('Microsoft.OperationalInsights', 'workspaces').apiVersions[0]).primarySharedKey]"
+              }
+          },
+          "zoneRedundant": false,
+          "workloadProfiles": [
+              {
+                  "workloadProfileType": "Consumption",
+                  "name": "Consumption"
+              },
+              {
+                  "workloadProfileType": "E4",
+                  "name": "Warm",
+                  "minimumCount": 2,
+                  "maximumCount": 20
+              }
+          ],
+          "infrastructureResourceGroup": "[concat('ME_', resourceGroup().name)]",
+          "peerAuthentication": {
+              "mtls": {
+                  "enabled": false
+              }
+          }
+      }
+    },
+    {
+      "type": "Microsoft.App/containerapps",
+      "apiVersion": "2023-05-02-preview",
+      "name": "[format('{0}chatapiaca', parameters('name'))]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.App/managedEnvironments', format('{0}acaenv', parameters('name')))]",
+        "[resourceId('Microsoft.Search/searchServices', variables('cognitiveSearchSettings').name)]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name)]",
+        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name')))]"
+      ],
+      "identity": {
+          "type": "SystemAssigned"
+      },
+      "properties": {
+          "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', format('{0}acaenv', parameters('name')))]",
+          "environmentId": "[resourceId('Microsoft.App/managedEnvironments', format('{0}acaenv', parameters('name')))]",
+          "workloadProfileName": "Warm",
+          "configuration": {
+              "secrets": [],
+              "activeRevisionsMode": "Single",
+              "ingress": {
+                  "external": true,
+                  "targetPort": 80,
+                  "exposedPort": 0,
+                  "transport": "Auto",
+                  "traffic": [
+                      {
+                        "latestRevision": true,
+                          "weight": 100
+                      }
+                  ],
+                  "allowInsecure": false,
+                  "clientCertificateMode": "Ignore"
+              }
+          },
+          "template": {
+              "containers": [
+                  {
+                      "image": "mcr.microsoft.com/k8se/quickstart:latest",
+                      "name": "[format('{0}chatapiaca', parameters('name'))]",
+                      "env": [
+                          {
+                              "name": "ASPNETCORE_ENVIRONMENT",
+                              "value": "Production"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearch__IndexName",
+                              "value": "vector-index"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults",
+                              "value": "10"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearch__Endpoint",
+                              "value": "[concat('https://', variables('cognitiveSearchSettings').name, '.search.windows.net/')]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearch__Key",
+                              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices', variables('cognitiveSearchSettings').name), '2022-09-01').primaryKey]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__CompletionsDeployment",
+                              "value": "[parameters('openAiCompletionsDeployment')]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__CompletionsDeploymentMaxTokens",
+                              "value": "8096"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment",
+                              "value": "[parameters('openAiEmbeddingsDeployment')]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__EmbeddingsDeploymentMaxTokens",
+                              "value": "8191"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__ChatCompletionPromptName",
+                              "value": "RetailAssistant.Default"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__ShortSummaryPromptName",
+                              "value": "Summarizer.TwoWords"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMinTokens",
+                              "value": "50"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMaxTokens",
+                              "value": "300"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__PromptOptimization__SystemMaxTokens",
+                              "value": "1500"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMinTokens",
+                              "value": "1500"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMaxTokens",
+                              "value": "7000"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMinTokens",
+                              "value": "100"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMaxTokens",
+                              "value": "200"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__Endpoint",
+                              "value": "[parameters('openAiEndpoint')]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__OpenAI__Key",
+                              "value": "[parameters('openAiKey')]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CosmosDB__Containers",
+                              "value": "completions, customer, product"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CosmosDB__MonitoredContainers",
+                              "value": "customer, product"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CosmosDB__Database",
+                              "value": "database"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer",
+                              "value": "leases"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CosmosDB__Endpoint",
+                              "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name), providers('Microsoft.DocumentDB', 'databaseAccounts').apiVersions[0]).documentEndpoint]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CosmosDB__Key",
+                              "value": "[listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbSettings').name), providers('Microsoft.DocumentDB', 'databaseAccounts').apiVersions[0]).primaryMasterKey]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer",
+                              "value": "system-prompt"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection",
+                              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', format('{0}promptsa', parameters('name')), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name'))), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';EndpointSuffix=core.windows.net')]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName",
+                              "value": "vector-index"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageContainer",
+                              "value": "memory-source"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigFilePath",
+                              "value": "ACSMemorySourceConfig.json"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__Endpoint",
+                              "value": "[concat('https://', variables('cognitiveSearchSettings').name, '.search.windows.net/')]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__Key",
+                              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices', variables('cognitiveSearchSettings').name), '2022-09-01').primaryKey]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageConnection",
+                              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', format('{0}promptsa', parameters('name')), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name'))), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';EndpointSuffix=core.windows.net')]"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageContainer",
+                              "value": "memory-source"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigFilePath",
+                              "value": "BlobMemorySourceConfig.json"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection",
+                              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', format('{0}promptsa', parameters('name')), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', format('{0}promptsa', parameters('name'))), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, ';EndpointSuffix=core.windows.net')]"
+                          },
+                          {
+                              "name": "ApplicationInsights__ConnectionString",
+                              "value": "[reference(resourceId('Microsoft.Insights/components', variables('aiSettings').name), providers('Microsoft.Insights', 'components').apiVersions[0]).connectionString]"
+                          }
+                      ],
+                      "resources": {
+                          "cpu": 0.5,
+                          "memory": "1Gi"
+                      },
+                      "probes": [],
+                      "volumeMounts": []
+                  }
+              ],
+              "scale": {
+                  "minReplicas": 2,
+                  "maxReplicas": 10
+              },
+              "volumes": []
+          }
+      }
+    },
+    {
+      "type": "Microsoft.App/containerapps",
+      "apiVersion": "2023-05-02-preview",
+      "name": "[format('{0}chatwebaca', parameters('name'))]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.App/managedEnvironments', format('{0}acaenv', parameters('name')))]",
+        "[resourceId('Microsoft.App/containerapps', format('{0}chatapiaca', parameters('name')))]"
+      ],
+      "identity": {
+          "type": "SystemAssigned"
+      },
+      "properties": {
+          "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', format('{0}acaenv', parameters('name')))]",
+          "environmentId": "[resourceId('Microsoft.App/managedEnvironments', format('{0}acaenv', parameters('name')))]",
+          "workloadProfileName": "Warm",
+          "configuration": {
+              "secrets": [],
+              "activeRevisionsMode": "Single",
+              "ingress": {
+                  "external": true,
+                  "targetPort": 80,
+                  "exposedPort": 0,
+                  "stickySessions": {
+                    "affinity": "sticky"
+                  },
+                  "transport": "Auto",
+                  "traffic": [
+                      {
+                        "latestRevision": true,
+                          "weight": 100
+                      }
+                  ],
+                  "allowInsecure": false,
+                  "clientCertificateMode": "Ignore"
+              }
+          },
+          "template": {
+              "containers": [
+                  {
+                      "image": "mcr.microsoft.com/k8se/quickstart:latest",
+                      "name": "[format('{0}chatapiaca', parameters('name'))]",
+                      "env": [
+                          {
+                              "name": "ASPNETCORE_ENVIRONMENT",
+                              "value": "Production"
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__ChatManager__APIRoutePrefix",
+                              "value": ""
+                          },
+                          {
+                              "name": "MSCosmosDBOpenAI__ChatManager__APIUrl",
+                              "value": "[concat('https://', reference(resourceId('Microsoft.App/containerApps', format('{0}chatapiaca', parameters('name'))), providers('Microsoft.App', 'containerApps').apiVersions[0]).configuration.ingress.fqdn)]"
+                          },
+                          {
+                              "name": "ApplicationInsights__ConnectionString",
+                              "value": "[reference(resourceId('Microsoft.Insights/components', variables('aiSettings').name), providers('Microsoft.Insights', 'components').apiVersions[0]).connectionString]"
+                          }
+                      ],
+                      "resources": {
+                          "cpu": 0.5,
+                          "memory": "1Gi"
+                      },
+                      "probes": [],
+                      "volumeMounts": []
+                  }
+              ],
+              "scale": {
+                  "minReplicas": 2,
+                  "maxReplicas": 10
+              },
+              "volumes": []
+          }
+      }
+    }
+  ],
+  "outputs": {
+    "webUrl": {
+      "type": "string",
+      "value": "[concat('https://', reference(resourceId('Microsoft.App/containerApps', format('{0}chatwebaca', parameters('name'))), providers('Microsoft.App', 'containerApps').apiVersions[0]).configuration.ingress.fqdn)]"
+    },
+    "webFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.App/containerApps', format('{0}chatwebaca', parameters('name'))), providers('Microsoft.App', 'containerApps').apiVersions[0]).configuration.ingress.fqdn]"
+    },
+    "apiFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.App/containerApps', format('{0}chatapiaca', parameters('name'))), providers('Microsoft.App', 'containerApps').apiVersions[0]).configuration.ingress.fqdn]"
+    },
+    "apiAcaName": {
+      "type": "string",
+      "value": "[format('{0}chatapiaca', parameters('name'))]"
+    },
+    "webAcaName": {
+      "type": "string",
+      "value": "[format('{0}chatwebaca', parameters('name'))]"
+    },
+    "resourcePrefix": {
+      "type": "string",
+      "value": "[parameters('name')]"
+    },
+    "cosmosDbAccountName": {
+      "type": "string",
+      "value": "[variables('cosmosDbSettings').name]"
+    }
+  }
+}
