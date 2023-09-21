@@ -2,6 +2,9 @@
 
 Param (
     [parameter(Mandatory=$true)][string]$resourceGroup,
+    [parameter(Mandatory=$false)][string]$openAiName,
+    [parameter(Mandatory=$false)][string]$openAiRg,
+    [parameter(Mandatory=$false)][string]$openAiDeployment,
     [parameter(Mandatory=$false)][string[]]$outputFile=$null,
     [parameter(Mandatory=$false)][string[]]$gvaluesTemplate="..,gvalues.template.yml",
     [parameter(Mandatory=$false)][string[]]$migrationSettingsTemplate="..,migrationsettings.template.json",
@@ -55,9 +58,14 @@ $blobAccount=$(az storage account list -g $resourceGroup -o json | ConvertFrom-J
 $blobKey=$(az storage account keys list -g $resourceGroup -n $blobAccount -o json | ConvertFrom-Json)[0].value
 
 ## Getting OpenAI info
-$openAi=$(az cognitiveservices account list -g $resourceGroup -o json | ConvertFrom-Json)
+if ($openAiName) {
+    $openAi=$(az cognitiveservices account show -n $openAiName -g $openAiRg -o json | ConvertFrom-Json)
+} else {
+    $openAi=$(az cognitiveservices account list -g $resourceGroup -o json | ConvertFrom-Json)
+    $openAiRg=$resourceGroup
+}
 
-$openAiKey=$(az cognitiveservices account keys list -g $resourceGroup -n $openAi.name -o json --query key1 | ConvertFrom-Json)
+$openAiKey=$(az cognitiveservices account keys list -g $openAiRg -n $openAi.name -o json --query key1 | ConvertFrom-Json)
 
 ## Getting Cognitive Search info
 $search=$(az search service list -g $resourceGroup --query "[].{name: name, kind:kind}" -o json | ConvertFrom-Json)
