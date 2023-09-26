@@ -379,9 +379,7 @@
             "maxPods": 110,
             "type": "VirtualMachineScaleSets",
             "availabilityZones": [
-              "1",
-              "2",
-              "3"
+              "1"
             ],
             "maxCount": 2,
             "minCount": 1,
