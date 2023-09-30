@@ -122,7 +122,7 @@ Change Feed capability to dynamically add and remove records. The steps below ca
   
     ##### Curl Command
     ```pwsh
-    curl -X PUT -H "Content-Type: application/json" -d $JsonPayload https://<chat-service-hostname>/api/products
+    curl -X PUT -H "Content-Type: application/json" -d $JsonPayload https://<chat-service-hostname>/products
     ```
 
     ##### Json Payload
@@ -159,7 +159,7 @@ Change Feed capability to dynamically add and remove records. The steps below ca
 
     ##### Curl Command
     ```pwsh
-    curl -X DELETE https://<chat-service-hostname>/api/products/<product_id>?categoryId=<category_id>
+    curl -X DELETE https://<chat-service-hostname>/products/<product_id>?categoryId=<category_id>
     ```
 
 1. Open a **new** chat session and ask the same question again. This time it should show the original list of socks in the product catalog. 
