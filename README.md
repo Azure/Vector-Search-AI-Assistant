@@ -261,12 +261,19 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
             },
             "DurableSystemPrompt": {
                 "BlobStorageConnection": "<...>"
-            }
+            },
+    		"BlobStorageMemorySource": {
+			    "ConfigBlobStorageConnection": "<...>"
+    		},
+    		"CognitiveSearchMemorySource": {
+                "Endpoint": "https://<...>.search.windows.net",
+                "Key": "<...>"
+    		}
         }
     }
     ```
 
-    >**NOTE**: The `BlobStorageConnection` value can be found in the Azure Portal by navigating to the Storage Account created by the deployment (the one that has a container named `system-prompt`) and selecting the `Access keys` blade. The value is the `Connection string` for the `key1` key.
+    >**NOTE**: The `BlobStorageConnection` and `ConfigBlobStorageConnection` values can be found in the Azure Portal by navigating to the Storage Account created by the deployment (the one that has a container named `system-prompt`) and selecting the `Access keys` blade. The value is the `Connection string` for the `key1` key. `CognitiveSearchMemorySource` has the same values and `CognitiveSearch` section.
 
 #### Using Visual Studio
 
