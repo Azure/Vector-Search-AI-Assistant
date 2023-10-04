@@ -92,12 +92,13 @@ Once your deployment is complete, you can proceed to the [Quickstart](#quickstar
 
 ### Quickstart
 
-1. Navigate to resource group and obtain the name of the AKS service and execute the following command to obtain the OpenAI Chat endpoint
+1. Navigate to resource group and navigate to the Azure Container App with the name that ends as `chatwebaca`. Click the Application Url to open the Web Chat Application. The same hostname should also be output upon successful completion of the deployment script invocation.
 
-  ```pwsh
-  az aks show -n <aks-name> -g <resource-group-name> -o tsv --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName
-  ```
-  > Note: The same hostname should also be output upon successful completion of the deployment script invocation.
+      > Note: 
+      > If deployed using AKS navigate to the Azure Kubernetes Service within the resource group to get the name of the AKS service and execute the following command to obtain the Web Chat endpoint.
+      > ```pwsh
+      >  az aks show -n <aks-name> -g <resource-group-name> -o tsv --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName
+      >  ```	 
 
 1. Browse to the web app with the returned hostname.
 1. Click [+ Create New Chat] button to create a new chat session.
@@ -118,7 +119,7 @@ Change Feed capability to dynamically add and remove records. The steps below ca
 
 1. Start a new chat session in the web application.
 1. In the chat text box, type: "Can you list all of your socks?". The AI Assistant will list 4 different socks of two types, racing and mountain.
-1. Using either CURL or Postman, send the following payload in a PUT request with a `Content-Type` header value of `application/json` to `https://<chat-service-hostname>/api/products` to add a product.
+1. Using either CURL or Postman, send the following payload in a PUT request with a `Content-Type` header value of `application/json` to `https://<chat-service-hostname>/products` to add a product.
   
     ##### Curl Command
     ```pwsh
@@ -155,7 +156,7 @@ Change Feed capability to dynamically add and remove records. The steps below ca
 
 
 1. Return to the AI Assistant and type, ""Can you list all of your socks again?". This time you should see a new product, "Cosmic Socks, M"
-1. Using either CURL or Postman, send the following payload in a DELETE request to `https://<chat-service-hostname>/api/products/<product_id>?categoryId=<category_id>` to add a product, where `<product_id>` is the value of the `id` field and `<category_id>` is the value of the `categoryId` field of the JSON payload sent via a PUT request in a previous step (`00001` and `C48B4EF4-D352-4CD2-BCB8-CE89B7DFA642`, respectively, in this case).
+1. Using either CURL or Postman, send the following payload in a DELETE request to `https://<chat-service-hostname>/products/<product_id>?categoryId=<category_id>` to add a product, where `<product_id>` is the value of the `id` field and `<category_id>` is the value of the `categoryId` field of the JSON payload sent via a PUT request in a previous step (`00001` and `C48B4EF4-D352-4CD2-BCB8-CE89B7DFA642`, respectively, in this case).
 
     ##### Curl Command
     ```pwsh
@@ -261,12 +262,19 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
             },
             "DurableSystemPrompt": {
                 "BlobStorageConnection": "<...>"
+            },
+            "BlobStorageMemorySource": {
+                "ConfigBlobStorageConnection": "<...>"
+            },
+            "CognitiveSearchMemorySource": {
+                "Endpoint": "https://<...>.search.windows.net",
+                "Key": "<...>"
             }
         }
     }
     ```
 
-    >**NOTE**: The `BlobStorageConnection` value can be found in the Azure Portal by navigating to the Storage Account created by the deployment (the one that has a container named `system-prompt`) and selecting the `Access keys` blade. The value is the `Connection string` for the `key1` key.
+    >**NOTE**: The `BlobStorageConnection` and `ConfigBlobStorageConnection` values can be found in the Azure Portal by navigating to the Storage Account created by the deployment (the one that has a container named `system-prompt`) and selecting the `Access keys` blade. The value is the `Connection string` for the `key1` key. `CognitiveSearchMemorySource` has the same values and `CognitiveSearch` section.
 
 #### Using Visual Studio
 
