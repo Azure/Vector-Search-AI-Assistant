@@ -7,7 +7,7 @@
 - .NET 7 SDK
 - Docker Desktop
 - Azure CLI ([v2.51.0 or greater](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli))
-- [Helm 3.11.1 or greater](https://helm.sh/docs/intro/install/)
+- [Helm 3.11.1 or greater](https://helm.sh/docs/intro/install/) (If deploying to AKS)
 - Visual Studio 2022 (only needed if you plan to run/debug the solution locally)
 
 ## Deployment steps
@@ -29,7 +29,7 @@ Follow the steps below to deploy the solution to your Azure subscription.
     git checkout cognitive-search-vector
     ```
 
-4. Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos DB.
+4. Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into Azure Container Apps, and import data into Azure Cosmos DB.
 
     ```pwsh
     ./scripts/Unified-Deploy.ps1 -resourceGroup <rg_name> -location <location> -subscription <target_subscription_id>
