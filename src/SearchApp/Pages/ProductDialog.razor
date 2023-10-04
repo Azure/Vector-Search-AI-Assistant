@@ -1,0 +1,60 @@
+﻿<h3>ProductDialog</h3>
+@using SearchApp.Services
+@using SearchApp.Models
+
+
+@if (Product == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="modal fade show d-block" id="exampleModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    @if (Product.id != null)
+                    {
+                        <h5 class="modal-title" id="titleLabel">Edit Product</h5>
+                    }
+                    else
+                    {
+                        <h5 class="modal-title" id="titleLabel">Add Product</h5>
+                    }
+                </div>
+                <div class="modal-body editdlg">
+                    <EditForm Model="@Product" OnValidSubmit="@HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="form-group">
+                            <span class="required" /><label for="ProductName">Product Name</label>
+                            <InputText id="ProductName" @bind-Value="Product.name" class="form-control" />
+                        </div>
+
+                        <div class="form-group">
+                            <span class="required" /><label for="categoryName">Category</label>
+                            <InputText id="categoryName" @bind-Value="Product.categoryName" class="form-control" />
+                        </div>
+
+                        <div class="form-group">
+                            <span class="required" /><label for="Description">Description</label>
+                            <InputText id="Description" @bind-Value="Product.description" class="form-control" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <span class="required" /><label for="PhoneNumber">Price</label>
+                            <InputNumber id="PhoneNumber" @bind-Value="Product.price" class="form-control" />
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-warning" @onclick="@Cancel">Cancel</button>
+                    </EditForm>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+

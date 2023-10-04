@@ -1,0 +1,100 @@
+﻿@page "/customers"
+
+@using SearchApp.Services
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+@inject ChatService chatService
+@inject MongoDbService mongoService
+
+<PageTitle>Customer List</PageTitle>
+
+<h1>Customers</h1>
+<button class="button-grid" style="margin-bottom:20px" @onclick="@(() => OpenDialog(new Customer()))"><i class="bi bi-plus"></i>Add Customer</button>
+
+<div class="grid">
+    <QuickGrid Items="@_customers.AsQueryable()" Theme="corporate" Pagination="@pagination">
+        <PropertyColumn Property="@(c => c.firstName)" Sortable="true" Title="First Name" />
+        <PropertyColumn Property="@(c => c.lastName)" Sortable="true" Title="Last Name" />
+        <PropertyColumn Property="@(c => c.emailAddress)" Sortable="true" Title="Email" />
+        <TemplateColumn Title="Edit">
+            <button class="button-grid" @onclick="@(() => OpenDialog(context))"><i class="bi bi-pencil"></i>Edit</button>
+        </TemplateColumn>
+        <TemplateColumn Title="Delete">
+            <button class="button-grid" @onclick="@(e => OpenConfirmation(context))"><i class="bi bi-trash"></i>Delete</button>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+<Paginator Value="@pagination" />
+
+@if (DialogIsOpen)
+{
+    <CustomerDialog OnClose="@OnDialogClose" customerId="@customerId" Customer="@_customer">
+    </CustomerDialog>
+}
+
+@if (_confirmationDialogOpen)
+{
+    <Confirmation Caption="Delete Customer"
+                  Message="@_messageText"
+                  OnClose="@OnConfirmationClose"
+                  Type="Confirmation.Category.DeleteNot">
+    </Confirmation>
+}
+
+@code {
+
+    private bool DialogIsOpen = false;
+
+    private List<Customer> _customers = new List<Customer>();
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 20 };
+
+    private string customerId = "";
+
+    private Customer _customer = new Customer();
+
+    private string? _messageText;
+
+    private bool _confirmationDialogOpen = false;
+
+    public async Task<List<Customer>> GetCustomerList() => await mongoService.GetCustomersAsync();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _customers = await GetCustomerList();
+    }
+
+    private void OpenDialog(Customer c)
+    {
+        _customer = c;
+        customerId = c.customerId;
+        DialogIsOpen = true;
+    }
+    private async Task OnDialogClose(bool isOk)
+    {
+        DialogIsOpen = false;
+        if(isOk)
+        _customers = await GetCustomerList();
+    }
+
+    private void OpenConfirmation(Customer c)
+    {
+        _confirmationDialogOpen = true;
+        _messageText = $"Do you want to delete the customer ?";
+        customerId = c.id;
+    }
+
+    private async Task OnConfirmationClose(bool isOk)
+    {
+        if (isOk)
+        {
+            await mongoService.DeleteDocument<Customer>("customer", customerId);
+        }
+
+        _customers = await GetCustomerList();
+        _confirmationDialogOpen = false;
+    }
+
+
+}

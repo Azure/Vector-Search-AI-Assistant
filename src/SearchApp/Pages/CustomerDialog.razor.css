@@ -1,0 +1,15 @@
+﻿body {
+}
+
+h5 {
+    font-weight: bold;
+}
+
+.editdlg label {
+    font-weight: bold;
+}
+
+.required:after {
+    content: " *";
+    color: red;
+}

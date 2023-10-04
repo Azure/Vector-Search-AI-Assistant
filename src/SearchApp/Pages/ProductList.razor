@@ -1,0 +1,103 @@
+﻿@page "/products"
+
+@using SearchApp.Services
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+@inject ChatService chatService
+@inject MongoDbService mongoService
+
+<PageTitle>Product List</PageTitle>
+
+<h1>Products</h1>
+<button class="button-grid" style="margin-bottom:20px" @onclick="@(() => OpenDialog(new Product()))"><i class="bi bi-plus"></i>Add Product</button>
+
+
+<div class="grid">
+    <QuickGrid Items="@_products.AsQueryable()" Theme="corporate" Pagination="@pagination">
+        <PropertyColumn Property="@(p => p.name)" Sortable="true" Title="Product" />
+        <PropertyColumn Property="@(p => p.description)" Sortable="true" Title="Description" />
+        <PropertyColumn Property="@(p => p.categoryName)" Sortable="true" Title="Category" />
+        <PropertyColumn Property="@(p => p.price)" Sortable="true" Title="Price" />
+        <PropertyColumn Property="@(p => p.sku)" Sortable="false" Title="SKU" />
+        <TemplateColumn Title="Edit">
+            <button class="button-grid" @onclick="@(() => OpenDialog(context))"><i class="bi bi-pencil"></i>Edit</button>
+        </TemplateColumn>
+        <TemplateColumn Title="Delete">
+            <button class="button-grid" @onclick="@(e => OpenConfirmation(context))"><i class="bi bi-trash"></i>Delete</button>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+<Paginator Value="@pagination" />
+
+@if (DialogIsOpen)
+{
+    <ProductDialog OnClose="@OnDialogClose" productId="@_productId" Product="@_product">
+    </ProductDialog>
+}
+
+@if (_confirmationDialogOpen)
+{
+    <Confirmation Caption="Delete Customer"
+                  Message="@_messageText"
+                  OnClose="@OnConfirmationClose"
+                  Type="Confirmation.Category.DeleteNot">
+    </Confirmation>
+}
+
+@code {
+
+    private bool DialogIsOpen = false;
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 20 };
+
+    private List<Product> _products = new List<Product>();
+
+    private string _productId = "";
+
+    private Product? _product;
+    
+    private string? _messageText;
+    
+    private bool _confirmationDialogOpen = false;
+    
+    public async Task<List<Product>> GetProductList() => await mongoService.GetProductsAsync();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _products = await GetProductList();
+    }
+
+    private void OpenDialog(Product p)
+    {
+        _product = p;
+        _productId = p.id;
+        DialogIsOpen = true;
+    }
+    private async Task OnDialogClose(bool isOk)
+    {
+        DialogIsOpen = false;
+        if(isOk)
+            _products = await GetProductList();
+    }
+    
+    private void OpenConfirmation(Product p)
+    {
+        _confirmationDialogOpen = true;
+        _messageText = $"Do you want to delete the customer ?";
+        _productId = p.id;
+    }
+
+    private async Task OnConfirmationClose(bool isOk)
+    {
+        if (isOk)
+        {
+            await mongoService.DeleteDocument<Product>("product", _productId);
+        }
+
+        _products = await GetProductList();
+        _confirmationDialogOpen = false;
+    }
+
+
+}

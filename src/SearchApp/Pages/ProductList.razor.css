@@ -1,0 +1,35 @@
+﻿body {
+}
+
+
+::deep table {
+    min-width: 100%;
+    border: solid 1px lightgray;
+}
+
+::deep th.country-name {
+    width: 14rem;
+}
+
+/* Subtle stripe effect */
+::deep tr:nth-child(even) {
+    background-color: lightgray;
+}
+
+/* Don't collapse rows even if they are empty */
+::deep tbody tr {
+    height: 1.8rem;
+}
+
+::deep tbody td {
+    padding-left: 10px;
+}
+
+::deep th {
+    border-bottom: 5px solid black;
+    padding-left: 10px;
+}
+
+::deep .col-title-text {
+    font-weight: 600 !important;
+}

@@ -1,0 +1,57 @@
+name: Deploy
+# Deploy Vector Search & AI Assistant for Azure Cosmos DB for MongoDB vCore
+on:
+  workflow_dispatch:
+        
+    inputs:
+      # Change this value
+      appGetRepositoryBranch:
+        description: "Repository Branch name to deploy bicep"
+        required: true
+        default: "cosmos_app_data"
+      mongoDbUserName:
+        description: "Username for the MongoDB Database No dashes"
+        required: true
+        default: "mongoDbAdmin"
+      openAiSku:
+        description: "Azure Open Ai Sku"
+        required: true
+        default: "S0"
+      appServiceSku:
+        description: "Azure App Service Sku"
+        required: true
+        default: "B1"
+      resource-group-name:
+        description: "Resource Group Name"
+        required: true
+        default: "rg-vectorsearch-ai-assistant"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        # with:
+        #   ref: ${{ github.event.inputs.appGetRepositoryBranch }}
+
+      - name: Set up Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }} # Set up a GitHub secret for Azure credentials
+
+      - run: |
+          az group create -l westus -n ${{ github.event.inputs.resource-group-name }}
+
+      #   # Deploy Bicep file
+      - name: deploy
+        uses: azure/arm-deploy@v1
+        with:
+            resourceGroupName: ${{ github.event.inputs.resource-group-name }}
+            template: ./infra/bicep/azuredeploy.bicep
+            parameters: 
+              mongoDbUserName=${{ github.event.inputs.mongoDbUserName }} 
+              mongoDbPassword=${{ secrets.MONGO_DB_PASSWORD }}
+              appServiceSku=${{ github.event.inputs.appServiceSku }}
+              openAiSku=${{ github.event.inputs.openAiSku }}
+            failOnStdErr: false

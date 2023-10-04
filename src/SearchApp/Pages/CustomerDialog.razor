@@ -1,0 +1,58 @@
+﻿@using SearchApp.Services
+@using SearchApp.Models
+
+
+@if (Customer == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="modal fade show d-block" id="exampleModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    @if (Customer.id != null)
+                    {
+                        <h5 class="modal-title" id="titleLabel">Edit Customer</h5>
+                    }
+                    else
+                    {
+                        <h5 class="modal-title" id="titleLabel">Add Customer</h5>
+                    }
+                </div>
+                <div class="modal-body editdlg">
+                    <EditForm Model="@Customer" OnValidSubmit="@HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <div class="form-group">
+                            <span class="required" /><label for="FirstName">First Name:</label>
+                            <InputText id="FirstName" @bind-Value="Customer.firstName" class="form-control" />
+                        </div>
+
+                        <div class="form-group">
+                            <span class="required" /><label for="LastName">Last Name:</label>
+                            <InputText id="LastName" @bind-Value="Customer.lastName" class="form-control required" />
+                        </div>
+
+                        <div class="form-group">
+                            <span class="required" /><label for="EmailAddress">Email Address:</label>
+                            <InputText id="EmailAddress" @bind-Value="Customer.emailAddress" class="form-control required" />
+                        </div>
+
+                        <div class="form-group">
+                            <span class="required" /><label for="PhoneNumber">Phone Number:</label>
+                            <InputText id="PhoneNumber" @bind-Value="Customer.phoneNumber" class="form-control required" />
+                        </div>
+                        <div style="height:10px"></div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-warning" @onclick="@Cancel">Cancel</button>
+                    </EditForm>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
