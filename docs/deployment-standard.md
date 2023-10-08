@@ -19,13 +19,13 @@ Follow the steps below to deploy the solution to your Azure subscription.
 2. Clone the repository:
    
     ```cmd
-    git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
+    git clone https://github.com/Azure/Vector-Search-AI-Assistant.git
     ```
 
 3. Switch to the `cognitive-search-vector` branch:
 
     ```cmd
-    cd VectorSearchAiAssistant
+    cd Vector-Search-AI-Assistant
     git checkout cognitive-search-vector
     ```
 
