@@ -68,18 +68,6 @@ var openAiSettings = {
   }
 }
 
-var deployedRegion = {
-  'East US': {
-    armName: toLower('eastus')
-  }
-  'South Central US': {
-    armName: toLower('southcentralus')
-  }
-  'West Europe': {
-    armName: toLower('westeurope')
-  }
-}
-
 var mongovCoreSettings = {
   mongoClusterName: '${name}-mongo'
   mongoClusterLogin: mongoDbUserName
