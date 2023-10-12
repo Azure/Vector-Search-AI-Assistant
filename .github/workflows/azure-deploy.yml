@@ -54,5 +54,5 @@ jobs:
               mongoDbPassword=${{ secrets.MONGO_DB_PASSWORD }}
               appServiceSku=${{ github.event.inputs.appServiceSku }}
               openAiSku=${{ github.event.inputs.openAiSku }}
-              appGitRepository = ${{ github.server_url }}/${{ github.repository }}
+              appGitRepository=${{ github.server_url }}/${{ github.repository }}
             failOnStdErr: false
