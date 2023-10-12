@@ -121,13 +121,11 @@ public class ChatService
             ArgumentNullException.ThrowIfNull(sessionId);
 
             //Retrieve conversation, including latest prompt.
-            //If you put this after the vector search it doesn't take advantage of previous information given so harder to chain prompts together.
-            //However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
-            
+            //We monitor and trim the length of the conversation here to be more efficient in our call to generate vectors on this text.
             (string conversationAndUserPrompt, int conversationTokens) = GetChatSessionConversation(sessionId, userPrompt);
 
 
-            //Get embeddings for user prompt.
+            //Get embeddings for user prompt and conversation.
             (float[] promptVectors, int vectorTokens) = await _openAiService.GetEmbeddingsAsync(sessionId, conversationAndUserPrompt);
 
 
@@ -201,7 +199,7 @@ public class ChatService
             updatedAugmentedContent = encoding.Decode(trimmedRagVectors);
 
         }
-        //If everthing + _maxCompletionTokens is less than 4097 then good to go.
+        //If everything + _maxCompletionTokens is less than 4097 then good to go.
         else if (ragTokens + promptTokens + conversationTokens + _maxCompletionTokens < maxGPTTokens)
         {
             int index = _sessions.FindIndex(s => s.SessionId == sessionId);

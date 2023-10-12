@@ -1,15 +1,19 @@
 @description('Location where all resources will be deployed. This value defaults to the **East US** region.')
 @allowed([
-  'southcentralus'
-  'eastus'
+  'australiaeast'
   'westeurope'
+  'japaneast'
+  'uksouth'
+  'eastus'
+  'eastus2'
+  'southcentralus'
 ])
 param location string = 'eastus'
 
 @description('''
 Unique name for the deployed services below. Max length 15 characters, alphanumeric only:
 - Azure Cosmos DB for MongoDB vCore
-- Azure OpenAI
+- Azure OpenAI Service
 - Azure App Service
 - Azure Functions
 
@@ -41,10 +45,10 @@ param mongoDbUserName string
 param mongoDbPassword string
 
 
-@description('Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant) repository.')
-param appGitRepository string = 'https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git'
+@description('Git repository URL for the application source. This defaults to the [`Azure/Vector-Search-Ai-Assistant`](https://github.com/Azure/Vector-Search-AI-Assistant.git) repository.')
+param appGitRepository string = 'https://github.com/Azure/Vector-Search-AI-Assistant.git'
 
-@description('Git repository branch for the application source. This defaults to the [**MongovCorev2** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/mongovcorev2) repository.')
+@description('Git repository branch for the application source. This defaults to the [**mongovcorev2** branch of the `Azure/Vector-Search-Ai-Assistant`](https://github.com/Azure/Vector-Search-AI-Assistant/tree/mongovcorev2) repository.')
 param appGetRepositoryBranch string = 'mongovcorev2'
 
 var openAiSettings = {
@@ -185,6 +189,9 @@ resource openAiCompletionsModelDeployment 'Microsoft.CognitiveServices/accounts/
       scaleType: 'Standard'
     }
   }
+  dependsOn: [
+    openAiEmbeddingsModelDeployment
+  ]
 }
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
