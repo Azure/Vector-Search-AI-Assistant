@@ -103,9 +103,21 @@ The data is then saved in the [UpdateSessionBatchAsync()](https://github.com/Azu
 ### Installation
 
 1. Fork this repository to your own GitHub account.
-1. Depending on whether you deploy using the ARM Template or Bicep, modify "appGitRepository" variable in one of those files to point to your fork of this repository: https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git (Be sure to have the right branch that corresponds with the vector search database you are using)
-1. If using the Deploy to Azure button below, also modify this README.md file to change the path for the Deploy To Azure button to your local repository.
-1. If you deploy this application without making either of these changes, you can update the repository by disconnecting and connecting an external git repository pointing to your fork.
+2. To deploy with Github actions follow the instructions here to create a service principle and crate a secret  for GitHub Actions
+   - [Generate deployment credentials]("https://learn.microsoft.com/en-us/azure/app-service/deploy-github-actions?tabs=userlevel#generate-deployment-credentials") this will allow GitHub to authenticate with Azure.
+   - [Configure the GitHub secret]("https://learn.microsoft.com/en-us/azure/app-service/deploy-github-actions?tabs=userlevel#configure-the-github-secret")
+
+    Create an additional secret to hold the password for Mongo DB the secret name should be MONGO_DB_PASSWORD
+
+    Run the action by selecting "Actions" in the GitHub menu and select the "Deploy" action from the menu. Ensure the "mongovcorev2" branch is selected as the branch to run the workflow from.
+
+    ![alt ](img/gh-actions-1.png)
+
+     ![alt ](img/gh-actions-2.png)
+
+3. Depending on whether you deploy using the ARM Template or Bicep, modify "appGitRepository" variable in one of those files to point to your fork of this repository: https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git (Be sure to have the right branch that corresponds with the vector search database you are using)
+4. If using the Deploy to Azure button below, also modify this README.md file to change the path for the Deploy To Azure button to your local repository.
+5. If you deploy this application without making either of these changes, you can update the repository by disconnecting and connecting an external git repository pointing to your fork.
 
 
 The provided ARM or Bicep Template will provision the following resources:
