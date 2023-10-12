@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.18.4.5664",
-      "templateHash": "12040739771647053921"
+      "version": "0.22.6.54827",
+      "templateHash": "15256959401091594013"
     }
   },
   "parameters": {
@@ -13,9 +13,13 @@
       "type": "string",
       "defaultValue": "eastus",
       "allowedValues": [
-        "southcentralus",
+        "australiaeast",
+        "westeurope",
+        "japaneast",
+        "uksouth",
         "eastus",
-        "westeurope"
+        "eastus2",
+        "southcentralus"
       ],
       "metadata": {
         "description": "Location where all resources will be deployed. This value defaults to the **East US** region."
@@ -26,7 +30,7 @@
       "defaultValue": "[uniqueString(resourceGroup().id)]",
       "maxLength": 15,
       "metadata": {
-        "description": "Unique name for the deployed services below. Max length 15 characters, alphanumeric only:\r\n- Azure Cosmos DB for MongoDB vCore\r\n- Azure OpenAI\r\n- Azure App Service\r\n- Azure Functions\r\n\r\nThe name defaults to a unique string generated from the resource group identifier.\r\n"
+        "description": "Unique name for the deployed services below. Max length 15 characters, alphanumeric only:\r\n- Azure Cosmos DB for MongoDB vCore\r\n- Azure OpenAI Service\r\n- Azure App Service\r\n- Azure Functions\r\n\r\nThe name defaults to a unique string generated from the resource group identifier.\r\n"
       }
     },
     "appServiceSku": {
@@ -58,24 +62,24 @@
     },
     "mongoDbPassword": {
       "type": "securestring",
-      "maxLength": 256,
       "minLength": 8,
+      "maxLength": 256,
       "metadata": {
         "description": "MongoDB vCore password. 8-256 characters, 3 of the following: lower case, upper case, numeric, symbol."
       }
     },
     "appGitRepository": {
       "type": "string",
-      "defaultValue": "https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git",
+      "defaultValue": "https://github.com/Azure/Vector-Search-AI-Assistant.git",
       "metadata": {
-        "description": "Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant) repository."
+        "description": "Git repository URL for the application source. This defaults to the [`Azure/Vector-Search-Ai-Assistant`](https://github.com/Azure/Vector-Search-AI-Assistant.git) repository."
       }
     },
     "appGetRepositoryBranch": {
       "type": "string",
       "defaultValue": "mongovcorev2",
       "metadata": {
-        "description": "Git repository branch for the application source. This defaults to the [**MongovCorev2** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/mongovcorev2) repository."
+        "description": "Git repository branch for the application source. This defaults to the [**mongovcorev2** branch of the `Azure/Vector-Search-Ai-Assistant`](https://github.com/Azure/Vector-Search-AI-Assistant/tree/mongovcorev2) repository."
       }
     }
   },
@@ -229,7 +233,8 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]"
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiSettings').name)]",
+        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('openAiSettings').name, variables('openAiSettings').embeddingsModel.deployment.name)]"
       ]
     },
     {

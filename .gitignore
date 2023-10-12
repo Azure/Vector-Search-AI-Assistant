@@ -4,6 +4,8 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 *.local.settings.json
+ChatServiceWebApi/
+__values/
 
 # User-specific files
 *.rsuser
