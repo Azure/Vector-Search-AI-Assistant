@@ -81,7 +81,7 @@
                               indexes: [{ 
                                 name: 'vectorSearchIndex', 
                                 key: { vector: 'cosmosSearch' }, 
-                                cosmosSearchOptions: { kind: 'vector-ivf', numLists: 5, similarity: 'COS', dimensions: 1536 } 
+                                cosmosSearchOptions: { kind: 'vector-ivf', numLists: 2, similarity: 'COS', dimensions: 1536 } 
                               }] 
                             }"));
 
@@ -107,15 +107,16 @@
             List<string> retDocs = new List<string>();
 
             string resultDocuments = string.Empty;
+            //string searchScore = "";
 
             try
             {
                 //Search Mongo vCore collection for similar embeddings
-                //Project the fields that are needed
                 BsonDocument[] pipeline = new BsonDocument[]
                 {
-                    BsonDocument.Parse($"{{$search: {{cosmosSearch: {{ vector: [{string.Join(',', embeddings)}], path: 'vector', k: {_maxVectorSearchResults}}}, returnStoredSource:true}}}}"),
-                    BsonDocument.Parse($"{{$project: {{_id: 0, vector: 0}}}}"),
+                    BsonDocument.Parse($"{{$search: {{cosmosSearch: {{ vector: [{string.Join(',', embeddings)}], path: 'vector', k: {_maxVectorSearchResults}}}, returnStoredSource: true}}}}"),
+                    //BsonDocument.Parse($"{{$project: {{_id: 0, vector: 0}}}}"),
+                    BsonDocument.Parse($"{{$project: {{ similarityScore: {{ $meta: 'searchScore' }}, document : '$$ROOT' }}}}")
                 };
 
                 // Return results, combine into a single string

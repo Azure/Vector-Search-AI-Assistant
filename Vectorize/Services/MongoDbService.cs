@@ -71,7 +71,7 @@ namespace Vectorize.Services
                               indexes: [{ 
                                 name: 'vectorSearchIndex', 
                                 key: { vector: 'cosmosSearch' }, 
-                                cosmosSearchOptions: { kind: 'vector-ivf', numLists: 5, similarity: 'COS', dimensions: 1536 } 
+                                cosmosSearchOptions: { kind: 'vector-ivf', numLists: 2, similarity: 'COS', dimensions: 1536 } 
                               }] 
                             }"));
 
