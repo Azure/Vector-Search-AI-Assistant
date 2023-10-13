@@ -34,10 +34,6 @@ using Vectorize.Services;
         {
             con.AddUserSecrets<Program>(optional: true, reloadOnChange: true);
         })
-        .ConfigureAppConfiguration(con =>
-        {
-            con.AddJsonFile("local.settings.Development.json", optional: true, reloadOnChange: true);
-        })
         .ConfigureServices(s =>
         {
 

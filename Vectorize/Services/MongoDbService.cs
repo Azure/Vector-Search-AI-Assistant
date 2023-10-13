@@ -127,8 +127,6 @@ namespace Vectorize.Services
         {
 
             //Add to product collection first, then vectorize and store in vectors collection.
-            //You could store the vectors in product collection but it is simpler to store
-            //in a single collection and search there.
 
             try
             {
@@ -141,8 +139,6 @@ namespace Vectorize.Services
                     options: new ReplaceOptions { IsUpsert = true },
                     replacement: bsonItem);
 
-
-                //TO DO: Make this simpler
 
                 //Store in vectors collection
                 //Serialize the product object to send to OpenAI
@@ -191,8 +187,6 @@ namespace Vectorize.Services
         {
 
             //Add to customer collection first, then vectorize and store in vectors collection.
-            //You could store the vectors in customer collection but it is simpler to store
-            //in a single collection and search there.
 
             try
             {
@@ -203,8 +197,6 @@ namespace Vectorize.Services
                           & Builders<BsonDocument>.Filter.Eq("_id", customer.id),
                     options: new ReplaceOptions { IsUpsert = true },
                     replacement: bsonItem);
-
-                //TO DO: Make this simpler
 
                 //Store in vectors collection
                 //Serialize the customer object to send to OpenAI
@@ -233,9 +225,11 @@ namespace Vectorize.Services
                 var filter = Builders<BsonDocument>.Filter.Eq("customerId", customer.customerId)
                             & Builders<BsonDocument>.Filter.Eq("_id", customer.id);
 
+                //Delete customer from customer collection
                 await _collections["customer"].DeleteOneAsync(filter);
 
-                //Note: This sample does not add/remove a customer object so vector deletion not implemented
+                //Delete from vectors collection
+                await _collections["vectors"].DeleteOneAsync(filter);
 
             }
             catch (MongoException ex)
@@ -251,8 +245,6 @@ namespace Vectorize.Services
         {
 
             //Add to customer collection first, then vectorize and store in vectors collection.
-            //You could store the vectors in customer collection but it is simpler to store
-            //in a single collection and search there.
 
             try
             {
@@ -264,7 +256,6 @@ namespace Vectorize.Services
                     options: new ReplaceOptions { IsUpsert = true },
                     replacement: bsonItem);
 
-                //TO DO: Make this simpler
 
                 //Store in vectors collection
                 //Serialize the customer object to send to OpenAI
@@ -294,7 +285,8 @@ namespace Vectorize.Services
 
                 await _collections["customer"].DeleteOneAsync(filter);
 
-                //Note: This sample does not add/remove a customer object so vector deletion not implemented
+                //Delete from vectors collection
+                await _collections["vectors"].DeleteOneAsync(filter);
 
             }
             catch (MongoException ex)
