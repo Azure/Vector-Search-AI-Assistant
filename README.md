@@ -182,14 +182,64 @@ This solution can be run locally post deployment. Below are the prerequisites an
 ### Local steps
 
 #### Search Azure App Service
-- Open the Configuration for the Azure App Service and copy the application setting values.
-- Within Visual Studio, right click the Search project, then copy the contents of appsettings.json into the User Secrets. 
-- If not using Visual Studio, create an `appsettings.Development.json` file and copy the appsettings.json and values into it.
+- In Azure Portal, open the Configuration for the Azure App Service, click Show Values and keep open.
+- Within Visual Studio, right click the Search project, create a new file, `appsettings.Development.json`.
+- Copy the contents of the JSON below.
+- Copy the missing connection information from the Configuration values in Azure Portal.
+
+```json
+{
+  "DetailedErrors": true,
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "OpenAi": {
+    "Endpoint": "",
+    "Key": "",
+    "EmbeddingsDeployment": "embeddings",
+    "CompletionsDeployment": "completions",
+    "MaxConversationTokens": "100",
+    "MaxCompletionTokens": "500"
+  },
+  "MongoDb": {
+    "Connection": "",
+    "DatabaseName": "retaildb",
+    "CollectionNames": "product,customer,vectors,completions",
+    "MaxVectorSearchResults": "10"
+  }
+}
+```
  
 
 #### Vectorize Azure Function
-- Open the Configuration for the Azure Function copy the application setting values.
-- Within Visual Studio, right click the Vectorize project, then copy the contents of the configuration values into User Secrets or local.settings.json if not using Visual Studio.
+- Open the Configuration for the Azure Function, click Show Values and keep open copy.
+- Within Visual Studio, right click the Vectorize project, create a new file called, `local.settings.json`
+- Copy the contents of the JSON below
+- Copy the missing connection strings and keys from the Configuration values in Azure Portal.
+
+```json
+{
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "OpenAi__Endpoint": "",
+    "OpenAi__Key": "",
+    "OpenAi__EmbeddingsDeployment": "embeddings",
+    "OpenAi__MaxTokens": "8191",
+    "MongoDb__Connection": "",
+    "MongoDb__DatabaseName": "retaildb",
+    "MongoDb__CollectionNames": "product,customer,vectors,completions"
+  },
+  "IsEncrypted": false
+}
+```
+
+### Run it!
+If running in Visual Studio, configure both the Search and Vectorize projects to start. Place breakpoints where you'd like to step through the source. Press F5 to start them in a debugger.
 
 
 That's it!!! I hope you enjoy this solution

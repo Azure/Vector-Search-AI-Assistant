@@ -18,6 +18,7 @@
         private readonly IMongoCollection<BsonDocument> _vectors;
         private readonly IMongoCollection<Session> _sessions;
         private readonly IMongoCollection<Message> _messages;
+        //private readonly Dictionary<string, IMongoCollection<BsonDocument>> _collections;
 
         private readonly int _maxVectorSearchResults = default;
 
@@ -50,8 +51,21 @@
             _database = _client.GetDatabase(databaseName);
             _maxVectorSearchResults = int.TryParse(maxVectorSearchResults, out _maxVectorSearchResults) ? _maxVectorSearchResults : 10;
 
-            //product, customer, vectors, completions  //Not used
+
+            /*
+            //product, customer, vectors, completions
             List<string> collections = collectionNames.Split(',').ToList();
+            _collections = new Dictionary<string, IMongoCollection<BsonDocument>>();
+
+            foreach (string collectionName in collections)
+            {
+
+                IMongoCollection<BsonDocument>? collection = _database.GetCollection<BsonDocument>(collectionName.Trim()) ??
+                    throw new ArgumentException("Unable to connect to existing Azure Cosmos DB for MongoDB vCore collection or database.");
+
+                _collections.Add(collectionName, collection);
+            }*/
+
 
             _products = _database.GetCollection<Product>("product");
             _customers = _database.GetCollection<Customer>("customer");
@@ -81,7 +95,7 @@
                               indexes: [{ 
                                 name: 'vectorSearchIndex', 
                                 key: { vector: 'cosmosSearch' }, 
-                                cosmosSearchOptions: { kind: 'vector-ivf', numLists: 5, similarity: 'COS', dimensions: 1536 } 
+                                cosmosSearchOptions: { kind: 'vector-ivf', numLists: 2, similarity: 'COS', dimensions: 1536 } 
                               }] 
                             }"));
 
@@ -107,16 +121,21 @@
             List<string> retDocs = new List<string>();
 
             string resultDocuments = string.Empty;
+            //string searchScore = "";
 
             try
             {
                 //Search Mongo vCore collection for similar embeddings
-                //Project the fields that are needed
                 BsonDocument[] pipeline = new BsonDocument[]
                 {
-                    BsonDocument.Parse($"{{$search: {{cosmosSearch: {{ vector: [{string.Join(',', embeddings)}], path: 'vector', k: {_maxVectorSearchResults}}}, returnStoredSource:true}}}}"),
-                    BsonDocument.Parse($"{{$project: {{_id: 0, vector: 0}}}}"),
+                    BsonDocument.Parse($"{{$search: {{cosmosSearch: {{ vector: [{string.Join(',', embeddings)}], path: 'vector', k: {_maxVectorSearchResults}}}, returnStoredSource: true}}}}"),
+                    //project away the id value and the vector to reduce the payload size (especially from the vector which is very large)
+                    BsonDocument.Parse($"{{$project: {{_id: 0, vector: 0}}}}")
+                    
+                    //Returns simularity score plus the entire document. Not recommended due to size
+                    //BsonDocument.Parse($"{{$project: {{ similarityScore: {{ $meta: 'searchScore' }}, document : '$$ROOT' }}}}")
                 };
+
 
                 // Return results, combine into a single string
                 List<BsonDocument> bsonDocuments = await _vectors.Aggregate<BsonDocument>(pipeline).ToListAsync();
