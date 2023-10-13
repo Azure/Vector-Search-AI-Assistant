@@ -1,12 +1,12 @@
 # Vector Search & AI Assistant for Azure Cosmos DB for MongoDB vCore v2
 
-This solution demonstrates how to design and implement a **RAG Pattern** solution that incorporates Azure Cosmos DB for MongoDB vCore vector database capabilities with Azure OpenAI Service to build a vector search solution with an AI assistant user interface. The solution shows hows to generate vectors on data stored in Azure Cosmos DB for MongoDB vCore using Azure OpenAI Service, then shows how to generate vectors from natural language user input which is then used in to perform a vector search using Azure Cosmos DB for MongoDB vCore. The vector query response payload is then passed to Azure OpenAI Service which generates reponses back to the user. This solution includes additional key concepts such as managing conversational context and history, managing tokens consumed by Azure OpenAI Service, as well as understanding how to write prompts for large language models such as ChatGPT so they produce the desired responses.
+This solution demonstrates how to design and implement a **RAG Pattern** solution that incorporates Azure Cosmos DB for MongoDB vCore vector database capabilities with Azure OpenAI Service to build a vector search solution with an AI assistant user interface. The solution shows how to generate vectors on data stored in Azure Cosmos DB for MongoDB vCore using Azure OpenAI Service, then shows how to generate vectors from natural language user input which is then used in to perform a vector search using Azure Cosmos DB for MongoDB vCore. The vector query response payload is then passed to Azure OpenAI Service which generates responses back to the user. This solution includes additional key concepts such as managing conversational context and history, managing tokens consumed by Azure OpenAI Service, as well as understanding how to write prompts for large language models such as ChatGPT so they produce the desired responses.
 
 The scenario for this sample centers around a consumer retail "Intelligent Agent" that allows users to ask questions on vectorized product, customer and sales order data stored in the database. The data in this solution is the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB. This data is an adapted subset of the Adventure Works 2017 dataset for a retail Bike Shop that sells bicycles, biking accessories, components and clothing.
 
 ## What is RAG?
 
-RAG is an aconymn for Retrival Augmentmented Generation, a fancy term that essentially means retrieving additional data to provide to a large language model to use when generating a response (completion) to a user's natual language question (prompt). The data used in this type of application can be of any kind. However, there is a limit to how much data can be sent due to the limit of [tokens for each model](https://platform.openai.com/docs/models/overview) that can be consumed in a single request/response from Azure OpenAI Service. This solution will highlight these challenges and provide a simple example of how you can approach it.
+RAG is an acronym for Retrieval Augmented Generation, a fancy term that essentially means retrieving additional data to provide to a large language model to use when generating a response (completion) to a user's natural language question (prompt). The data used in this type of application can be of any kind. However, there is a limit to how much data can be sent due to the limit of [tokens for each model](https://platform.openai.com/docs/models/overview) that can be consumed in a single request/response from Azure OpenAI Service. This solution will highlight these challenges and provide a simple example of how you can approach it.
 
 
 ## Solution User Experience
@@ -46,7 +46,7 @@ You can see this at work by debugging Azure Functions remotely or running locall
 
 ## Searching vectors
 
-The web-based front-end provides users the means for searching the retail bike data for this solution using vector queries. Vector queries are performed in the [MongoDbService](https://github.com/Azure/Vector-Search-AI-Assistant/blob/mongovcorev2/Search/Services/MongoDbService.cs) in the Search project. In the chat UX a user starts a new chat session then types in a natural language question. The text is sent to Azure OpenAI Service's embeddings API to generate vectors on it. The vectors are then used to perform a vector search on the vectors collection in Azure Cosmos DB for MongoDB vCore. The query results are sent to Azure OpenAI Service, along with some of the conversation history and latest user qyestion to generate a completion or response, which is then passed back to the user.
+The web-based front-end provides users the means for searching the retail bike data for this solution using vector queries. Vector queries are performed in the [MongoDbService](https://github.com/Azure/Vector-Search-AI-Assistant/blob/mongovcorev2/Search/Services/MongoDbService.cs) in the Search project. In the chat UX a user starts a new chat session then types in a natural language question. The text is sent to Azure OpenAI Service's embeddings API to generate vectors on it. The vectors are then used to perform a vector search on the vectors collection in Azure Cosmos DB for MongoDB vCore. The query results are sent to Azure OpenAI Service, along with some of the conversation history and latest user question to generate a completion or response, which is then passed back to the user.
 
 ## Key concepts this solution highlights
 
@@ -56,19 +56,19 @@ Building a solution like this introduces a number of concepts that may be new to
 
 Large language models such as Chat GPT do not by themselves keep any history of what prompts your've sent it, or what completions it has generated. It is up to the developer to do this. Keeping this history is necessary or helpful for a few reasons. First, it allows users to ask follow up questions without having to provide any subsequent context, allowing for the user to have a conversation with the Intelligent Agent. Second, the conversation context is useful when performing vector searches as it can provide additional detail on what the user is looking for. As an example, if I asked our Intelligent Retail Agent "what bikes are available?", it would return for me all of the bikes in stock. If I then asked, "what colors are there?", if I did not pass the first prompt and completion, the vector search would not know that the user was asking about bike colors and would likely not produce an accurate or meaningful response. Lastly, the storing the chat history can be useful auditing purposes for customer interactions. Especially when trying to further improve the performance and quality of the vector search results and generated completions by Azure OpenAI.
 
-The function that manages conversational history is called, [GetChatSessionConversation()](https://github.com/Azure/Vector-Search-AI-Assistant/blob/mongovcorev2/Search/Services/ChatService.cs#L221). This function is used to gather the most convesation history up to the `Max Conversation Tokens` limit, then returns it as a string separating each prompt and completion with a new line character. The new line is not necessary for ChatGPT, but makes it more readible for a user when debugging. This function also returns the number of tokens used in the conversation. This value is used when building the prompt to send.
+The function that manages conversational history is called, [GetChatSessionConversation()](https://github.com/Azure/Vector-Search-AI-Assistant/blob/mongovcorev2/Search/Services/ChatService.cs#L221). This function is used to gather the most recent conversation history up to the `Max Conversation Tokens` limit, then returns it as a string separating each prompt and completion with a new line character. The new line is not necessary for ChatGPT, but makes it more readable for a user when debugging. This function also returns the number of tokens used in the conversation. This value is used when building the prompt to send.
 
 ### Vectorizing the user prompt and conversation history
 
-In a vector search solution, the filter predicate for any query is an array of vectors. This means that the text the user types in to the chat window, plus any conversational context that is gathered, must first be vectorized before the vector search can be done. This is accomplished in the [OpenAiService](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/mongovcorev2/Search/Services/OpenAiService.cs) in the solution in the [GetEmbeddingsAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/mongovcorev2/Search/Services/OpenAiService.cs#L113) function. This function takes a string and returns an array of vectors, along with the number of tokens used by the service.
+In a vector search solution, the filter predicate for any query is an array of vectors. This means that the text the user types in to the chat window, plus any conversational context that is gathered, must first be vectorized before the vector search can be done. This is accomplished in the [OpenAiService](https://github.com/Azure/VectorSearchAiAssistant/blob/mongovcorev2/Search/Services/OpenAiService.cs) in the solution in the [GetEmbeddingsAsync()](https://github.com/Azure/Vector-Search-AI-Assistant/blob/mongovcorev2/Search/Services/OpenAiService.cs#L113) function. This function takes a string and returns an array of vectors, along with the number of tokens used by the service.
 
 ### Doing the vector search
 
-The vector search is the key function in this solution and is done against the Azure Cosmos DB for MongoDB vCore database in this solution. The function itself is rather simple and only takes and array of vectors with which to do the search. You can see the vector search at work by debugging the Azure Web App remotely or running locally. Set a break point on [VectorSearchAsync()](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/blob/mongovcorev2/Search/Services/MongoDbService.cs#L105), then step through each line to see how of the function calls to see the search and returned data.
+The vector search is the key function in this solution and is done against the Azure Cosmos DB for MongoDB vCore database in this solution. The function itself is rather simple and only takes and array of vectors with which to do the search. You can see the vector search at work by debugging the Azure Web App remotely or running locally. Set a break point on [VectorSearchAsync()](https://github.com/Azure/Vector-Search-AI-Assistant/blob/mongovcorev2/Search/Services/MongoDbService.cs#L119), then step through each line to see how of the function calls to see the search and returned data.
 
 ### Token management
 
-One of the more challenging aspects to building RAG Pattern solutions is manging the tokens to stay within the maximum number of tokens that can be consumed in a single request (prompt) and response (completion). It's possible to build a prompt that consumes all of the tokens in the requests and leaves too few to produce a useful response. It's also possible to generate an exception from the Azure OpenAI Service if the request itself is over the token limit. We need a way to measure token usage before sending the request. This is handled in the [BuildPromptAndData()](https://github.com/Azure/Vector-Search-AI-Assistant/blob/mongovcorev2/Search/Services/ChatService.cs#L169) function in the Chat Service. This function uses a third party nuget package called, [SharpToken](https://github.com/dmitry-brazhenko/SharpToken) which is a .NET wrapper around [OpenAI's tiktoken](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb) which is an open source tokenizer. The utility takes text and generates an array of vectors. The number of elements in the array represent the number of tokens that will be consumed. It can also do the reverse and take an array of vectors and output text. In our function here we first generate the vectors on the data returned from our vector search, then if necessary, reduce the amount of data by calculating the number of vectors we can safely pass in our request to Azure OpenAI Service. Here is the flow of this function.
+One of the more challenging aspects to building RAG Pattern solutions is managing the tokens to stay within the maximum number of tokens that can be consumed in a single request (prompt) and response (completion). It's possible to build a prompt that consumes all of the tokens in the requests and leaves too few to produce a useful response. It's also possible to generate an exception from the Azure OpenAI Service if the request itself is over the token limit. We need a way to measure token usage before sending the request. This is handled in the [BuildPromptAndData()](https://github.com/Azure/Vector-Search-AI-Assistant/blob/mongovcorev2/Search/Services/ChatService.cs#L169) function in the Chat Service. This function uses a third party nuget package called, [SharpToken](https://github.com/dmitry-brazhenko/SharpToken) which is a .NET wrapper around [OpenAI's tiktoken](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb) which is an open source tokenizer. The utility takes text and generates an array of vectors. The number of elements in the array represent the number of tokens that will be consumed. It can also do the reverse and take an array of vectors and output text. In our function here we first generate the vectors on the data returned from our vector search, then if necessary, reduce the amount of data by calculating the number of vectors we can safely pass in our request to Azure OpenAI Service. Here is the flow of this function.
 
 1. Measure the amount of tokens on the vector search results (rag data).
 1. Measure the amount of tokens for the user prompt. This data is also used to capture what the user prompt tokens would be if processed without any additional data and stored in the user prompt message in the completions collection (more on that later).
@@ -98,13 +98,13 @@ The data is then saved in the [UpdateSessionBatchAsync()](https://github.com/Azu
 - Azure Subscription
 - Subscription access to Azure OpenAI Service. Start here to [Request Access to Azure OpenAI Service](https://customervoice.microsoft.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7en2Ais5pxKtso_Pz4b1_xUOFA5Qk1UWDRBMjg0WFhPMkIzTzhKQ1dWNyQlQCN0PWcu)
 
-### Installation
+### Easy Installation
 
-1. Fork this repository to your own GitHub account.
-1. Depending on whether you deploy using the ARM Template or Bicep, modify "appGitRepository" variable in one of those files to point to your fork of this repository: https://github.com/Azure/Vector-Search-AI-Assistant.git (Note that this solution is in the mongodbvcorev2 branch)
-1. If using the Deploy to Azure button below, also modify this README.md file to change the path for the Deploy To Azure button to your local repository.
-1. If you deploy this application without making either of these changes, you can update the repository by disconnecting and connecting an external git repository pointing to your fork.
+All connection information for Azure Cosmos DB and Azure OpenAI Service is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
 
+**Note:** You must have access to Azure OpenAI Service from your subscription before attempting to deploy this application.
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FVector-Search-Ai-Assistant%2Fmongovcorev2%2Fazuredeploy.json)
 
 The provided ARM or Bicep Template will provision the following resources:
 1. Azure Cosmos DB for MongoDB vCore. This stores retail data, vectors and the user prompts and completions from the chat application.
@@ -112,11 +112,14 @@ The provided ARM or Bicep Template will provision the following resources:
 1. Azure Open AI account with the `gpt-35-turbo` and `text-embedding-ada-002` models deployed.
 1. Azure Functions. This will run on the same hosting plan as the Azure App Service.
 
-**Note:** You must have access to Azure OpenAI Service from your subscription before attempting to deploy this application.
 
-All connection information for Azure Cosmos DB and Azure OpenAI Service is zero-touch and injected as environment variables into Azure App Service and Azure Functions at deployment time. 
+### Installation from Fork
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FVector-Search-Ai-Assistant%2Fmongovcorev2%2Fazuredeploy.json)
+1. Fork this repository to your own GitHub account.
+1. Modify "appGitRepository" variable in the ARM or Bicep Template (depending on which you use to deploy) to point to your fork of this repository: https://github.com/MyGitHubAccount/Vector-Search-AI-Assistant.git (Note that this solution is in the mongodbvcorev2 branch)
+1. If using the Deploy to Azure button above, modify this README.md file to change the path for the Deploy To Azure button to your local repository.
+1. If you deploy the application first, then fork it, you can go to the Deployment Center in Azure Portal for the Azure Web Apps and Functions and update the repository by disconnecting and connecting an external git repository pointing to your fork.
+
 
 ### Initial data load
 
@@ -246,6 +249,7 @@ That's it!!! I hope you enjoy this solution
 
 ## Resources
 
-- [Azure Cosmos DB Free Trial](https://aka.ms/TryCosmos)
+- [Vector search with data in Azure Cosmos DB](https://learn.microsoft.com/azure/cosmos-db/vector-search)
 - [OpenAI Platform documentation](https://platform.openai.com/docs/introduction/overview)
 - [Azure OpenAI Service documentation](https://learn.microsoft.com/azure/cognitive-services/openai/)
+- [Azure Cosmos DB Free Trial](https://aka.ms/TryCosmos)
