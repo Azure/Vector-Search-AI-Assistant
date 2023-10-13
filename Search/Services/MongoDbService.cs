@@ -118,22 +118,44 @@
 
         public async Task<string> VectorSearchAsync(float[] embeddings)
         {
-            List<string> retDocs = new List<string>();
-
+            
             string resultDocuments = string.Empty;
-            //string searchScore = "";
+
+            var embeddingsArray = new BsonArray(embeddings.Select(e => new BsonDouble(Convert.ToDouble(e))));
 
             try
             {
-                //Search Mongo vCore collection for similar embeddings
+                //Search MongoDB vCore collection for similar embeddings
+                
                 BsonDocument[] pipeline = new BsonDocument[]
                 {
-                    BsonDocument.Parse($"{{$search: {{cosmosSearch: {{ vector: [{string.Join(',', embeddings)}], path: 'vector', k: {_maxVectorSearchResults}}}, returnStoredSource: true}}}}"),
-                    //project away the id value and the vector to reduce the payload size (especially from the vector which is very large)
-                    BsonDocument.Parse($"{{$project: {{_id: 0, vector: 0}}}}")
-                    
-                    //Returns simularity score plus the entire document. Not recommended due to size
-                    //BsonDocument.Parse($"{{$project: {{ similarityScore: {{ $meta: 'searchScore' }}, document : '$$ROOT' }}}}")
+                    new BsonDocument
+                    {
+                        {
+                            "$search", new BsonDocument
+                            {
+                                {
+                                    "cosmosSearch", new BsonDocument
+                                    {
+                                        { "vector", embeddingsArray },
+                                        { "path", "vector" },
+                                        { "k", _maxVectorSearchResults }
+                                    }
+                                },
+                                { "returnStoredSource", true }
+                            }
+                        }
+                    },
+                    new BsonDocument
+                    {
+                        {
+                            "$project", new BsonDocument
+                            {
+                                { "_id", 0 },
+                                { "vector", 0 }
+                            }
+                        }
+                    }
                 };
 
 
@@ -179,7 +201,7 @@
         /// <summary>
         /// Gets a list of all current chat messages for a specified session identifier.
         /// </summary>
-        /// <param name="sessionId">Chat session identifier used to filter messsages.</param>
+        /// <param name="sessionId">Chat session identifier used to filter messages.</param>
         /// <returns>List of chat message items for the specified session.</returns>
         public async Task<List<Message>> GetSessionMessagesAsync(string sessionId)
         {
@@ -275,9 +297,9 @@
         /// <param name="messages">Chat message and session items to create or replace.</param>
         public async Task UpsertSessionBatchAsync(Session session, Message promptMessage, Message completionMessage)
         {
-            using (var transasction = await _client.StartSessionAsync())
+            using (var transaction = await _client.StartSessionAsync())
             {
-                transasction.StartTransaction();
+                transaction.StartTransaction();
 
                 try
                 {
@@ -291,11 +313,11 @@
                     await _messages.InsertOneAsync(promptMessage);
                     await _messages.InsertOneAsync(completionMessage);
 
-                    await transasction.CommitTransactionAsync();
+                    await transaction.CommitTransactionAsync();
                 }
                 catch (MongoException ex)
                 {
-                    await transasction.AbortTransactionAsync();
+                    await transaction.AbortTransactionAsync();
                     _logger.LogError($"Exception: UpsertSessionBatchAsync(): {ex.Message}");
                     throw;
                 }
