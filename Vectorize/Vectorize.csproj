@@ -13,17 +13,17 @@
     <Compile Remove="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
-	  <PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
-	  <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
-	  <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
-	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-	  <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.14.1" />
-	  <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.13" />
-	  <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.10.0" />
-	  <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-	  <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.5" />
-	  <PackageReference Include="MongoDB.Driver" Version="2.19.2" />
+	  <PackageReference Include="Azure.Storage.Blobs" Version="12.*" />
+	  <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.*" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.*" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.*" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.*" />
+	  <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.*" />
+	  <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.*" />
+	  <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.*" />
+	  <PackageReference Include="Microsoft.Extensions.Logging" Version="7.*" />
+	  <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.*" />
+	  <PackageReference Include="MongoDB.Driver" Version="2.*" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

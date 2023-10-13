@@ -120,7 +120,6 @@ public class OpenAiService
         {
             EmbeddingsOptions options = new EmbeddingsOptions(input)
             {
-                Input = input,
                 User = sessionId
             };
 
