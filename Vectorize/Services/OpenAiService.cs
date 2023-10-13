@@ -57,10 +57,8 @@ public class OpenAiService
     {
         try
         {
-            EmbeddingsOptions options = new EmbeddingsOptions(data)
-            {
-                Input = data
-            };
+            EmbeddingsOptions options = new EmbeddingsOptions(data);
+            
 
             var response = await _client.GetEmbeddingsAsync(_openAIEmbeddings, options);
 
