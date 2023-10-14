@@ -23,7 +23,14 @@ namespace VectorSearchAiAssistant.SemanticKernel.TextEmbedding
                 jObj,
                 embeddingTextBuilder.Length == 0 ? jObj.ToString() : embeddingTextBuilder.ToString());
         }
-
+        /// <summary>
+        /// This function takes json and returns streamlined text, more suitable to use in generating AI responses
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="types"></param>
+        /// <param name="maxRecursionLevels"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static (JObject ObjectToEmbed, string TextToEmbed) Transform(string item, Dictionary<string, Type> types, int maxRecursionLevels = 3)
         {
             if (maxRecursionLevels < 0)
