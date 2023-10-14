@@ -103,7 +103,7 @@ public class ChatService : IChatService
             var messages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
 
             // Generate the completion to return to the user
-            //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAs ync(sessionId, conversation, retrievedDocuments);
+            //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
             var result = await _ragService.GetResponse(userPrompt, messages);
 
             // Add both prompt and completion to cache, then persist in Cosmos DB

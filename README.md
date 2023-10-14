@@ -268,7 +268,8 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
             },
             "CognitiveSearchMemorySource": {
                 "Endpoint": "https://<...>.search.windows.net",
-                "Key": "<...>"
+                "Key": "<...>",
+                "ConfigBlobStorageConnection": "<...>"
             }
         }
     }
