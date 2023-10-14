@@ -64,6 +64,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
         {
             ArgumentNullException.ThrowIfNull(memories, nameof(memories));
 
+            // This function transforms the JSON into a more streamlined string of text, more suitable for generating responses
             // Use by default the JSON text representation based on EmbeddingFieldAttribute
             // TODO: Test also using the more elaborate text representation - itemToEmbed.TextToEmbed
             _memories = memories.Select(m => (object) EmbeddingUtility.Transform(m, _memoryTypes).TextToEmbed).ToList();
