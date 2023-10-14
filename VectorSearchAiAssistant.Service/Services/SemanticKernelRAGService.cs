@@ -98,7 +98,11 @@ public class SemanticKernelRAGService : IRAGService
             _logger.LogInformation("Initializing the Semantic Kernel RAG service memory...");
             await _longTermMemory.Initialize(_memoryTypes.Values.ToList());
 
-            // Get current short term memories
+            // Get current short term memories. Short term memories are generated or loaded at runtime and kept in SK's volatile memory.
+            //The memories (data) here were generated from ACSMemorySourceConfig.json in blob storage that was used to execute faceted queries in Cog Search to iterate through
+            //each product category stored and count up the number of products in each category. The query also counts all the products for the entire company.
+            //The content here has embeddings generated on it so it can be used in a vector query by the user
+
             // TODO: Explore the option of moving static memories loaded from blob storage into the long-term memory (e.g., the Azure Cognitive Search index).
             // For now, the static memories are re-loaded each time together with the analytical short-term memories originating from Azure Cognitive Search faceted queries.
             var shortTermMemories = new List<string>();
