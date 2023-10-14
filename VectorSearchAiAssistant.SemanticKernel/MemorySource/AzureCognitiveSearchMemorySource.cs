@@ -41,6 +41,12 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
             // Deferring the initialization to the GetMemories call (by that time, the index should be guaranteed to exist).
         }
 
+
+        /// <summary>
+        /// This function runs faceted queries to count all of the products in a product category and all the products for the company.
+        /// This data is then vectorized and stored in semantic kernel's short term memory to use as a source of data for any vector queries.
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<string>> GetMemories()
         {
             EnsureSearchClient();
@@ -74,7 +80,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
                         totalCount += facetResult.Count.Value;
                     }
                 }
-
+                //This is the faceted query for counting all the products for Cosmic Works
                 memories.Add(string.Format(memorySource.TotalCountMemoryTemplate, totalCount));
             }
 

@@ -13,7 +13,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
 {
     /// <summary>
     /// TextEmbeddingObjectMemorySkill provides a skill to recall object information from the long term memory using vector-based similarity.
-    /// Optionally, a short-term, volatile memory can be also used to enahnce the result set.
+    /// Optionally, a short-term, volatile memory can be also used to enhance the result set.
     /// </summary>
     /// <example>
     /// Usage: kernel.ImportSkill("memory", new TextEmbeddingObjectMemorySkill());
@@ -59,6 +59,8 @@ namespace VectorSearchAiAssistant.SemanticKernel.Skills.Core
 
         /// <summary>
         /// Vector search and return up to N memories related to the input text. The long-term memory and an optional, short-term memory are used.
+        ///
+        /// In this application, short term memory is made up of the product count for each product category and the total products for the company.
         /// </summary>
         /// <example>
         /// SKContext["input"] = "what is the capital of France?"
