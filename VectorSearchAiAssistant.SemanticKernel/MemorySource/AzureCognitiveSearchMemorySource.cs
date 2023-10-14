@@ -38,7 +38,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
             _logger = logger;
 
             // Not initializing _searchClient here because the index might still be creating when this constructor runs.
-            // Deferring the initialization to the GetMemories call (by that time, the index should be guranteed to exist).
+            // Deferring the initialization to the GetMemories call (by that time, the index should be guaranteed to exist).
         }
 
         public async Task<List<string>> GetMemories()
