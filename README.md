@@ -11,7 +11,7 @@ RAG is an aconymn for Retrival Augmentmented Generation, a fancy term that essen
 ## Explore the different solutions
 This repository has multiple versions of this solution which can be used:
 
-- [Official Version: Azure Cosmos DB + Azure Cognitive Search + Azure Kubernetes Service](https://github.com/Azure/VectorSearchAiAssistant/tree/cognitive-search-vector)
+- [Official Version: Azure OpenAI Service + Azure Cosmos DB + Azure Cognitive Search + Azure Container Apps](https://github.com/Azure/VectorSearchAiAssistant/tree/cognitive-search-vector)
 - [Azure Cosmos DB for MongoDB vCore](https://github.com/Azure/Vector-Search-AI-Assistant-MongoDBvCore)
 - More versions are Coming Soon!!!
 
