@@ -140,11 +140,6 @@ if ([string]::IsNullOrEmpty($acrName))
 Write-Host "The Name of your ACR: $acrName" -ForegroundColor Yellow
 # & ./Create-Secret.ps1 -resourceGroup $resourceGroup -acrName $acrName
 
-if ($deployAks)
-{
-    az aks update -n $aksName -g $resourceGroup --attach-acr $acrName
-}
-
 if ($deployAks -And $stepDeployCertManager) {
     # Deploy Cert Manager
     & ./DeployCertManager.ps1
