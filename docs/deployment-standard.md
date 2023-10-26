@@ -7,7 +7,6 @@
 - .NET 7 SDK
 - Docker Desktop
 - Azure CLI ([v2.51.0 or greater](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli))
-- [Helm 3.11.1 or greater](https://helm.sh/docs/intro/install/) (If deploying to AKS)
 - Visual Studio 2022 (only needed if you plan to run/debug the solution locally)
 
 ## Deployment steps

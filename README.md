@@ -93,13 +93,6 @@ Once your deployment is complete, you can proceed to the [Quickstart](#quickstar
 ### Quickstart
 
 1. Navigate to resource group and navigate to the Azure Container App with the name that ends as `chatwebaca`. Click the Application Url to open the Web Chat Application. The same hostname should also be output upon successful completion of the deployment script invocation.
-
-      > Note: 
-      > If deployed using AKS navigate to the Azure Kubernetes Service within the resource group to get the name of the AKS service and execute the following command to obtain the Web Chat endpoint.
-      > ```pwsh
-      >  az aks show -n <aks-name> -g <resource-group-name> -o tsv --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName
-      >  ```	 
-
 1. Browse to the web app with the returned hostname.
 1. Click [+ Create New Chat] button to create a new chat session.
 1. Type in your questions in the text box and press Enter.

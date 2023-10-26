@@ -1,6 +1,6 @@
 # Deployment
 
-## Using ACA
+## Using ACA - Azure Container Apps
 
 Clone the VectorSearchAiAssistant repository and change to the `cognitive-search-vector` branch
 
@@ -17,16 +17,6 @@ Run the following script to provision the infrastructure and deploy the API and 
                              -subscription <subscription-id>
 ```
 
-## Using AKS
-
-Deployment using AKS instead of ACA requires the addition of the argument `-deployAks 1` to the command line call.
-
-```pwsh
-./scripts/Unified-Deploy.ps1 -resourceGroup <resource-group-name> `
-                             -location <location> `
-                             -subscription <subscription-id> `
-                             -deployAks 1
-```
 
 ## Deployments using an existing OpenAI service
 
@@ -50,9 +40,7 @@ The following flags can be used to enable/disable specific deployment steps in t
 |----------------|-------------|
 | stepDeployArm | Enables or disables the provisioning of resources in Azure via ARM templates (located in `./arm`). Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Deploy-Arm-Azure.ps1` script.
 | stepBuildPush | Enables or disables the build and push of Docker images to the Azure Container Registry in the target resource group. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/BuildPush.ps1` script.
-| stepDeployCertManager | Enables or disables the Helm deployment of a LetsEncrypt capable certificate manager to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/DeployCertManager.ps1` script.
-| stepDeployTls | Enables or disables the Helm deployment of the LetsEncrypt certificate request resources to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/PublishTlsSupport.ps1` script.
-| stepDeployImages | Enables or disables the Helm deployment of the ChatServiceWebApi and Search services to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Deploy-Images-Aks.ps1` script.
+| stepDeployImages | Enables or disables the deployment of the ChatServiceWebApi and Search services to the ACA instances. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Deploy-Images-Aca.ps1` script.
 | stepUploadSystemPrompts | Enables or disables the upload of OpenAI system prompt artifacts to a storage account in the target resource group. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/UploadSystemPrompts.ps1` script.
 | stepImportData | Enables or disables the import of data into a Cosmos account in the target resource group using the Data Migration Tool. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Import-Data.ps1` script.
 | stepLoginAzure | Enables or disables interactive Azure login. If disabled, the deployment assumes that the current Azure CLI session is valid. Valid values are 0 (Disabled). 
@@ -65,8 +53,6 @@ cd deploy/powershell
                      -stepLoginAzure 0 `
                      -stepDeployArm 0 `
                      -stepBuildPush 1 `
-                     -stepDeployCertManager 0 `
-                     -stepDeployTls 0 `
                      -stepDeployImages 1 `
                      -stepUploadSystemPrompts 0 `
                      -stepImportData 0
