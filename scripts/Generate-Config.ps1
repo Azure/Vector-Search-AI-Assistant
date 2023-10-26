@@ -22,9 +22,7 @@ function EnsureAndReturnFirstItem($arr, $restype) {
 }
 
 # Check the rg
-$rg=$(az group show -n $resourceGroup -o json | ConvertFrom-Json)
-
-if (-not $rg) {
+if (-not $(az group exists -g $resourceGroup)) {
     Write-Host "Fatal: Resource group not found" -ForegroundColor Red
     exit 1
 }
@@ -38,14 +36,14 @@ $tokens=@{}
 # Write-Host "Storage Account: $($storage.name)" -ForegroundColor Yellow
 
 ## Getting API URL domain
-if ([String]::IsNullOrEmpty($domain)) {
-    $domain = $(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
-    if (-not $domain) {
-        $domain = $(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpapplicationrouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
-    }
-}
+# if ([String]::IsNullOrEmpty($domain)) {
+#     $domain = $(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
+#     if (-not $domain) {
+#         $domain = $(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpapplicationrouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
+#     }
+# }
 
-$apiUrl = "https://$domain"
+# $apiUrl = "https://$domain"
 
 ## Getting CosmosDb info
 $docdb=$(az cosmosdb list -g $resourceGroup --query "[?kind=='GlobalDocumentDB'].{name: name, kind:kind, documentEndpoint:documentEndpoint}" -o json | ConvertFrom-Json)
@@ -89,7 +87,7 @@ Write-Host "App Insights Instrumentation Key: $appinsightsId" -ForegroundColor Y
 Write-Host "===========================================================" -ForegroundColor Yellow
 Write-Host "gvalues file will be generated with values:"
 
-$tokens.apiUrl=$apiUrl
+# $tokens.apiUrl=$apiUrl
 $tokens.blobStorageConnectionString="DefaultEndpointsProtocol=https;AccountName=$($blobAccount);AccountKey=$blobKey;EndpointSuffix=core.windows.net"
 $tokens.cosmosConnectionString="AccountEndpoint=$($docdb.documentEndpoint);AccountKey=$docdbKey"
 $tokens.cosmosEndpoint=$docdb.documentEndpoint
