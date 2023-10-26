@@ -84,8 +84,8 @@
     },
     "acrSettings": {
       "name": "[format('{0}cr', parameters('name'))]",
-      "sku": "Basic",
-      "tier": "Basic"
+      "sku": "Standard",
+      "tier": "Standard"
     },
     "aksSettings": {
       "name": "[format('{0}-aks', parameters('name'))]",
@@ -258,7 +258,7 @@
         "publicNetworkAccess": "Enabled",
         "networkRuleBypassOptions": "AzureServices",
         "zoneRedundancy": "Disabled",
-        "anonymousPullEnabled": false
+        "anonymousPullEnabled": true
       }
     },
     {
