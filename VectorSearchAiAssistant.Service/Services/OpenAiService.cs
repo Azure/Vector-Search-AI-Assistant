@@ -9,6 +9,8 @@ namespace VectorSearchAiAssistant.Service.Services;
 
 /// <summary>
 /// This service is provided as an example, it is not used by the main RAG flow.
+/// The capabilities showcased by this class are used by the Semantic Kernel library.
+/// For more details, see https://github.com/microsoft/semantic-kernel/tree/main/dotnet
 /// </summary>
 public class OpenAiService : IOpenAiService
 {
