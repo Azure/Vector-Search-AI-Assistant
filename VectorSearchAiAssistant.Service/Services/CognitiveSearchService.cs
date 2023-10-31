@@ -15,6 +15,7 @@ namespace VectorSearchAiAssistant.Service.Services
 {
     /// <summary>
     /// This service is provided as an example, it is not used by the main RAG flow.
+    /// The capabilities showcased by this class are used in the AzureCognitiveSearchVectorMemory class.
     /// </summary>
     public class CognitiveSearchService : IVectorDatabaseServiceManagement, IVectorDatabaseServiceQueries
     {
