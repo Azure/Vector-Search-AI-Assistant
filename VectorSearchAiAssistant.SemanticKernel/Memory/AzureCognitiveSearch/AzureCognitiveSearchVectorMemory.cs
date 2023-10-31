@@ -77,9 +77,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch
                 var indexNames = await _adminClient.GetIndexNamesAsync().ToListAsync().ConfigureAwait(false);
                 if (indexNames.Contains(_searchIndexName))
                 {
-                    _searchClient = _adminClient.GetSearchClient(_searchIndexName);
-                    _logger.LogInformation($"The {_searchIndexName} index already exists; skipping index creation.");
-                    return;
+                    _logger.LogInformation($"The {_searchIndexName} index already exists; index will be updated.");
                 }
 
                 var vectorSearchConfigName = "vector-config";
@@ -115,7 +113,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch
                     Fields = allFields
                 };
 
-                await _adminClient.CreateIndexAsync(searchIndex);
+                await _adminClient.CreateOrUpdateIndexAsync(searchIndex);
                 _searchClient = _adminClient.GetSearchClient(_searchIndexName);
 
                 _logger.LogInformation($"Created the {_searchIndexName} index.");
