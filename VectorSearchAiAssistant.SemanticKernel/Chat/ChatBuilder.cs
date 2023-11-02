@@ -34,7 +34,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
             _memoryTypes = memoryTypes;
 
             // If no external tokenizer has been provided, use our own
-            _tokenizer = tokenizer != null ? tokenizer : new SemanticKernelTokenizer();
+            _tokenizer = tokenizer != null ? tokenizer : new MicrosoftMLTokenizer();
             
             _promptOptimizationSettings = promptOptimizationSettings != null
                 ? promptOptimizationSettings

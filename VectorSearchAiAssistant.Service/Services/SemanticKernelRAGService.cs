@@ -5,7 +5,6 @@ using Microsoft.SemanticKernel.AI.Embeddings;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Interfaces;
 using Microsoft.Extensions.Logging;
-using VectorSearchAiAssistant.SemanticKernel.Skills.Core;
 using VectorSearchAiAssistant.Service.Models.Search;
 using System.Text.RegularExpressions;
 using Microsoft.SemanticKernel.AI.TextCompletion;
@@ -14,10 +13,9 @@ using Newtonsoft.Json;
 using VectorSearchAiAssistant.SemanticKernel.Chat;
 using VectorSearchAiAssistant.SemanticKernel.Text;
 using VectorSearchAiAssistant.Service.Models;
-using VectorSearchAiAssistant.SemanticKernel.Memory.AzureCognitiveSearch;
 using VectorSearchAiAssistant.SemanticKernel.MemorySource;
-using Microsoft.SemanticKernel.Memory;
-using VectorSearchAiAssistant.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
+using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -30,7 +28,7 @@ public class SemanticKernelRAGService : IRAGService
     readonly ILogger<SemanticKernelRAGService> _logger;
     readonly ISystemPromptService _systemPromptService;
     readonly IChatCompletion _chat;
-    readonly AzureCognitiveSearchVectorMemory _longTermMemory;
+    readonly AzureCognitiveSearchMemoryStore _longTermMemory;
     readonly ShortTermVolatileMemoryStore _shortTermMemory;
     readonly Dictionary<string, Type> _memoryTypes;
 
