@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.AI.Embeddings;
 using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Plugins.Memory;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
 using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Memory
+namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
 {
     public class ShortTermVolatileMemoryStore : VolatileMemoryStore
     {
