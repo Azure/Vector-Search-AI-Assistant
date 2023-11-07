@@ -1,12 +1,11 @@
 ﻿using Azure.Search.Documents.Indexes;
+using VectorSearchAiAssistant.SemanticKernel.Models;
 using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
 
 namespace VectorSearchAiAssistant.Service.Models.Search
 {
     public class SalesOrder : EmbeddedEntity
     {
-        [SearchableField(IsKey = true, IsFilterable = true)]
-        public string id { get; set; }
         [SimpleField]
         [EmbeddingField(Label = "Customer sales order type")]
         public string type { get; set; }

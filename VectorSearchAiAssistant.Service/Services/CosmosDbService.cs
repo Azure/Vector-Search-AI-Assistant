@@ -11,6 +11,7 @@ using VectorSearchAiAssistant.Service.Models;
 using VectorSearchAiAssistant.Service.Utils;
 using System.Diagnostics;
 using Castle.Core.Resource;
+using VectorSearchAiAssistant.SemanticKernel.Models;
 
 namespace VectorSearchAiAssistant.Service.Services
 {

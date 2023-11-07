@@ -8,7 +8,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
     public class TextSummaryPlugin
     {
         private readonly ISKFunction _summarizeConversation;
-        private readonly int _maxTokens = 10;
 
         public TextSummaryPlugin(
             string promptTemplate,

@@ -6,10 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
 
-namespace VectorSearchAiAssistant.Service.Models.Search
+namespace VectorSearchAiAssistant.SemanticKernel.Models
 {
     public class EmbeddedEntity
     {
+        [SearchableField(IsKey = true, IsFilterable = true)]
+        public string id { get; set; }
+
         [FieldBuilderIgnore]
         public float[]? vector { get; set; }
 

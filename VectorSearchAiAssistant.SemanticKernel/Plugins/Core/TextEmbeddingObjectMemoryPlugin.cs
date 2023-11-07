@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Runtime;
 using System.Text.Json;
 using VectorSearchAiAssistant.SemanticKernel.MemorySource;
+using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
 {
@@ -27,7 +28,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
         /// The vector embedding of the last text input submitted to the Recall method.
         /// Can only be read once, to avoid inconsistencies across multiple calls to Recall.
         /// </summary>
-        public IEnumerable<float>? LastInputTextEmbedding
+        public ReadOnlyMemory<float>? LastInputTextEmbedding
         {
             get
             {
@@ -41,18 +42,18 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
         private const double DefaultRelevance = 0.7;
         private const int DefaultLimit = 1;
 
-        private IEnumerable<float>? _lastInputTextEmbedding;
+        private ReadOnlyMemory<float>? _lastInputTextEmbedding;
 
-        private readonly ISemanticTextMemory _longTermMemory;
-        private readonly IMemoryStore _shortTermMemory;
+        private readonly VectorMemoryStore _longTermMemory;
+        private readonly VectorMemoryStore _shortTermMemory;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Creates a new instance of the TextEmbeddingMemorySkill
         /// </summary>
         public TextEmbeddingObjectMemoryPlugin(
-            ISemanticTextMemory longTermMemory,
-            IMemoryStore shortTermMemory,
+            VectorMemoryStore longTermMemory,
+            VectorMemoryStore shortTermMemory,
             ILogger logger)
         {
             _longTermMemory = longTermMemory;
@@ -88,27 +89,21 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
 
             _logger.LogTrace("Searching memories in collection '{0}', relevance '{1}'", collection, relevance);
 
+            _lastInputTextEmbedding = await _longTermMemory.GetEmbedding(text);
+
             // Search memory
             List<MemoryQueryResult> memories = await _longTermMemory
-                .SearchAsync(collection, text, limit: limit.Value, minRelevanceScore: relevance.Value, withEmbeddings: true)
+                .GetNearestMatches(text, limit.Value, relevance.Value)
                 .ToListAsync()
                 .ConfigureAwait(false);
-
-            //By convention, the first item in the result is the embedding of the input text.
-            //Once SK develops a more standardized way to expose embeddings, this should be removed.
-            _lastInputTextEmbedding = memories.First().Embedding?.ToArray();
 
             var combinedMemories = memories.Skip(1).ToList();
             if (_shortTermMemory != null)
             {
-                List<(MemoryRecord Record, double Relevance)> shortTermRecords = await _shortTermMemory
-                    .GetNearestMatchesAsync("short-term", memories.First().Embedding.Value, limit.Value, relevance.Value)
+                var shortTermMemories = await _shortTermMemory
+                    .GetNearestMatches(_lastInputTextEmbedding.Value, limit.Value, relevance.Value)
                     .ToListAsync()
                     .ConfigureAwait(false);
-
-                var shortTermMemories = shortTermRecords
-                    .Select(r => new MemoryQueryResult(r.Record.Metadata, r.Relevance, null))
-                    .ToList();
 
                 combinedMemories = combinedMemories
                     .Concat(shortTermMemories)
