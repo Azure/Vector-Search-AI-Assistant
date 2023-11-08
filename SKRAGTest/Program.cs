@@ -4,13 +4,12 @@ using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Services;
 using Microsoft.Extensions.Configuration;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using VectorSearchAiAssistant.Service.Models.Search;
 using Newtonsoft.Json.Linq;
 using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
 using Microsoft.Extensions.Options;
-using VectorSearchAiAssistant.SemanticKernel.MemorySource;
 using Microsoft.Extensions.Logging;
+using VectorSearchAiAssistant.Service.MemorySource;
 
 var product = new Product(
     id: "00001",
@@ -56,6 +55,7 @@ var ragService = host.Services.GetService<IRAGService>();
 var settings = host.Services.GetService<IOptions<SemanticKernelRAGServiceSettings>>().Value.CognitiveSearch;
 
 var cogSearchMemorySource = new AzureCognitiveSearchMemorySource(
+    host.Services.GetService<ICognitiveSearchService>(),
     host.Services.GetService<IOptions<AzureCognitiveSearchMemorySourceSettings>>(),
     host.Services.GetService<ILogger<AzureCognitiveSearchMemorySource>>());
 var results = await cogSearchMemorySource.GetMemories();
