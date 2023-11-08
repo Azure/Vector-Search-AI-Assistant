@@ -97,7 +97,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
                 .ToListAsync()
                 .ConfigureAwait(false);
 
-            var combinedMemories = memories.Skip(1).ToList();
+            var combinedMemories = memories.ToList();
             if (_shortTermMemory != null)
             {
                 var shortTermMemories = await _shortTermMemory

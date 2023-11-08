@@ -11,7 +11,7 @@ namespace VectorSearchAiAssistant.Service.Interfaces
 
         Task<string> Summarize(string sessionId, string userPrompt);
 
-        Task AddMemory(object item, string itemName, Action<object, float[]> vectorizer);
+        Task AddMemory(object item, string itemName);
 
         Task RemoveMemory(object item);
     }

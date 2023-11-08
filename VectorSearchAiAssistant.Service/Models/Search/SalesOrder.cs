@@ -19,7 +19,7 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         [EmbeddingField(Label = "Customer sales order details")]
         public List<SalesOrderDetails> details { get; set; }
 
-        public SalesOrder(string id, string type, string customerId, string orderDate, string shipDate, List<SalesOrderDetails> details, float[]? vector = null)
+        public SalesOrder(string id, string type, string customerId, string orderDate, string shipDate, List<SalesOrderDetails> details)
         {
             this.id = id;
             this.type = type;
@@ -27,7 +27,6 @@ namespace VectorSearchAiAssistant.Service.Models.Search
             this.orderDate = orderDate;
             this.shipDate = shipDate;
             this.details = details;
-            this.vector = vector;
         }
     }
 

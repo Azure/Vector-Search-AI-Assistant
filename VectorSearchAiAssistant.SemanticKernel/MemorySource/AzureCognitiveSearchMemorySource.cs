@@ -90,7 +90,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
         private void EnsureSearchClient()
         {
             if (_searchClient == null)
-                _searchClient = _adminClient.GetSearchClient(_settings.IndexName);
+                _searchClient = _adminClient.GetSearchClient($"{_settings.IndexName}-content");
         }
 
         private async Task EnsureConfig()

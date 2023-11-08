@@ -39,7 +39,7 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         public Customer(string id, string type, string customerId, string title,
             string firstName, string lastName, string emailAddress, string phoneNumber,
             string creationDate, List<CustomerAddress> addresses, Password password,
-            double salesOrderCount, float[]? vector = null)
+            double salesOrderCount)
         {
             this.id = id;
             this.type = type;
@@ -53,7 +53,6 @@ namespace VectorSearchAiAssistant.Service.Models.Search
             this.addresses = addresses;
             this.password = password;
             this.salesOrderCount = salesOrderCount;
-            this.vector = vector;
         }
     }
 

@@ -28,7 +28,7 @@ namespace VectorSearchAiAssistant.Service.Models.Search
         [EmbeddingField(Label = "Product tags")]
         public List<Tag> tags { get; set; }
 
-        public Product(string id, string categoryId, string categoryName, string sku, string name, string description, double price, List<Tag> tags, float[]? vector = null)
+        public Product(string id, string categoryId, string categoryName, string sku, string name, string description, double price, List<Tag> tags)
         {
             this.id = id;
             this.categoryId = categoryId;
@@ -38,7 +38,6 @@ namespace VectorSearchAiAssistant.Service.Models.Search
             this.description = description;
             this.price = price;
             this.tags = tags;
-            this.vector = vector;
         }
 
         public Product()
