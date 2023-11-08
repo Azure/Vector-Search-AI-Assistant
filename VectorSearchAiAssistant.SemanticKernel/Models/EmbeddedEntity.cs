@@ -13,9 +13,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Models
         [SearchableField(IsKey = true, IsFilterable = true)]
         public string id { get; set; }
 
-        [FieldBuilderIgnore]
-        public float[]? vector { get; set; }
-
         [SearchableField(IsFilterable = true, IsFacetable = true)]
         [EmbeddingField(Label = "Entity (object) type")]
         public string entityType__ { get; set; }    // Since this applies to all business entities,  use a name that is unlikely to cause collisions with other properties

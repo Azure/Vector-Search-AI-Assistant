@@ -82,7 +82,6 @@ public class SemanticKernelRAGService : IRAGService
             _semanticKernel.GetService<ITextEmbeddingGeneration>(),
             loggerFactory.CreateLogger<VectorMemoryStore>());
 
-        // The short-term memory uses a volatile memory store
         _shortTermMemory = new VectorMemoryStore(
             _shortTermCollectionName,
             new VolatileMemoryStore(),
@@ -101,6 +100,9 @@ public class SemanticKernelRAGService : IRAGService
         try
         {
             // No initialization needed for the long-term memory
+
+            // The memories collection in the short term memory store must be created explicitly
+            await _shortTermMemory.MemoryStore.CreateCollectionAsync(_shortTermCollectionName);
 
             // Get current short term memories. Short term memories are generated or loaded at runtime and kept in SK's volatile memory.
             //The memories (data) here were generated from ACSMemorySourceConfig.json in blob storage that was used to execute faceted queries in Cog Search to iterate through
@@ -198,7 +200,7 @@ public class SemanticKernelRAGService : IRAGService
         return summary;
     }
 
-    public async Task AddMemory(object item, string itemName, Action<object, float[]> vectorizer)
+    public async Task AddMemory(object item, string itemName)
     {
         await _longTermMemory.AddMemory(item, itemName);
     }

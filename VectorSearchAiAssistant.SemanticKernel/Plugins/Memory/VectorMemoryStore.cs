@@ -21,6 +21,8 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
         readonly ILogger<VectorMemoryStore> _logger;
         readonly SHA1 _hash;
 
+        public IMemoryStore MemoryStore => _memoryStore;
+
         public VectorMemoryStore(
             string collectionName,
             IMemoryStore memoryStore,
