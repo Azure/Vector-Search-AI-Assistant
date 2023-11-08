@@ -104,5 +104,12 @@ namespace VectorSearchAiAssistant.Service.Services
                 _logger.LogError($"Error indexing item {item}. The error is {ex.Message}.");
             }
         }
+
+        public async Task<Response<SearchResults<SearchDocument>>> SearchAsync(SearchOptions searchOptions)
+        {
+            var result = await _searchClient
+                .SearchAsync<SearchDocument>("*", searchOptions);
+            return result;
+        }
     }
 }
