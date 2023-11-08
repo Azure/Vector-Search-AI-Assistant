@@ -87,20 +87,21 @@ The data is then persisted to the Cosmos DB database in the [UpdateSessionBatchA
 
 ### Deployment
 
-Check the [Deployment](./docs/deployment.md) page for instructions on how to deploy the solution to your Azure subscription.
-Once your deployment is complete, you can proceed to the [Quickstart](#quickstart) section.
+This solution deploys to Azure Kubernetes Service (AKS). Here is an example.
+
+    ```pwsh
+    ./scripts/Unified-Deploy.ps1 -deployAks 1 -resourceGroup <rg_name> -location <location> -subscription <target_subscription_id>
+    ```
+
+There are many options for deployment, including using an existing Azure OpenAI account and models. For deployment options and prerequisistes, please see [How to Deploy](./docs/deployment.md) page.
+
+
+Before moving to the next section, be sure to validate the deployment is successful. More information can be found in the [How to Deploy](./docs/deployment.md) page.
+
 
 ### Quickstart
 
-1. Navigate to resource group and navigate to the Azure Container App with the name that ends as `chatwebaca`. Click the Application Url to open the Web Chat Application. The same hostname should also be output upon successful completion of the deployment script invocation.
-
-      > Note: 
-      > If deployed using AKS navigate to the Azure Kubernetes Service within the resource group to get the name of the AKS service and execute the following command to obtain the Web Chat endpoint.
-      > ```pwsh
-      >  az aks show -n <aks-name> -g <resource-group-name> -o tsv --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName
-      >  ```	 
-
-1. Browse to the web app with the returned hostname.
+1. Browse to the web application for the solution in your browser.
 1. Click [+ Create New Chat] button to create a new chat session.
 1. Type in your questions in the text box and press Enter.
 
