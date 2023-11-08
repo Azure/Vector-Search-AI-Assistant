@@ -17,14 +17,6 @@ namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
             public required string Key { get; init; }
         }
 
-        public record CognitiveSearchSettings
-        {
-            public required string IndexName { get; init; }
-            public required int MaxVectorSearchResults { get; init; }
-            public required string Endpoint { get; init; }
-            public required string Key { get; init; }
-        }
-
         public required OpenAISettings OpenAI { get; init; }
         public required CognitiveSearchSettings CognitiveSearch { get; init; }
     }

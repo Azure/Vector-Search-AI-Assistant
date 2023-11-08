@@ -8,8 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VectorSearchAiAssistant.Service.Interfaces;
 
-namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
+namespace VectorSearchAiAssistant.Service.MemorySource
 {
     public class BlobStorageMemorySource : IMemorySource
     {

@@ -1,5 +1,5 @@
-using VectorSearchAiAssistant.SemanticKernel.MemorySource;
 using VectorSearchAiAssistant.Service.Interfaces;
+using VectorSearchAiAssistant.Service.MemorySource;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Services;
 
@@ -16,9 +16,13 @@ namespace ChatServiceWebApi
             builder.Services.AddOptions<CosmosDbSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CosmosDB"));
 
+            builder.Services.AddOptions<CognitiveSearchSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CognitiveSearch"));
+
             builder.Services.AddOptions<SemanticKernelRAGServiceSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI"));
 
+            builder.Services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
             builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>();
             builder.Services.AddSingleton<IRAGService, SemanticKernelRAGService>();
             builder.Services.AddSingleton<IChatService, ChatService>();
