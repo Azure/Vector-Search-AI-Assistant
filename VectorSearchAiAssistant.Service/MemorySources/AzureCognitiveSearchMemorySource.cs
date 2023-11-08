@@ -1,44 +1,29 @@
-﻿using Azure.Search.Documents.Indexes;
-using Azure.Search.Documents;
+﻿using Azure.Search.Documents;
 using Microsoft.Extensions.Logging;
-using Azure;
-using Azure.Core.Serialization;
-using System.Text.Json;
 using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Options;
+using VectorSearchAiAssistant.Service.Interfaces;
 
-namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
+namespace VectorSearchAiAssistant.Service.MemorySource
 {
     public class AzureCognitiveSearchMemorySource : IMemorySource
     {
-        private readonly SearchIndexClient _adminClient;
-        private SearchClient _searchClient;
+        private readonly ICognitiveSearchService _cognitiveSearchService;
         private readonly AzureCognitiveSearchMemorySourceSettings _settings;
         private readonly ILogger _logger;
 
         private AzureCognitiveSearchMemorySourceConfig _config;
 
         public AzureCognitiveSearchMemorySource(
+            ICognitiveSearchService cognitiveSearchService,
             IOptions<AzureCognitiveSearchMemorySourceSettings> settings,
             ILogger<AzureCognitiveSearchMemorySource> logger)
         {
+            _cognitiveSearchService = cognitiveSearchService;
             _settings = settings.Value;
-            AzureKeyCredential credentials = new(_settings.Key);
-
-            _adminClient = new SearchIndexClient(new Uri(_settings.Endpoint), credentials, new SearchClientOptions()
-            {
-                Serializer = new JsonObjectSerializer(
-                    new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                    })
-            });
             _logger = logger;
-
-            // Not initializing _searchClient here because the index might still be creating when this constructor runs.
-            // Deferring the initialization to the GetMemories call (by that time, the index should be guaranteed to exist).
         }
 
 
@@ -49,7 +34,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
         /// <returns></returns>
         public async Task<List<string>> GetMemories()
         {
-            EnsureSearchClient();
             await EnsureConfig();
 
             var memories = new List<string>();
@@ -66,8 +50,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
 
                 var facetTemplates = memorySource.Facets.ToDictionary(f => f.Facet.Split(',')[0], f => f.CountMemoryTemplate);
 
-                var result = await _searchClient
-                    .SearchAsync<SearchDocument>("*", searchOptions);
+                var result = await _cognitiveSearchService.SearchAsync(searchOptions);
 
                 long totalCount = 0;
                 foreach (var facet in result.Value.Facets)
@@ -85,12 +68,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.MemorySource
             }
 
             return memories;
-        }
-
-        private void EnsureSearchClient()
-        {
-            if (_searchClient == null)
-                _searchClient = _adminClient.GetSearchClient($"{_settings.IndexName}-content");
         }
 
         private async Task EnsureConfig()

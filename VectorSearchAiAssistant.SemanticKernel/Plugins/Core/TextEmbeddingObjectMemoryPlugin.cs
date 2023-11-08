@@ -1,13 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.Embeddings;
 using Microsoft.SemanticKernel.Memory;
-using Microsoft.SemanticKernel.Orchestration;
 using System.ComponentModel;
-using System.Numerics;
-using System.Runtime;
 using System.Text.Json;
-using VectorSearchAiAssistant.SemanticKernel.MemorySource;
 using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core

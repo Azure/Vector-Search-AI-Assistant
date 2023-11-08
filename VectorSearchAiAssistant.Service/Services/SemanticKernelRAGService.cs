@@ -1,24 +1,23 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.AI.Embeddings;
-using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
-using VectorSearchAiAssistant.Service.Interfaces;
-using Microsoft.Extensions.Logging;
-using VectorSearchAiAssistant.Service.Models.Search;
-using System.Text.RegularExpressions;
 using Microsoft.SemanticKernel.AI.TextCompletion;
-using VectorSearchAiAssistant.Service.Models.Chat;
-using Newtonsoft.Json;
-using VectorSearchAiAssistant.SemanticKernel.Chat;
-using VectorSearchAiAssistant.SemanticKernel.Text;
-using VectorSearchAiAssistant.Service.Models;
-using VectorSearchAiAssistant.SemanticKernel.MemorySource;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
-using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
 using Microsoft.SemanticKernel.Plugins.Memory;
+using Newtonsoft.Json;
+using System.Text.RegularExpressions;
+using VectorSearchAiAssistant.SemanticKernel.Chat;
 using VectorSearchAiAssistant.SemanticKernel.Plugins.Core;
-using VectorSearchAiAssistant.SemanticKernel.Models;
+using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
+using VectorSearchAiAssistant.SemanticKernel.Text;
+using VectorSearchAiAssistant.Service.Interfaces;
+using VectorSearchAiAssistant.Service.MemorySource;
+using VectorSearchAiAssistant.Service.Models;
+using VectorSearchAiAssistant.Service.Models.Chat;
+using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
+using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -36,9 +35,10 @@ public class SemanticKernelRAGService : IRAGService
 
     readonly string _shortTermCollectionName = "short-term";
 
-    bool _memoryInitialized = false;
+    bool _serviceInitialized = false;
+    bool _shortTermMemoryInitialized = false;
 
-    public bool IsInitialized => _memoryInitialized;
+    public bool IsInitialized => _serviceInitialized;
 
     public SemanticKernelRAGService(
         ISystemPromptService systemPromptService,
@@ -88,18 +88,19 @@ public class SemanticKernelRAGService : IRAGService
             _semanticKernel.GetService<ITextEmbeddingGeneration>(),
             loggerFactory.CreateLogger<VectorMemoryStore>());
 
-        Task.Run(() =>  InitializeMemory());
-
         _chat = _semanticKernel.GetService<IChatCompletion>();
+
+        _serviceInitialized = true;
 
         _logger.LogInformation("Semantic Kernel RAG service initialized.");
     }
 
-    private async Task InitializeMemory()
+    private async Task EnsureShortTermMemory()
     {
         try
         {
-            // No initialization needed for the long-term memory
+            if (_shortTermMemoryInitialized)
+                return;
 
             // The memories collection in the short term memory store must be created explicitly
             await _shortTermMemory.MemoryStore.CreateCollectionAsync(_shortTermCollectionName);
@@ -127,18 +128,20 @@ public class SemanticKernelRAGService : IRAGService
                 await _shortTermMemory.AddMemory(stm, "N/A");
             }
 
-            _memoryInitialized = true;
-            _logger.LogInformation("Semantic Kernel RAG service memory initialized.");
+            _shortTermMemoryInitialized = true;
+            _logger.LogInformation("Semantic Kernel RAG service short-term memory initialized.");
 
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "The Semantic Kernel RAG service memory failed to initialize.");
+            _logger.LogError(ex, "The Semantic Kernel RAG service short-term memory failed to initialize.");
         }
     }
 
     public async Task<(string Completion, string UserPrompt, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
     {
+        await EnsureShortTermMemory();
+
         var memoryPlugin = new TextEmbeddingObjectMemoryPlugin(
             _longTermMemory,
             _shortTermMemory,

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Azure;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
 
 namespace VectorSearchAiAssistant.Service.Interfaces
 {
@@ -11,5 +9,7 @@ namespace VectorSearchAiAssistant.Service.Interfaces
         Task Initialize(List<Type> typesToIndex);
 
         Task IndexItem(object item);
+
+        Task<Response<SearchResults<SearchDocument>>> SearchAsync(SearchOptions searchOptions);
     }
 }
