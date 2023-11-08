@@ -4,7 +4,6 @@ using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Services;
 using Microsoft.Extensions.Configuration;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using VectorSearchAiAssistant.Service.Models.Search;
 using Newtonsoft.Json.Linq;
 using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
