@@ -8,12 +8,14 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
     public class TextSummaryPlugin
     {
         private readonly ISKFunction _summarizeConversation;
+        private readonly IKernel _kernel;
 
         public TextSummaryPlugin(
             string promptTemplate,
             int maxTokens,
             IKernel kernel)
         {
+            _kernel = kernel;
             _summarizeConversation = kernel.CreateSemanticFunction(
                 promptTemplate,
                 pluginName: nameof(TextSummaryPlugin),
@@ -27,10 +29,10 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
         }
 
         [SKFunction]
-        public async Task<string> SummarizeConversationAsync(
-            SKContext context)
+        public async Task<string> SummarizeTextAsync(
+            string text)
         {
-            var result = await _summarizeConversation.InvokeAsync(context);
+            var result = await _kernel.RunAsync(text, _summarizeConversation);
             return result.GetValue<string>() ?? string.Empty;
         }
     }

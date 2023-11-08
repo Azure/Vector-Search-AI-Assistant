@@ -189,23 +189,17 @@ public class SemanticKernelRAGService : IRAGService
             500,
             _semanticKernel);
 
-        var updatedContext = await summarizerPlugin.SummarizeConversationAsync(
-            userPrompt,
-            _semanticKernel.CreateNewContext());
+        var updatedContext = await summarizerPlugin.SummarizeTextAsync(
+            userPrompt);
 
-        //Remove all non-alpha numeric characters (Turbo has a habit of putting things in quotes even when you tell it not to
-        var summary = Regex.Replace(updatedContext.Result, @"[^a-zA-Z0-9\s]", "");
+        //Remove all non-alpha numeric characters (Turbo has a habit of putting things in quotes even when you tell it not to)
+        var summary = Regex.Replace(updatedContext, @"[^a-zA-Z0-9.\s]", "");
 
         return summary;
     }
 
     public async Task AddMemory(object item, string itemName, Action<object, float[]> vectorizer)
     {
-        if (item is EmbeddedEntity entity)
-            entity.entityType__ = item.GetType().Name;
-        else
-            throw new ArgumentException("Only objects derived from EmbeddedEntity can be added to memory.");
-
         await _longTermMemory.AddMemory(item, itemName);
     }
 
