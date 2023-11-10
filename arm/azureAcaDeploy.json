@@ -585,7 +585,7 @@
                   "workloadProfileType": "E4",
                   "name": "Warm",
                   "minimumCount": 2,
-                  "maximumCount": 20
+                  "maximumCount": 10
               }
           ],
           "infrastructureResourceGroup": "[concat('ME_', resourceGroup().name)]",
