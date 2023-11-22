@@ -35,7 +35,7 @@ if ($rg.length -eq 0) {
 # $aksVersions=$(az aks get-versions -l $location --query  values[].version -o json | ConvertFrom-Json)
 # $aksLastVersion=$aksVersions[$aksVersions.Length-1]
 # Write-Host "AKS last version is $aksLastVersion" -ForegroundColor Yellow
-$aksLastVersion="1.26.3"
+$aksLastVersion="1.27.3"
 
 $deploymentName = "cosmosdb-openai-azuredeploy"
 
