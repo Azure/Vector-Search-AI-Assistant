@@ -31,9 +31,9 @@
     },
     "k8sVersion": {
       "type": "string",
-      "defaultValue": "1.26.3",
+      "defaultValue": "1.27.3",
       "metadata": {
-        "description": "Specifies the version of Kubernetes to use for the Azure Kubernetes Service (AKS) cluster. Defaults to **1.26.3**"
+        "description": "Specifies the version of Kubernetes to use for the Azure Kubernetes Service (AKS) cluster. Defaults to **1.27.3**"
       }
     }
   },
