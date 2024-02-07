@@ -348,6 +348,10 @@ module search './app/Search.bicep' = {
     envSettings: [
       {
         name: 'MSCosmosDBOpenAI__ChatManager__APIRoutePrefix'
+        value: ''
+      }
+      {
+        name: 'MSCosmosDBOpenAI__ChatManager__APIUrl'
         value: chatServiceWebApi.outputs.uri
       }
     ]
