@@ -367,3 +367,5 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
+
+output SERVICE_CHATSERVICEWEBAPI_ENDPOINT_URL string = chatServiceWebApi.outputs.uri

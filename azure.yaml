@@ -3,6 +3,12 @@
 name: Vector-Search-AI-Assistant
 metadata:
     template: azd-init@1.5.1
+hooks:
+    postdeploy:
+      shell: sh
+      continueOnError: false
+      interactive: true
+      run: ./azd-hooks/postdeploy.sh
 services:
     ChatServiceWebApi:
         project: ChatServiceWebApi
