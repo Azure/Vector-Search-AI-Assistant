@@ -10,6 +10,7 @@ namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
     {
         public required string IndexName { get; init; }
         public required int MaxVectorSearchResults { get; init; }
+        public required double MinRelevance { get; init; }
         public required string Endpoint { get; init; }
         public required string Key { get; init; }
     }
