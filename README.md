@@ -120,11 +120,11 @@ Change Feed capability to dynamically add and remove records. The steps below ca
 
 1. Start a new chat session in the web application.
 1. In the chat text box, type: "Can you list all of your socks?". The AI Assistant will list 4 different socks of two types, racing and mountain.
-1. Using either CURL or Postman, send the following payload in a PUT request with a `Content-Type` header value of `application/json` to `https://<chat-service-hostname>/products` to add a product.
+1. Using either CURL or Postman, send the following payload in a PUT request with a `Content-Type` header value of `application/json` to `https://<chat-service-hostname>/api/products` to add a product.
   
     ##### Curl Command
     ```pwsh
-    curl -X PUT -H "Content-Type: application/json" -d $JsonPayload https://<chat-service-hostname>/products
+    curl -X PUT -H "Content-Type: application/json" -d $JsonPayload https://<chat-service-hostname>/api/products
     ```
 
     ##### Json Payload
