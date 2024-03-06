@@ -21,7 +21,7 @@ Follow the steps below to deploy the solution to your Azure subscription.
 1. Ensure all the prerequisites are installed.  
 
 2. Clone the repository:
-   
+
     ```cmd
     git clone https://github.com/Azure/Vector-Search-AI-Assistant.git
     ```
@@ -32,6 +32,9 @@ Follow the steps below to deploy the solution to your Azure subscription.
     cd Vector-Search-AI-Assistant
     git checkout cognitive-search-vector
     ```
+
+> [!IMPORTANT]
+> **Before continuing**, make sure have enough Tokens Per Minute (TPM) in thousands quota available in your subscription. By default, the script will attempt to set a value of 120K for each deployment. In case you need to change this value, you can edit lines 22 and 29 in the `starter-artifacts\code\VectorSearchAiAssistant\scripts\Deploy-OpenAi.ps1` file.
 
 4. Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into your choice of Azure Kubeternetes Service or Azure Container Apps, and import data into Azure Cosmos DB.
 
@@ -62,6 +65,7 @@ Follow the steps below to deploy the solution to your Azure subscription.
 
 
     ### Deploy with Azure Container Apps
+
     This script will deploy all services including a new Azure OpenAI account using Azure Container Apps. (This can be a good option for users not familiar with AKS)
 
     ```pwsh
@@ -69,6 +73,7 @@ Follow the steps below to deploy the solution to your Azure subscription.
     ```
 
     ### Deploy with pre-existing Azure OpenAI service with Azure Container Apps
+
     This script will deploy using a pre-existing Azure OpenAI account and pre-deployed GPT 3.5 Turbo and ADA-002 models and AKS
 
     ```pwsh
@@ -80,7 +85,8 @@ Follow the steps below to deploy the solution to your Azure subscription.
         -openAiEmbeddingsDeployment <ada-002-model-name>
     ```
 
-    To validate the deployment to ACA run the following script. 
+    To validate the deployment to ACA run the following script:
+
     > ```pwsh
     >  az containerapp show -n <aca-name> -g <resource-group-name>
     >  ```
