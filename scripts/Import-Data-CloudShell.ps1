@@ -2,7 +2,7 @@
 
 Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
-    [parameter(Mandatory=$true)][string]$apiUrl
+    [parameter(Mandatory=$true)][string]$aksName
 )
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
@@ -17,6 +17,10 @@ $result = Invoke-WebRequest -Uri $blobUri
 # The customers file has a BOM which needs to be ignored
 $customers = $result.Content.Substring(1, $result.Content.Length - 1) | ConvertFrom-Json
 Write-Output "Imported $($customers.Length) customers"
+
+$webappHostname=$(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
+$apiUrl = "https://$webappHostname/api"
+Write-Output "API Url is $apiUrl"
 
 $OldProgressPreference = $ProgressPreference
 $ProgressPreference = "SilentlyContinue"
