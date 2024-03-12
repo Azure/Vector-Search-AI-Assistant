@@ -100,12 +100,12 @@ module cosmos './resources/cosmosdb.bicep' = {
         maxThroughput: 1000
       }
       {
-        name: 'customerContainer'
+        name: 'customer'
         partitionKeyPath: '/customerId'
         maxThroughput: 1000
       }
       {
-        name: 'leasesContainer'
+        name: 'leases'
         partitionKeyPath: '/id'
         maxThroughput: 1000
       }

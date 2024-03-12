@@ -69,12 +69,12 @@ module cosmos './shared/cosmosdb.bicep' = {
         maxThroughput: 1000
       }
       {
-        name: 'customerContainer'
+        name: 'customer'
         partitionKeyPath: '/customerId'
         maxThroughput: 1000
       }
       {
-        name: 'leasesContainer'
+        name: 'leases'
         partitionKeyPath: '/id'
         maxThroughput: 1000
       }
@@ -373,5 +373,6 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 output AZURE_COSMOS_DB_NAME string = cosmos.outputs.name
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
+output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
 
 output SERVICE_CHATSERVICEWEBAPI_ENDPOINT_URL string = chatServiceWebApi.outputs.uri
