@@ -11,6 +11,10 @@ hooks:
         interactive: false
         shell: pwsh
         run: infra/azd-hooks/predeploy.ps1 # installs additional components on the cluster
+    postdeploy:
+        interactive: false
+        shell: pwsh
+        run: infra/azd-hooks/postdeploy.ps1 # installs additional components on the cluster
 infra:
     provider: bicep
     path: infra

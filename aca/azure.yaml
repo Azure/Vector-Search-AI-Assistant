@@ -4,6 +4,11 @@ name: Vector-Search-AI-Assistant
 metadata:
     template: azd-init@1.5.1
 hooks:
+    predeploy:
+      shell: pwsh
+      continueOnError: false
+      interactive: true
+      run: ./azd-hooks/predeploy.ps1
     postdeploy:
       shell: pwsh
       continueOnError: false
