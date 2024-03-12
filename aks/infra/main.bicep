@@ -357,7 +357,16 @@ output AZURE_MANAGED_GRAFANA_ENDPOINT string = monitoring.outputs.grafanaDashboa
 output AZURE_MANAGED_PROMETHEUS_RESOURCE_ID string = monitoring.outputs.azureMonitorWorkspaceId
 output AZURE_MANAGED_GRAFANA_RESOURCE_ID string = monitoring.outputs.grafanaId
 output AZURE_MANAGED_GRAFANA_NAME string = monitoring.outputs.grafanaName
+output API_WORKLOADIDENTITY_CLIENT_ID string = chatServiceApiManagedIdentity.outputs.managedIdentityClientId
 output KEDA_WORKLOADIDENTITY_CLIENT_ID string = kedaManagedIdentity.outputs.managedIdentityClientId
 output ASO_WORKLOADIDENTITY_CLIENT_ID string = asoManagedIdentity.outputs.managedIdentityClientId
 output PROMETHEUS_ENDPOINT string = monitoring.outputs.prometheusEndpoint
+
+output AZURE_COSMOS_DB_NAME string = cosmos.outputs.name
+output AZURE_COSMOS_DB_ENDPOINT string = cosmos.outputs.endpoint
+output AZURE_COGNITIVE_SEARCH_NAME string = cogSearch.outputs.name
+output AZURE_COGNITIVE_SEARCH_ENDPOINT string = cogSearch.outputs.endpoint
+output AZURE_OPENAI_NAME string = openAi.outputs.name
+output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
+output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
 

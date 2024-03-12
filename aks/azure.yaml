@@ -31,7 +31,7 @@ services:
                 name: api
             ingress:
               name: api
-              relativePath: /
+              relativePath: /api/
     web:
         project: ../Search 
         language: dotnet 
@@ -41,5 +41,9 @@ services:
             path: Dockerfile
         k8s:
             deploymentPath: ../Search/manifests
+            deployment:
+                name: web
+            ingress:
+                name: web
 pipeline:
     provider: github
