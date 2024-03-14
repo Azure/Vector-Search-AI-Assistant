@@ -362,3 +362,7 @@ __values
 .idea
 dMT
 migrationsettings.json
+.azure
+
+product.json
+customer.json
