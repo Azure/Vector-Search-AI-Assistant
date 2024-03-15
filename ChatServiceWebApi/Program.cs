@@ -2,6 +2,7 @@ using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.MemorySource;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Services;
+using VectorSearchAiAssistant.Service.Services.Text;
 
 namespace ChatServiceWebApi
 {
@@ -42,6 +43,13 @@ namespace ChatServiceWebApi
             builder.Services.AddOptions<BlobStorageMemorySourceSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:BlobStorageMemorySource"));
             builder.Services.AddTransient<IMemorySource, BlobStorageMemorySource>();
+
+            builder.Services.AddSingleton<ITokenizerService, MicrosoftBPETokenizerService>();
+            builder.Services.ActivateSingleton<ITokenizerService>();
+
+            builder.Services.AddOptions<TokenTextSplitterServiceSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:TextSplitter"));
+            builder.Services.AddSingleton<ITextSplitterService, TokenTextSplitterService>();
 
             builder.Services.AddScoped<ChatEndpoints>();
 
