@@ -1,17 +1,15 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.Text;
 using Newtonsoft.Json;
 using VectorSearchAiAssistant.Service.Interfaces;
-
-#pragma warning disable SKEXP0050
 
 namespace VectorSearchAiAssistant.Service.MemorySource
 {
     public class BlobStorageMemorySource : IMemorySource
     {
         private readonly BlobStorageMemorySourceSettings _settings;
+        private readonly ITextSplitterService _textSplitterService;
         private readonly ILogger _logger;
 
         private BlobStorageMemorySourceConfig _config;
@@ -21,9 +19,11 @@ namespace VectorSearchAiAssistant.Service.MemorySource
 
         public BlobStorageMemorySource(
             IOptions<BlobStorageMemorySourceSettings> settings,
+            ITextSplitterService textSplitterService,
             ILogger<BlobStorageMemorySource> logger)
         {
             _settings = settings.Value;
+            _textSplitterService = textSplitterService;
             _logger = logger;
 
             _blobServiceClient = new BlobServiceClient(_settings.ConfigBlobStorageConnection);
@@ -39,7 +39,7 @@ namespace VectorSearchAiAssistant.Service.MemorySource
                 .SelectMany(x => x));
 
             var chunkedFilesContent = filesContent
-                .Select(txt => txt.SplitIntoChunks ? TextChunker.SplitPlainTextLines(txt.Content, _config.TextChunkMaxTokens) : new List<string>() { txt.Content })
+                .Select(txt => txt.SplitIntoChunks ? _textSplitterService.SplitPlainText(txt.Content).TextChunks : new List<string>() { txt.Content })
                 .SelectMany(x => x).ToList();
 
             return chunkedFilesContent;
