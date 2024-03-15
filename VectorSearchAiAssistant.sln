@@ -20,8 +20,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatServiceWebApi", "ChatSe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorSearchAiAssistant.SemanticKernel", "VectorSearchAiAssistant.SemanticKernel\VectorSearchAiAssistant.SemanticKernel.csproj", "{503CE23D-63D7-4A26-8475-AA71A45D519B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SKRAGTest", "SKRAGTest\SKRAGTest.csproj", "{129DBC32-DB2A-4F0F-B884-B6632ABA3AF7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,10 +42,6 @@ Global
 		{503CE23D-63D7-4A26-8475-AA71A45D519B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{503CE23D-63D7-4A26-8475-AA71A45D519B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{503CE23D-63D7-4A26-8475-AA71A45D519B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{129DBC32-DB2A-4F0F-B884-B6632ABA3AF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{129DBC32-DB2A-4F0F-B884-B6632ABA3AF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{129DBC32-DB2A-4F0F-B884-B6632ABA3AF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{129DBC32-DB2A-4F0F-B884-B6632ABA3AF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

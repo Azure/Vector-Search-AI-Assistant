@@ -4,7 +4,7 @@ using Azure.Search.Documents.Models;
 
 namespace VectorSearchAiAssistant.Service.Interfaces
 {
-    public interface ICognitiveSearchService
+    public interface IAISearchService
     {
         Task Initialize(List<Type> typesToIndex);
 

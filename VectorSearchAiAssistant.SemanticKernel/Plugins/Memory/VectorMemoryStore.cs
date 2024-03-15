@@ -1,15 +1,15 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel.AI.Embeddings;
+﻿using Azure.Search.Documents.Indexes;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
-using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
-using VectorSearchAiAssistant.SemanticKernel.Models;
 using Newtonsoft.Json;
-using System.Text;
-using System.Security.Cryptography;
-using Azure.AI.OpenAI;
-using Azure.Search.Documents.Indexes;
-using Azure.Search.Documents;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
+using VectorSearchAiAssistant.SemanticKernel.Models;
+using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
+
+#pragma warning disable SKEXP0001
 
 namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
 {
@@ -17,7 +17,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
     {
         readonly string _collectionName;
         readonly IMemoryStore _memoryStore;
-        readonly ITextEmbeddingGeneration _textEmbedding;
+        readonly ITextEmbeddingGenerationService _textEmbedding;
         readonly ILogger<VectorMemoryStore> _logger;
         readonly SHA1 _hash;
 
@@ -26,7 +26,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
         public VectorMemoryStore(
             string collectionName,
             IMemoryStore memoryStore,
-            ITextEmbeddingGeneration textEmbedding,
+            ITextEmbeddingGenerationService textEmbedding,
             ILogger<VectorMemoryStore> logger) 
         {
             _collectionName = collectionName;
@@ -48,7 +48,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
                 // Prepare the object for embedding
                 var itemToEmbed = EmbeddingUtility.Transform(item);
 
-                // Get the embeddings from OpenAI: the ITextEmbeddingGeneration service is exposed by SemanticKernel
+                // Get the embeddings from OpenAI: the ITextEmbeddingGenerationService service is exposed by SemanticKernel
                 // and is responsible for calling the text embedding endpoint to get the vectorized representation
                 // of the incoming object.
                 // Use by default the more elaborate text representation based on EmbeddingFieldAttribute

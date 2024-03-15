@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VectorSearchAiAssistant.Service.MemorySource
 {
-    public class AzureCognitiveSearchMemorySourceConfig
+    public class AzureAISearchMemorySourceConfig
     {
         public List<FacetedQueryMemorySource> FacetedQueryMemorySources { get; set; }
     }
