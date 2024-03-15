@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Text.Json;
 using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
 
+#pragma warning disable SKEXP0001
+
 namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
 {
     /// <summary>
@@ -71,7 +73,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
         /// <param name="limit">The maximum number of relevant memories to recall.</param>
         /// <param name="context">Contains the memory to search.</param>
         /// <param name="shortTermMemory">An optional volatile, short-term memory store.</param>
-        [SKFunction]
+        [KernelFunction]
         public async Task<string> RecallAsync(
             [Description("The input text to find related memories for")] string text,
             [Description("Memories collection to search"), DefaultValue(DefaultCollection)] string collection,

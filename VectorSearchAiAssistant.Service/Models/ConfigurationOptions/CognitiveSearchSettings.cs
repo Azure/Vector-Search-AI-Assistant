@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
 {
-    public record CognitiveSearchSettings
+    public record AISearchSettings
     {
         public required string IndexName { get; init; }
         public required int MaxVectorSearchResults { get; init; }

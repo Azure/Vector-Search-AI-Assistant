@@ -3,12 +3,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Text;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VectorSearchAiAssistant.Service.Interfaces;
+
+#pragma warning disable SKEXP0050
 
 namespace VectorSearchAiAssistant.Service.MemorySource
 {

@@ -1,7 +1,6 @@
 ﻿using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using VectorSearchAiAssistant.SemanticKernel.Text;
 using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
 
@@ -9,7 +8,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
 {
     public class ChatBuilder
     {
-        readonly IKernel _kernel;
+        readonly Kernel _kernel;
         readonly int _maxTokens;
         readonly int _maxPromptTokens;
         readonly Dictionary<string, Type> _memoryTypes;
@@ -23,7 +22,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
         List<(AuthorRole AuthorRole, string Content)> _messages = new List<(AuthorRole AuthorRole, string Content)>();
 
         public ChatBuilder(
-            IKernel kernel,
+            Kernel kernel,
             int maxTokens,
             Dictionary<string, Type> memoryTypes,
             ITokenizer? tokenizer = null,
@@ -82,8 +81,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
         {
             OptimizePromptSize();
 
-            var result = _kernel.GetService<IChatCompletion>()
-                .CreateNewChat();
+            var result = new ChatHistory();
 
             var systemMessage = string.IsNullOrWhiteSpace(_systemPrompt)
                 ? string.Empty

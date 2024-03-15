@@ -29,7 +29,7 @@ namespace VectorSearchAiAssistant.Service.Services
         readonly Dictionary<string, Type> _memoryTypes;
 
         private readonly IRAGService _ragService;
-        private readonly ICognitiveSearchService _cognitiveSearchService;
+        private readonly IAISearchService _AISearchService;
         private readonly CosmosDbSettings _settings;
         private readonly ILogger _logger;
 
@@ -40,12 +40,12 @@ namespace VectorSearchAiAssistant.Service.Services
 
         public CosmosDbService(
             IRAGService ragService,
-            ICognitiveSearchService cognitiveSearchService,
+            IAISearchService AISearchService,
             IOptions<CosmosDbSettings> settings, 
             ILogger<CosmosDbService> logger)
         {
             _ragService = ragService;
-            _cognitiveSearchService = cognitiveSearchService;
+            _AISearchService = AISearchService;
 
             _settings = settings.Value;
             ArgumentException.ThrowIfNullOrEmpty(_settings.Endpoint);
@@ -110,7 +110,7 @@ namespace VectorSearchAiAssistant.Service.Services
         private async Task StartChangeFeedProcessors()
         {
             _logger.LogInformation("Initializing the Cognitive Search index...");
-            await _cognitiveSearchService.Initialize(_memoryTypes.Values.ToList());
+            await _AISearchService.Initialize(_memoryTypes.Values.ToList());
 
             _logger.LogInformation("Initializing the change feed processors...");
             _changeFeedProcessors = new List<ChangeFeedProcessor>();
@@ -172,7 +172,7 @@ namespace VectorSearchAiAssistant.Service.Services
 
                         // Add the entity to the Cognitive Search content index
                         // The content index is used by the Cognitive Search memory source to run create memories from faceted queries
-                        await _cognitiveSearchService.IndexItem(entity);
+                        await _AISearchService.IndexItem(entity);
 
                         // Add the entity to the Semantic Kernel memory used by the RAG service
                         // We want to keep the VectorSearchAiAssistant.SemanticKernel project isolated from any domain-specific

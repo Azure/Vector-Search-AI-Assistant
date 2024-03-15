@@ -38,7 +38,7 @@ Vectors are generated in Change Feed handler (GenericChangeFeedHandler() method)
 
 ## Searching vectors
 
-The web-based front-end provides users the means for searching the vectorized retail bike data for this solution. This work is centered around the [AzureCognitiveSearchVectorMemory](https://github.com/Azure/Vector-Search-AI-Assistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Memory/AzureCognitiveSearch/AzureCognitiveSearchVectorMemory.cs) in the `VectorSearchAiAssistant.SemanticKernel` project. In the chat UI, a user starts a new chat session then types in a natural language question. The text is sent to Azure OpenAI Service embeddings API to generate vectors on it. The vectors are then used to perform a vector search on the vectors collection in Azure Cognitive Search. The query response which includes the original source data is sent to Azure OpenAI Service to generate a completion which is then passed back to the user as a response.
+The web-based front-end provides users the means for searching the vectorized retail bike data for this solution. This work is centered around the [AzureAISearchVectorMemory](https://github.com/Azure/Vector-Search-AI-Assistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Memory/AzureAISearch/AzureAISearchVectorMemory.cs) in the `VectorSearchAiAssistant.SemanticKernel` project. In the chat UI, a user starts a new chat session then types in a natural language question. The text is sent to Azure OpenAI Service embeddings API to generate vectors on it. The vectors are then used to perform a vector search on the vectors collection in Azure Cognitive Search. The query response which includes the original source data is sent to Azure OpenAI Service to generate a completion which is then passed back to the user as a response.
 
 ## Key concepts this solution highlights
 
@@ -58,7 +58,7 @@ In a vector search solution, the filter predicate for any query is an array of v
 
 ### Doing the vector search
 
-The vector search is the key function in this solution and is done against the Azure Cognitive Search index in this solution. The function itself is rather simple and only takes and array of vectors with which to do the search. You can see the vector search at work by debugging the Azure Web App remotely or running locally. Set a break point on [SearchAsync()](https://github.com/Azure/Vector-Search-AI-Assistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Memory/AzureCognitiveSearch/AzureCognitiveSearchVectorMemory.cs#L288), then step through each line to see how of the function calls to see the search and returned data.
+The vector search is the key function in this solution and is done against the Azure Cognitive Search index in this solution. The function itself is rather simple and only takes and array of vectors with which to do the search. You can see the vector search at work by debugging the Azure Web App remotely or running locally. Set a break point on [SearchAsync()](https://github.com/Azure/Vector-Search-AI-Assistant/blob/cognitive-search-vector/VectorSearchAiAssistant.SemanticKernel/Memory/AzureAISearch/AzureAISearchVectorMemory.cs#L288), then step through each line to see how of the function calls to see the search and returned data.
 
 ### Token management
 
@@ -211,7 +211,7 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
         },
         "AllowedHosts": "*",
         "MSCosmosDBOpenAI": {
-            "CognitiveSearch": {
+            "AISearch": {
                 "IndexName": "vector-index",
                 "MaxVectorSearchResults": 10
             },
@@ -249,7 +249,7 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
     ```json
     {
         "MSCosmosDBOpenAI": {
-            "CognitiveSearch": {
+            "AISearch": {
                 "Endpoint": "https://<...>.search.windows.net",
                 "Key": "<...>"
             },
@@ -267,7 +267,7 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
             "BlobStorageMemorySource": {
                 "ConfigBlobStorageConnection": "<...>"
             },
-            "CognitiveSearchMemorySource": {
+            "AISearchMemorySource": {
                 "Endpoint": "https://<...>.search.windows.net",
                 "Key": "<...>",
                 "ConfigBlobStorageConnection": "<...>"
@@ -276,7 +276,7 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
     }
     ```
 
-    >**NOTE**: The `BlobStorageConnection` and `ConfigBlobStorageConnection` values can be found in the Azure Portal by navigating to the Storage Account created by the deployment (the one that has a container named `system-prompt`) and selecting the `Access keys` blade. The value is the `Connection string` for the `key1` key. `CognitiveSearchMemorySource` has the same values and `CognitiveSearch` section.
+    >**NOTE**: The `BlobStorageConnection` and `ConfigBlobStorageConnection` values can be found in the Azure Portal by navigating to the Storage Account created by the deployment (the one that has a container named `system-prompt`) and selecting the `Access keys` blade. The value is the `Connection string` for the `key1` key. `AISearchMemorySource` has the same values and `AISearch` section.
 
 #### Using Visual Studio
 
