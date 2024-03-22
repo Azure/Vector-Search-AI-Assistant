@@ -61,6 +61,14 @@ if (-not $resourcePrefix) {
     $resourcePrefix = $hash.Substring(0,5)
 }
 
+if (-not $openAiCompletionsDeployment) {
+    $openAiCompletionsDeployment = "completions"
+}
+
+if (-not $openAiEmbeddingsDeployment) {
+    $openAiEmbeddingsDeployment = "embeddings"
+}
+
 if ($stepDeployOpenAi) {
     if (-not $openAiRg) {
         $openAiRg=$resourceGroup
@@ -69,15 +77,7 @@ if ($stepDeployOpenAi) {
     if (-not $openAiName) {
         $openAiName = "$($resourcePrefix)-openai"
     }
-
-    if (-not $openAiCompletionsDeployment) {
-        $openAiCompletionsDeployment = "completions"
-    }
-
-    if (-not $openAiEmbeddingsDeployment) {
-        $openAiEmbeddingsDeployment = "embeddings"
-    }
-
+    
     & ./Deploy-OpenAi.ps1 -name $openAiName -resourceGroup $openAiRg -location $location -completionsDeployment $openAiCompletionsDeployment -embeddingsDeployment $openAiEmbeddingsDeployment
 }
 
@@ -129,7 +129,7 @@ else
 # Generate Config
 New-Item -ItemType Directory -Force -Path $(./Join-Path-Recursively.ps1 -pathParts ..,__values)
 $gValuesLocation=$(./Join-Path-Recursively.ps1 -pathParts ..,__values,$gValuesFile)
-& ./Generate-Config.ps1 -resourceGroup $resourceGroup -openAiName $openAiName -openAiRg $openAiRg -openAiDeployment $openAiDeployment -outputFile $gValuesLocation
+& ./Generate-Config.ps1 -resourceGroup $resourceGroup -openAiName $openAiName -openAiRg $openAiRg -openAiCompletionsDeployment $openAiCompletionsDeployment -openAiEmbeddingsDeployment $openAiEmbeddingsDeployment -outputFile $gValuesLocation
 
 # Create Secrets
 if ([string]::IsNullOrEmpty($acrName))

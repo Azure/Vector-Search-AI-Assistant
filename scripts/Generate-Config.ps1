@@ -4,7 +4,8 @@ Param (
     [parameter(Mandatory=$true)][string]$resourceGroup,
     [parameter(Mandatory=$false)][string]$openAiName,
     [parameter(Mandatory=$false)][string]$openAiRg,
-    [parameter(Mandatory=$false)][string]$openAiDeployment,
+    [parameter(Mandatory=$false)][string]$openAiCompletionsDeployment,
+    [parameter(Mandatory=$false)][string]$openAiEmbeddingsDeployment,
     [parameter(Mandatory=$false)][string[]]$outputFile=$null,
     [parameter(Mandatory=$false)][string[]]$gvaluesTemplate="..,gvalues.template.yml",
     [parameter(Mandatory=$false)][string[]]$migrationSettingsTemplate="..,migrationsettings.template.json",
@@ -96,6 +97,8 @@ $tokens.cosmosEndpoint=$docdb.documentEndpoint
 $tokens.cosmosKey=$docdbKey
 $tokens.openAiEndpoint=$openAi.properties.endpoint
 $tokens.openAiKey=$openAiKey
+$tokens.completionsDeployment=$openAiCompletionsDeployment
+$tokens.embeddingsDeployment=$openAiEmbeddingsDeployment
 $tokens.searchEndpoint="https://$($search.name).search.windows.net/"
 $tokens.searchAdminKey=$searchKey
 $tokens.aiConnectionString=$appinsightsConnectionString
