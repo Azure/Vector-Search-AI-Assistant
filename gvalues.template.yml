@@ -4,9 +4,9 @@ cognitiveSearch:
   indexName: 'vector-index'
   maxVectorSearchResults: 10
 openAi:
-  completionsDeployment: 'completions'
+  completionsDeployment: '{{completionsDeployment}}'
   completionsDeploymentMaxTokens: 8096
-  embeddingsDeployment: 'embeddings'
+  embeddingsDeployment: '{{embeddingsDeployment}}'
   embeddingsDeploymentMaxTokens: 8191
   chatCompletionPromptName: 'RetailAssistant.Default'
   shortSummaryPromptName: 'Summarizer.TwoWords'
