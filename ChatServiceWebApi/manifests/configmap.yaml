@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "cfg-api"
+  labels:
+    app: api
+data:
+  MSCosmosDBOpenAI__CognitiveSearch__IndexName: 'vector-index'
+  MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults: '10'
+  MSCosmosDBOpenAI__OpenAI__CompletionsDeployment: 'completions'
+  MSCosmosDBOpenAI__OpenAI__CompletionsDeploymentMaxTokens: '8096'
+  MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment: 'embeddings'
+  MSCosmosDBOpenAI__OpenAI__EmbeddingsDeploymentMaxTokens: '8191'
+  MSCosmosDBOpenAI__OpenAI__ChatCompletionPromptName: 'RetailAssistant.Default'
+  MSCosmosDBOpenAI__OpenAI__ShortSummaryPromptName: 'Summarizer.TwoWords'
+  MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMinTokens: '50'
+  MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMaxTokens: '300'
+  MSCosmosDBOpenAI__OpenAI__PromptOptimization__SystemMaxTokens: '1500'
+  MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMinTokens: '1500'
+  MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMaxTokens: '7000'
+  MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMinTokens: '100'
+  MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMaxTokens: '200'
+  MSCosmosDBOpenAI__CosmosDB__Containers: 'completions,customer,product'
+  MSCosmosDBOpenAI__CosmosDB__MonitoredContainers: 'customer,product'
+  MSCosmosDBOpenAI__CosmosDB__Database: 'database'
+  MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer: 'leases'
+  MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer: 'system-prompt'
+  MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName: 'vector-index'
+  MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageContainer: 'memory-source'
+  MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigFilePath: 'ACSMemorySourceConfig.json'
+  MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageContainer: 'memory-source'
+  MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigFilePath: 'BlobMemorySourceConfig.json'
