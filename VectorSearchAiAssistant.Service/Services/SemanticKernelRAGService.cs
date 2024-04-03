@@ -34,12 +34,15 @@ public class SemanticKernelRAGService : IRAGService
     readonly IChatCompletionService _chat;
     readonly VectorMemoryStore _longTermMemory;
     readonly VectorMemoryStore _shortTermMemory;
+    readonly VectorMemoryStore _semanticMemory;
     readonly Dictionary<string, Type> _memoryTypes;
 
     readonly string _shortTermCollectionName = "short-term";
+    readonly string _semanticMemoryCollectionName = "semantic-memory";
 
     bool _serviceInitialized = false;
     bool _shortTermMemoryInitialized = false;
+    bool _semanticMemoryInitialized = false;
 
     public bool IsInitialized => _serviceInitialized;
 
@@ -87,6 +90,12 @@ public class SemanticKernelRAGService : IRAGService
 
         _shortTermMemory = new VectorMemoryStore(
             _shortTermCollectionName,
+            new VolatileMemoryStore(),
+            _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
+            loggerFactory.CreateLogger<VectorMemoryStore>());
+
+        _semanticMemory = new VectorMemoryStore(
+            _semanticMemoryCollectionName,
             new VolatileMemoryStore(),
             _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
             loggerFactory.CreateLogger<VectorMemoryStore>());
@@ -141,8 +150,36 @@ public class SemanticKernelRAGService : IRAGService
         }
     }
 
+    private async Task EnsureSemanticMemory()
+    {
+        try
+        {
+            if (_semanticMemoryInitialized)
+                return;
+
+            // TODO: Load the semantic memory from Cosmos DB.
+
+            _semanticMemoryInitialized = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "The semantic memory failed to initialize.");
+        }
+    }
+
     public async Task<(string Completion, string UserPrompt, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
     {
+        var semanticMemoryHits = await _semanticMemory
+            .GetNearestMatches(userPrompt, 1, 0.95f)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        if (semanticMemoryHits.Count > 0)
+        {
+            var cachedResponse = semanticMemoryHits[0].Metadata.Text;
+            return (cachedResponse, userPrompt, 0, 0, null);
+        }
+
         await EnsureShortTermMemory();
 
         var memoryPlugin = new TextEmbeddingObjectMemoryPlugin(
@@ -186,6 +223,8 @@ public class SemanticKernelRAGService : IRAGService
         // TODO: Add validation and perhaps fall back to a standard response if no completions are generated.
         var reply = completionResults[0];
         var completionsUsage = completionResults[0].Metadata!["Usage"] as CompletionsUsage;
+
+        await _semanticMemory.AddMemory(reply.InnerContent, string.Empty);
 
         return new(reply.Content!, chatHistory[0].Content!, completionsUsage!.PromptTokens, completionsUsage.CompletionTokens, userPromptEmbedding);
     }
