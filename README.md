@@ -89,10 +89,10 @@ The data is then persisted to the Cosmos DB database in the [UpdateSessionBatchA
 
 This solution deploys to Azure Kubernetes Service (AKS). Here is an example.
 
-    ```pwsh
-    cd ./aks
-    azd up
-    ```
+```pwsh
+cd ./aks
+azd up
+```
 
 There are many options for deployment, including using an existing Azure OpenAI account and models. For deployment options and prerequisistes, please see [How to Deploy](./docs/deployment.md) page.
 
