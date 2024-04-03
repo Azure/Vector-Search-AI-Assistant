@@ -29,19 +29,18 @@ Follow the steps below to deploy the solution to your Azure subscription.
 
     ```cmd
     chmod +x ./scripts/*
+    chmod +x ./aca/azd-hooks/*
+    chmod +x ./aks/infra/azd-hooks/*
     ```
 
-5.  Execute the `CloudShell-Deploy.ps1` script. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos DB.
+5.  Execute the `azd` template. This will provision all of the required infrastructure, deploy the API and web app services into AKS, and import data into Cosmos DB.
 
     ```pwsh
-    ./scripts/CloudShell-Deploy.ps1 -resourceGroup <rg_name> -location <location> -subscription <target_subscription_id>
+    cd ./aks
+    azd up
     ```
 
-    This is an example of the command above: 
-    ```pwsh
-    ./scripts/CloudShell-Deploy.ps1 -resourceGroup "ms-cosmosdb-openai" -location eastus -subscription "00000000-0000-0000-0000-000000000000"
-    ```
+    You will be prompted for the target subscription, location, and desired environment name.  The target resource group will be `rg-` followed by the environment name (i.e. `rg-my-aks-deploy`)
+
 
 >**NOTE**: The `<location>` specified must point to a region that supports the Azure OpenAI service. You can find the list of supported regions [here](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=cognitive-services).
-
->**NOTE**: If you already used the Cloud Shell in the target subscription, it is recommended to remove the `VectorSearchAiAssistant` folder from the home directory before cloning the repository again. You can do this by running `rm ./VectorSearchAiAssistant -r -f` in the Cloud Shell.
