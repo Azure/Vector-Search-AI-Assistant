@@ -34,11 +34,12 @@ Follow the steps below to deploy the solution to your Azure subscription.
     ```
 
 > [!IMPORTANT]
-> **Before continuing**, make sure have enough Tokens Per Minute (TPM) in thousands quota available in your subscription. By default, the script will attempt to set a value of 120K for each deployment. In case you need to change this value, you can edit lines 22 and 29 in the `starter-artifacts\code\VectorSearchAiAssistant\scripts\Deploy-OpenAi.ps1` file.
+> **Before continuing**, make sure have enough Tokens Per Minute (TPM) in thousands quota available in your subscription. By default, the script will attempt to set a value of 120K for each deployment. In case you need to change this value, you can edit the `params.deployments.sku.capacity` values (lines 131 and 142 in the `aca\infra\main.bicep` file for **ACA** deployments, or lines 141 and 152 in the `aks\infra\main.bicep` file for **AKS** deployments).
 
 4. Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into your choice of Azure Kubeternetes Service or Azure Container Apps, and import data into Azure Cosmos DB.
 
     ### Deploy with Azure Kubernetes Service
+
     This script will deploy all services including a new Azure OpenAI account and AKS
 
     ```pwsh
@@ -53,7 +54,6 @@ Follow the steps below to deploy the solution to your Azure subscription.
     > ```pwsh
     >  az aks show -n <aks-name> -g <resource-group-name> -o tsv --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName
     >  ```	 
-
 
     ### Deploy with Azure Container Apps
 
@@ -72,7 +72,6 @@ Follow the steps below to deploy the solution to your Azure subscription.
     >  az containerapp show -n <aca-name> -g <resource-group-name>
     >  ```
 
-
 ## Deployment choices
 
 The following table summarizes the deployment choices available for the solution:
@@ -82,9 +81,6 @@ The following table summarizes the deployment choices available for the solution
 [Standard](./deployment-standard.md) | Use your local development environment to deploy the solution to your Azure subscription. | Best suited for situations where you need the flexibility of a full development environment (e.g. to customize the solution) and you have a local development environment available.
 [Cloud Shell](./deployment-cloudshell.md) | Use Azure Cloud Shell to deploy the solution to your Azure subscription. | Best suited for quick deployment. All you need is an Azure subscription and a browser. However, this does require additional setup steps. For more information see, [Prepare Cloud Shell Setup](./deployment-cloudshell-setup.md)
 [Azure VM](./deployment-azurevm.md) | Use an Azure VM to deploy the solution to your Azure subscription. | Best suited for situations where you need the flexibility of a full development environment (e.g. to customize the solution) but you don't have a local development environment available. The Azure VM deployment type requires additional setup steps. If you are involved in managing the infrastructure that enables Azure VM deployments for your team, see [Prepare Azure VM Setup](./deployment-azurevm-setup.md) for more information.
-
-
-
 
 ## Deployment validation
 
