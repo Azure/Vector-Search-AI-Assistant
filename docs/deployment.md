@@ -18,7 +18,7 @@ Users can deploy this solution from three locations, local machine, virtual mach
 
 Follow the steps below to deploy the solution to your Azure subscription.
 
-1. Ensure all the prerequisites are installed.  
+1. Ensure all the prerequisites are installed.  Check to make sure you have the `Owner` role for the subscription assigned to your account.
 
 2. Clone the repository:
 
@@ -42,20 +42,11 @@ Follow the steps below to deploy the solution to your Azure subscription.
     This script will deploy all services including a new Azure OpenAI account and AKS
 
     ```pwsh
-    ./scripts/Unified-Deploy.ps1 -resourceGroup <rg_name> -location <location> -subscription <target_subscription_id> -deployAks 1
+    cd ./aks
+    azd up
     ```
 
-    ### Deploy with pre-existing Azure OpenAI service with Azure Kubernetes Service
-    This script will deploy using a pre-existing Azure OpenAI account and pre-deployed GPT 3.5 Turbo and ADA-002 models and AKS
-
-    ```pwsh
-    ./scripts/Unified-Deploy.ps1 -resourceGroup <rg_name> -location <location> `
-        -subscription <target_subscription_id> -deployAks 1 `
-        -openAiName <openai-account> `
-        -openAiRg <openai-rg-name> `
-        -openAiCompletionsDeployment <gpt-model-name> `
-        -openAiEmbeddingsDeployment <ada-002-model-name>
-    ```
+    You will be prompted for the target subscription, location, and desired environment name.  The target resource group will be `rg-` followed by the environment name (i.e. `rg-my-aks-deploy`)
 
     To validate the deployment using AKS run the following script. When the script it complete it will also output this value. You can simply click on it to launch the app. 
 
@@ -69,21 +60,11 @@ Follow the steps below to deploy the solution to your Azure subscription.
     This script will deploy all services including a new Azure OpenAI account using Azure Container Apps. (This can be a good option for users not familiar with AKS)
 
     ```pwsh
-    ./scripts/Unified-Deploy.ps1 -resourceGroup <rg_name> -location <location> -subscription <target_subscription_id> -deployAks 0
+    cd ./aca
+    azd up
     ```
 
-    ### Deploy with pre-existing Azure OpenAI service with Azure Container Apps
-
-    This script will deploy using a pre-existing Azure OpenAI account and pre-deployed GPT 3.5 Turbo and ADA-002 models and AKS
-
-    ```pwsh
-    ./scripts/Unified-Deploy.ps1 -resourceGroup <rg_name> -location <location> `
-        -subscription <target_subscription_id> -deployAks 0 `
-        -openAiName <openai-account> `
-        -openAiRg <openai-rg-name> `
-        -openAiCompletionsDeployment <gpt-model-name> `
-        -openAiEmbeddingsDeployment <ada-002-model-name>
-    ```
+    You will be prompted for the target subscription, location, and desired environment name.  The target resource group will be `rg-` followed by the environment name (i.e. `rg-my-aca-deploy`)
 
     To validate the deployment to ACA run the following script:
 
