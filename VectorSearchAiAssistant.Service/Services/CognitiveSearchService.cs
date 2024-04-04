@@ -7,6 +7,7 @@ using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.SemanticKernel.Models;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;

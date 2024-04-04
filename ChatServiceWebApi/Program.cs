@@ -1,3 +1,4 @@
+using VectorSearchAiAssistant.SemanticKernel.Models;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.MemorySource;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;

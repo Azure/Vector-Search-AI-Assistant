@@ -1,12 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using VectorSearchAiAssistant.Service.Models.Search;
+using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 
-namespace VectorSearchAiAssistant.Service.Models
+namespace VectorSearchAiAssistant.Common.Models
 {
     public class ModelRegistry
     {

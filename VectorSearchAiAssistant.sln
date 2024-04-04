@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatServiceWebApi", "ChatSe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorSearchAiAssistant.SemanticKernel", "VectorSearchAiAssistant.SemanticKernel\VectorSearchAiAssistant.SemanticKernel.csproj", "{503CE23D-63D7-4A26-8475-AA71A45D519B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VectorSearchAiAssistant.Common", "VectorSearchAiAssistant.Common\VectorSearchAiAssistant.Common.csproj", "{C90FD307-0EA7-41CF-8969-C6B44ACE4163}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +44,10 @@ Global
 		{503CE23D-63D7-4A26-8475-AA71A45D519B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{503CE23D-63D7-4A26-8475-AA71A45D519B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{503CE23D-63D7-4A26-8475-AA71A45D519B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C90FD307-0EA7-41CF-8969-C6B44ACE4163}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C90FD307-0EA7-41CF-8969-C6B44ACE4163}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C90FD307-0EA7-41CF-8969-C6B44ACE4163}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C90FD307-0EA7-41CF-8969-C6B44ACE4163}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

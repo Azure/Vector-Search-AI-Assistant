@@ -1,4 +1,5 @@
-﻿using VectorSearchAiAssistant.Service.Models.Chat;
+﻿using VectorSearchAiAssistant.Common.Models.Chat;
+using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace Search.Helpers;
 

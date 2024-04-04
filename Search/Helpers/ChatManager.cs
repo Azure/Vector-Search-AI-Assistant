@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.Extensions.Options;
-using System.Text.Json;
-using VectorSearchAiAssistant.Service.Interfaces;
+﻿using Microsoft.Extensions.Options;
+using VectorSearchAiAssistant.Common.Models.Chat;
 using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace Search.Helpers
