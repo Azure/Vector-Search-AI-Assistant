@@ -1,14 +1,11 @@
-﻿using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
+﻿using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
-using VectorSearchAiAssistant.SemanticKernel.Text;
-using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
+using VectorSearchAiAssistant.Common.Text;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Chat
 {
     public class ChatBuilder
     {
-        readonly Kernel _kernel;
         readonly int _maxTokens;
         readonly int _maxPromptTokens;
         readonly Dictionary<string, Type> _memoryTypes;
@@ -22,13 +19,11 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
         List<(AuthorRole AuthorRole, string Content)> _messages = new List<(AuthorRole AuthorRole, string Content)>();
 
         public ChatBuilder(
-            Kernel kernel,
             int maxTokens,
             Dictionary<string, Type> memoryTypes,
             ITokenizer? tokenizer = null,
             PromptOptimizationSettings? promptOptimizationSettings = null) 
         {
-            _kernel = kernel;
             _maxTokens = maxTokens;
             _memoryTypes = memoryTypes;
 

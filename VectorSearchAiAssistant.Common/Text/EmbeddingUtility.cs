@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Text;
+using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 
-namespace VectorSearchAiAssistant.SemanticKernel.TextEmbedding
+namespace VectorSearchAiAssistant.Common.Text
 {
     public static class EmbeddingUtility
     {
