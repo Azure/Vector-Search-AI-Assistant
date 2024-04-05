@@ -23,7 +23,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
         private readonly VectorMemoryStore _longTermMemory;
         private readonly VectorMemoryStore _shortTermMemory;
         private readonly string _systemPrompt;
-        private readonly List<Message> _messageHistory;
         private readonly AISearchSettings _searchSettings;
         private readonly OpenAISettings _openAISettings;
         private readonly ILogger _logger;
@@ -35,7 +34,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
             VectorMemoryStore longTermMemory,
             VectorMemoryStore shortTermMemory,
             string systemPrompt,
-            List<Message> messageHistory,
             AISearchSettings searchSettings,
             OpenAISettings openAISettings,
             ILogger logger)
@@ -43,7 +41,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
             _longTermMemory = longTermMemory;
             _shortTermMemory = shortTermMemory;
             _systemPrompt = systemPrompt;
-            _messageHistory = messageHistory;
             _searchSettings = searchSettings;
             _openAISettings = openAISettings;
             _logger = logger;
@@ -56,7 +53,8 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
         /// <param name="userPrompt">The input text to find related memories for.</param>
         [KernelFunction(name: "BuildContext")]
         public async Task<string> BuildContextAsync(
-            [Description("The user prompt for which the context is being built.")] string userPrompt)
+            [Description("The user prompt for which the context is being built.")] string userPrompt,
+            [Description("The history of messages in the current conversation.")] List<Message> messageHistory)
         {
             _logger.LogTrace("Searching memories in with minimum relevance '{1}'", _searchSettings.MinRelevance);
 
@@ -90,7 +88,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
             _logger.LogTrace("Done looking for memories");
 
             var memoryTypes = ModelRegistry.Models.ToDictionary(m => m.Key, m => m.Value.Type);
-            var chatHistory = new ChatBuilder(
+            var context = new ContextBuilder(
                     _openAISettings.CompletionsDeploymentMaxTokens,
                     memoryTypes!,
                     promptOptimizationSettings: _openAISettings.PromptOptimization)
@@ -99,12 +97,10 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
                         .WithMemories(
                             combinedMemories.Select(x => x.Metadata.AdditionalMetadata).ToList())
                         .WithMessageHistory(
-                            _messageHistory.Select(m => (new AuthorRole(m.Sender.ToLower()), m.Text.NormalizeLineEndings())).ToList())
+                            messageHistory.Select(m => (new AuthorRole(m.Sender.ToLower()), m.Text.NormalizeLineEndings())).ToList())
                         .Build();
 
-            chatHistory.AddUserMessage(userPrompt);
-
-            return chatHistory.ToString()!;
+            return context;
         }
     }
 }

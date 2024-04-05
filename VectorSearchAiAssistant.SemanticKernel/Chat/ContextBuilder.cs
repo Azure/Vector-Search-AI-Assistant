@@ -1,10 +1,11 @@
 ﻿using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
+using System.Text;
 using VectorSearchAiAssistant.Common.Text;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Chat
 {
-    public class ChatBuilder
+    public class ContextBuilder
     {
         readonly int _maxTokens;
         readonly int _maxPromptTokens;
@@ -18,7 +19,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
         List<object> _memories = new List<object>();
         List<(AuthorRole AuthorRole, string Content)> _messages = new List<(AuthorRole AuthorRole, string Content)>();
 
-        public ChatBuilder(
+        public ContextBuilder(
             int maxTokens,
             Dictionary<string, Type> memoryTypes,
             ITokenizer? tokenizer = null,
@@ -47,14 +48,14 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
             _maxPromptTokens = _maxTokens - _promptOptimizationSettings.CompletionsMaxTokens - BufferTokens;
         }
 
-        public ChatBuilder WithSystemPrompt(string prompt)
+        public ContextBuilder WithSystemPrompt(string prompt)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(prompt, nameof(prompt));
             _systemPrompt = prompt;
             return this;
         }
 
-        public ChatBuilder WithMemories(List<string> memories)
+        public ContextBuilder WithMemories(List<string> memories)
         {
             ArgumentNullException.ThrowIfNull(memories, nameof(memories));
 
@@ -65,37 +66,34 @@ namespace VectorSearchAiAssistant.SemanticKernel.Chat
             return this;
         }
 
-        public ChatBuilder WithMessageHistory(List<(AuthorRole AuthorRole, string Content)> messages) 
+        public ContextBuilder WithMessageHistory(List<(AuthorRole AuthorRole, string Content)> messages) 
         {
             ArgumentNullException.ThrowIfNull(messages, nameof(messages));
             _messages = messages;
             return this;
         }
 
-        public ChatHistory Build()
+        public string Build()
         {
             OptimizePromptSize();
 
-            var result = new ChatHistory();
-
-            var systemMessage = string.IsNullOrWhiteSpace(_systemPrompt)
-                ? string.Empty
-                : _systemPrompt;
+            var result = new StringBuilder();
 
             if (_memories.Count > 0)
             {
                 var memoriesPrompt = string.Join(Environment.NewLine, _memories.Select(
                     m => $"{JsonConvert.SerializeObject(m)}{Environment.NewLine}---------------------------{Environment.NewLine}").ToArray());
-                systemMessage = $"{systemMessage}{Environment.NewLine}{Environment.NewLine}{memoriesPrompt}".NormalizeLineEndings();
+                result.Append($"Context:{Environment.NewLine}{Environment.NewLine}{memoriesPrompt}{Environment.NewLine}{Environment.NewLine}".NormalizeLineEndings());
             }
 
-            if (!string.IsNullOrWhiteSpace(systemMessage)) 
-                result.AddSystemMessage(systemMessage);
+            if (_messages.Count > 0)
+            {
+                result.Append($"The history of the current conversation is:{Environment.NewLine}{Environment.NewLine}".NormalizeLineEndings());
+                foreach (var message in _messages)
+                    result.Append($"{message.AuthorRole}: {message.Content}{Environment.NewLine}".NormalizeLineEndings());
+            }
 
-            foreach (var message in _messages)
-                result.AddMessage(message.AuthorRole, message.Content);
-
-            return result;
+            return result.ToString();
         }
 
         private void OptimizePromptSize()

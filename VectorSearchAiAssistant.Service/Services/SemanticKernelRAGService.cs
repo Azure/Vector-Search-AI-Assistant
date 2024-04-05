@@ -38,6 +38,8 @@ public class SemanticKernelRAGService : IRAGService
     bool _shortTermMemoryInitialized = false;
     bool _semanticMemoryInitialized = false;
 
+    string _prompt = string.Empty;
+
     public bool IsInitialized => _serviceInitialized;
 
     public SemanticKernelRAGService(
@@ -92,6 +94,23 @@ public class SemanticKernelRAGService : IRAGService
             loggerFactory.CreateLogger<VectorMemoryStore>());
 
         _chat = _semanticKernel.Services.GetRequiredService<IChatCompletionService>();
+
+        Task.Run(() => Initialize());
+    }
+
+    private async Task Initialize()
+    {
+        _prompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName);
+
+        var kmContextPlugin = new KnowledgeManagementContextPlugin(
+            _longTermMemory,
+            _shortTermMemory,
+            _prompt,
+            _settings.AISearch,
+            _settings.OpenAI,
+            _logger);
+
+        _semanticKernel.ImportPluginFromObject(kmContextPlugin);
 
         _serviceInitialized = true;
 
@@ -182,29 +201,26 @@ public class SemanticKernelRAGService : IRAGService
         // The semantic memory was not able to provide a cached answer, so we start the normal response flow.
 
         await EnsureShortTermMemory();
+        
+        var arguments = new KernelArguments()
+        {
+            ["userPrompt"] = userPrompt,
+            ["messageHistory"] = messageHistory
+        };
 
-        var kmContextPlugin = new KnowledgeManagementContextPlugin(
-            _longTermMemory,
-            _shortTermMemory,
-            await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName),
-            messageHistory,
-            _settings.AISearch,
-            _settings.OpenAI,
-            _logger);
+        // Allows you to peek into the renredered prompt before it's sent to the completion endpoint.
+        var promptTemplate = new KernelPromptTemplateFactory().Create(new PromptTemplateConfig(_prompt));
+        var renderedPrompt = await promptTemplate.RenderAsync(_semanticKernel, arguments);
+        _logger.LogInformation("The prompt used for the completion: {RenderedPrompt}", renderedPrompt);
 
-        _semanticKernel.ImportPluginFromObject(kmContextPlugin);
-
-        var result = await _semanticKernel.InvokePromptAsync("{{buildcontext $userPrompt}}", new KernelArguments()
-            {
-                ["userPrompt"] = userPrompt
-            });
+        var result = await _semanticKernel.InvokePromptAsync(_prompt, arguments);
 
         var completion = result.GetValue<string>()!;
         var completionUsage = (result.Metadata!["Usage"] as CompletionsUsage)!;
 
         await _semanticMemory.AddMemory(userPrompt, userPromptEmbedding, completion);
 
-        return new(completion, userPrompt, completionUsage!.PromptTokens, completionUsage.CompletionTokens, userPromptEmbedding.ToArray());
+        return new(completion, renderedPrompt, completionUsage!.PromptTokens, completionUsage.CompletionTokens, userPromptEmbedding.ToArray());
     }
 
     public async Task<string> Summarize(string sessionId, string userPrompt)
