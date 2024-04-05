@@ -46,6 +46,7 @@ if ($kedatatus -like "Error: release: not found") {
 }
 
 Write-Host "Retrieving Cognitive Search Key"
+az account set -s ${env:AZURE_SUBSCRIPTION_ID}
 $AZURE_COGNITIVE_SEARCH_KEY=$(
   az search admin-key show `
     --service-name ${env:AZURE_COGNITIVE_SEARCH_NAME} `
