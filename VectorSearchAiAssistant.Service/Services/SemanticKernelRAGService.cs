@@ -3,10 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureAISearch;
 using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Planning;
 using System.Text.RegularExpressions;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.Common.Models.Chat;
@@ -15,7 +15,7 @@ using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 
-#pragma warning disable SKEXP0001, SKEXP0010, SKEXP0020, SKEXP0050
+#pragma warning disable SKEXP0001, SKEXP0010, SKEXP0020, SKEXP0050, SKEXP0060
 
 namespace VectorSearchAiAssistant.Service.Services;
 
@@ -26,7 +26,6 @@ public class SemanticKernelRAGService : IRAGService
     readonly IEnumerable<IMemorySource> _memorySources;
     readonly ILogger<SemanticKernelRAGService> _logger;
     readonly ISystemPromptService _systemPromptService;
-    readonly IChatCompletionService _chat;
     readonly VectorMemoryStore _longTermMemory;
     readonly VectorMemoryStore _shortTermMemory;
     readonly VectorMemoryStore _semanticMemory;
@@ -93,9 +92,7 @@ public class SemanticKernelRAGService : IRAGService
             _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
             loggerFactory.CreateLogger<VectorMemoryStore>());
 
-        _chat = _semanticKernel.Services.GetRequiredService<IChatCompletionService>();
-
-        Task.Run(() => Initialize());
+        Task.Run(Initialize);
     }
 
     private async Task Initialize()
@@ -198,9 +195,13 @@ public class SemanticKernelRAGService : IRAGService
             return (cachedResponse, userPrompt, 0, 0, userPromptEmbedding.ToArray());
         }
 
-        // The semantic memory was not able to provide a cached answer, so we start the normal response flow.
+        // The semantic memory was not able to provide a cached answer, so we start the normal response flow
 
         await EnsureShortTermMemory();
+
+        // Use observability features to capture the fully rendered prompt.
+        var promptFilter = new DefaultPromptFilter();
+        _semanticKernel.PromptFilters.Add(promptFilter);
         
         var arguments = new KernelArguments()
         {
@@ -208,19 +209,15 @@ public class SemanticKernelRAGService : IRAGService
             ["messageHistory"] = messageHistory
         };
 
-        // Allows you to peek into the renredered prompt before it's sent to the completion endpoint.
-        var promptTemplate = new KernelPromptTemplateFactory().Create(new PromptTemplateConfig(_prompt));
-        var renderedPrompt = await promptTemplate.RenderAsync(_semanticKernel, arguments);
-        _logger.LogInformation("The prompt used for the completion: {RenderedPrompt}", renderedPrompt);
-
         var result = await _semanticKernel.InvokePromptAsync(_prompt, arguments);
 
         var completion = result.GetValue<string>()!;
         var completionUsage = (result.Metadata!["Usage"] as CompletionsUsage)!;
 
+        // Add the completion to the semantic memory
         await _semanticMemory.AddMemory(userPrompt, userPromptEmbedding, completion);
 
-        return new(completion, renderedPrompt, completionUsage!.PromptTokens, completionUsage.CompletionTokens, userPromptEmbedding.ToArray());
+        return new(completion, promptFilter.RenderedPrompt, completionUsage!.PromptTokens, completionUsage.CompletionTokens, userPromptEmbedding.ToArray());
     }
 
     public async Task<string> Summarize(string sessionId, string userPrompt)
