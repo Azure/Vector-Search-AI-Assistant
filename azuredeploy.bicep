@@ -60,7 +60,7 @@ var openAiSettings = {
     }
   }
   embeddingsModel: {
-    name: 'text-embedding-ada-002'
+    name: 'text-embedding-3-large'
     version: '2'
     deployment: {
       name: 'embeddings'
