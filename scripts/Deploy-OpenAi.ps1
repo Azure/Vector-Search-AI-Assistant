@@ -26,7 +26,7 @@ $deployments = (az cognitiveservices account deployment list -g $resourceGroup -
 Write-Host "Existing deployments: $($deployments)"
 if (-Not ($deployments -Contains $embeddingsDeployment)) {
     Write-Host("The Azure OpenAI deployment $($embeddingsDeployment) under account $($name) was not found, creating it...")
-    az cognitiveservices account deployment create -g $resourceGroup -n $name --deployment-name $embeddingsDeployment --model-name 'text-embedding-ada-002' --model-version '2' --model-format OpenAI --sku Standard --sku-capacity 120
+    az cognitiveservices account deployment create -g $resourceGroup -n $name --deployment-name $embeddingsDeployment --model-name 'text-embedding-3-large' --model-version '2' --model-format OpenAI --sku Standard --sku-capacity 120
 }
 
 Pop-Location

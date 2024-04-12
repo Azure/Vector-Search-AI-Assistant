@@ -152,7 +152,7 @@ module openAi './resources/openai.bicep' = {
           capacity: 120
         }
         model: {
-          name: 'text-embedding-ada-002'
+          name: 'text-embedding-3-large'
           version: '2'
         }
       }
