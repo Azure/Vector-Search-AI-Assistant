@@ -110,7 +110,7 @@ module cosmos './resources/cosmosdb.bicep' = {
         maxThroughput: 1000
       }
     ]
-    databaseName: 'database'
+    databaseName: 'vsai-database'
     keyvaultName: keyVault.outputs.name
     location: location
     name: '${abbrs.documentDBDatabaseAccounts}${resourceToken}'

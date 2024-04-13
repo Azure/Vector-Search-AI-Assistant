@@ -23,7 +23,7 @@ openAi:
 cosmosDb:
   containers: 'completions, customer, product'
   monitoredContainers: 'customer, product'
-  database: 'database'
+  database: 'vsai-database'
   changeFeedLeaseContainer: 'leases'
   endpoint: '{{cosmosEndpoint}}'
   key: '{{cosmosKey}}'
