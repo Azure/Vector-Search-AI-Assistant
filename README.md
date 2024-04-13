@@ -235,7 +235,7 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
             },
             "CosmosDB": {
                 "Containers": "completions, customer, product",
-                "Database": "database",
+                "Database": "vsai-database",
                 "ChangeFeedLeaseContainer": "leases"
             },
             "DurableSystemPrompt": {
@@ -317,7 +317,7 @@ Here is an example migrationsettings file setup to load a local JSON file, store
       },
       "SinkSettings": {
         "ConnectionString": "AccountEndpoint=YOUR_CONNECTION_STRING_HERE",
-        "Database":"database",
+        "Database":"vsai-database",
         "Container":"raw",
         "PartitionKeyPath":"/id",
         "RecreateContainer": false,

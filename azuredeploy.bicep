@@ -82,7 +82,7 @@ var deployedRegion = {
 
 var cosmosDbSettings = {
   name: '${name}-cosmos-nosql'
-  databaseName: 'database'
+  databaseName: 'vsai-database'
 }
 
 var mongovCoreSettings = {
