@@ -8,7 +8,7 @@
       },
       "SinkSettings": {
         "ConnectionString": "{{cosmosConnectionString}}",
-        "Database":"database",
+        "Database":"vsai-database",
         "Container":"product",
         "PartitionKeyPath":"/categoryId",
         "RecreateContainer": false,
@@ -28,7 +28,7 @@
       },
       "SinkSettings": {
         "ConnectionString": "{{cosmosConnectionString}}",
-        "Database":"database",
+        "Database":"vsai-database",
         "Container":"customer",
         "PartitionKeyPath":"/customerId",
         "RecreateContainer": false,

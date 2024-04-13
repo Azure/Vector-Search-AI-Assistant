@@ -23,7 +23,7 @@ $OldProgressPreference = $ProgressPreference
 $ProgressPreference = "SilentlyContinue"
 
 Write-Host "Bumping up the throughput on the customer container to avoid a known DMT issue..."
-az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name database --name customer --resource-group $resourceGroup --max-throughput 2000
+az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name vsai-database --name customer --resource-group $resourceGroup --max-throughput 2000
 
 $currentIndex = 0
 foreach($product in $products)
@@ -50,6 +50,6 @@ foreach($customer in $customers)
 $ProgressPreference = $OldProgressPreference
 
 Write-Host "Restoring the throughput on the customer container..."
-az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name database --name customer --resource-group $resourceGroup --max-throughput 1000
+az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name vsai-database --name customer --resource-group $resourceGroup --max-throughput 1000
 
 Pop-Location
