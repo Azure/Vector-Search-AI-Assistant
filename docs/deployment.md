@@ -72,6 +72,9 @@ Follow the steps below to deploy the solution to your Azure subscription.
     >  az containerapp show -n <aca-name> -g <resource-group-name>
     >  ```
 
+> [!IMPORTANT]
+> If you encounter any errors during the deployment, rerun `azd up` to continue the deployment from where it left off. This will not create duplicate resources, and tends to resolve most issues.
+
 ## Deployment choices
 
 The following table summarizes the deployment choices available for the solution:

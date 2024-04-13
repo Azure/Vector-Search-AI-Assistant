@@ -87,14 +87,24 @@ The data is then persisted to the Cosmos DB database in the [UpdateSessionBatchA
 
 ### Deployment
 
-This solution deploys to Azure Kubernetes Service (AKS). Here is an example.
+This solution deploys to either Azure Kubernetes Service (**AKS**) or Azure Container Apps (**ACA**). The deployment scripts are located in the `aks` folder. The deployment scripts are designed to be run from the root of the repository. To deploy the solution, run the following commands from the root of the repository:
 
-```pwsh
+#### AKS deployment
+
+```bash
 cd ./aks
 azd up
 ```
 
-There are many options for deployment, including using an existing Azure OpenAI account and models. For deployment options and prerequisistes, please see [How to Deploy](./docs/deployment.md) page.
+#### ACA deployment
+
+```bash
+cd ./aca
+azd up
+```
+
+> [!NOTE]
+> There are many options for deployment, including using an existing Azure OpenAI account and models. For deployment options and prerequisistes, please see [How to Deploy](./docs/deployment.md) page.
 
 
 Before moving to the next section, be sure to validate the deployment is successful. More information can be found in the [How to Deploy](./docs/deployment.md) page.
