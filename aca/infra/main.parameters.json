@@ -118,7 +118,7 @@
             },
             {
               "name": "MSCosmosDBOpenAI__CosmosDB__Database",
-              "value": "database",
+              "value": "vsai-database",
               "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
               "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
             },

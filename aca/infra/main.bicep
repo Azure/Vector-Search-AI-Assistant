@@ -56,30 +56,25 @@ module cosmos './shared/cosmosdb.bicep' = {
       {
         name: 'embedding'
         partitionKeyPath: '/id'
-        maxThroughput: 1000
       }
       {
         name: 'completions'
         partitionKeyPath: '/sessionId'
-        maxThroughput: 1000
       }
       {
         name: 'product'
         partitionKeyPath: '/categoryId'
-        maxThroughput: 1000
       }
       {
         name: 'customer'
         partitionKeyPath: '/customerId'
-        maxThroughput: 1000
       }
       {
         name: 'leases'
         partitionKeyPath: '/id'
-        maxThroughput: 1000
       }
     ]
-    databaseName: 'database'
+    databaseName: 'vsai-database'
     keyvaultName: keyVault.outputs.name
     location: location
     name: '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
@@ -142,7 +137,7 @@ module openAi './shared/openai.bicep' = {
           capacity: 120
         }
         model: {
-          name: 'text-embedding-3-large'
+          name: 'text-embedding-ada-002'
           version: '2'
         }
       }
