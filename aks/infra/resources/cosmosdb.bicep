@@ -21,6 +21,11 @@ resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
         locationName: location
       }
     ]
+    capabilities: [
+      {
+        name: 'EnableServerless'
+      }
+    ]
   }
   tags: tags
 }
@@ -49,11 +54,6 @@ resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/con
           ]
           kind: 'Hash'
           version: 2
-        }
-      }
-      options: {
-        autoscaleSettings: {
-          maxThroughput: container.maxThroughput
         }
       }
     }
