@@ -96,7 +96,7 @@ cd ./aks
 azd up
 ```
 
-After running `azd up` and the deployment finishes, you will see the output of the script which will include the URL of the web application. You can click on this URL to open the web application in your browser. The URL is beneath the "Done: Deploying service web" message, and is the second endpoint (the Ingress endpoint of type `LoadBalancer`).
+After running `azd up` on the **AKS** deployment and the deployment finishes, you will see the output of the script which will include the URL of the web application. You can click on this URL to open the web application in your browser. The URL is beneath the "Done: Deploying service web" message, and is the second endpoint (the Ingress endpoint of type `LoadBalancer`).
 
 ![The terminal output after azd up completes shows the endpoint links.](media/azd-aks-complete-output.png)
 
@@ -111,11 +111,22 @@ cd ./aca
 azd up
 ```
 
+After running `azd up` on the **ACA** deployment and the deployment finishes, you can locate the URL of the web application by navigating to the deployed resource group in the Azure portal. Click on the link to the new resource group in the output of the script to open the Azure portal.
+
+![The terminal output aafter azd up completes shows the resource group link.](media/azd-aca-complete-output.png)
+
+In the resource group, you will see the `ca-search-xxxx` Azure Container Apps service.
+
+![The Search Azure Container App is highlighted in the resource group.](media/search-container-app-resource-group.png)
+
+Select the service to open it, then select the `Application Url` to open the web application in your browser.
+
+![The Application Url is highlighted in the Search Azure Container App overview blade.](media/search-container-app-url.png)
+
 > [!NOTE]
 > There are many options for deployment, including using an existing Azure OpenAI account and models. For deployment options and prerequisistes, please see [How to Deploy](./docs/deployment.md) page.
 
 Before moving to the next section, be sure to validate the deployment is successful. More information can be found in the [How to Deploy](./docs/deployment.md) page.
-
 
 ### Quickstart
 

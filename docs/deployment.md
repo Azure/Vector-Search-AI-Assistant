@@ -72,13 +72,25 @@ Follow the steps below to deploy the solution to your Azure subscription.
     azd up
     ```
 
-    You will be prompted for the target subscription, location, and desired environment name.  The target resource group will be `rg-` followed by the environment name (i.e. `rg-my-aca-deploy`)
+    You will be prompted for the target subscription, location, and desired environment name. The target resource group will be `rg-` followed by the environment name (i.e. `rg-my-aca-deploy`)
 
     To validate the deployment to ACA run the following script:
 
     > ```pwsh
     >  az containerapp show -n <aca-name> -g <resource-group-name>
     >  ```
+
+    After running `azd up` on the **ACA** deployment and the deployment finishes, you can locate the URL of the web application by navigating to the deployed resource group in the Azure portal. Click on the link to the new resource group in the output of the script to open the Azure portal.
+    
+    ![The terminal output aafter azd up completes shows the resource group link.](../media/azd-aca-complete-output.png)
+    
+    In the resource group, you will see the `ca-search-xxxx` Azure Container Apps service.
+    
+    ![The Search Azure Container App is highlighted in the resource group.](../media/search-container-app-resource-group.png)
+    
+    Select the service to open it, then select the `Application Url` to open the web application in your browser.
+    
+    ![The Application Url is highlighted in the Search Azure Container App overview blade.](../media/search-container-app-url.png)
 
 > [!IMPORTANT]
 > If you encounter any errors during the deployment, rerun `azd up` to continue the deployment from where it left off. This will not create duplicate resources, and tends to resolve most issues.
