@@ -49,11 +49,19 @@ Follow the steps below to deploy the solution to your Azure subscription.
 
     You will be prompted for the target subscription, location, and desired environment name.  The target resource group will be `rg-` followed by the environment name (i.e. `rg-my-aks-deploy`)
 
-    To validate the deployment using AKS run the following script. When the script it complete it will also output this value. You can simply click on it to launch the app. 
+    To validate the deployment using AKS run the following script. When the script it complete it will also output this value. You can simply click on it to launch the app.
 
     > ```pwsh
     >  az aks show -n <aks-name> -g <resource-group-name> -o tsv --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName
-    >  ```	 
+    >  ```
+
+    After running `azd up` and the deployment finishes, you will see the output of the script which will include the URL of the web application. You can click on this URL to open the web application in your browser. The URL is beneath the "Done: Deploying service web" message, and is the second endpoint (the Ingress endpoint of type `LoadBalancer`).
+    
+    ![The terminal output after azd up completes shows the endpoint links.](../media/azd-aks-complete-output.png)
+    
+    If you closed the window and need to find the external IP address of the service, you can open the Azure portal, navigate to the resource group you deployed the solution to, and open the AKS service. In the AKS service, navigate to the `Services and Ingress` blade, and you will see the external IP address of the LoadBalancer service, named `nginx`:
+    
+    ![The external IP address of the LoadBalancer service is shown in the Services and Ingress blade of the AKS service.](../media/aks-external-ip.png)
 
     ### Deploy with Azure Container Apps
 

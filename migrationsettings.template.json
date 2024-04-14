@@ -16,7 +16,6 @@
         "ConnectionMode": "Direct",
         "MaxRetryCount": 5,
         "InitialRetryDurationMs": 200,
-        "CreatedContainerMaxThroughput": 1000,
         "UseAutoscaleForCreatedContainer": true,
         "WriteMode": "InsertStream",
         "IsServerlessAccount": false
@@ -36,7 +35,6 @@
         "ConnectionMode": "Direct",
         "MaxRetryCount": 5,
         "InitialRetryDurationMs": 200,
-        "CreatedContainerMaxThroughput": 1000,
         "UseAutoscaleForCreatedContainer": true,
         "WriteMode": "InsertStream",
         "IsServerlessAccount": false

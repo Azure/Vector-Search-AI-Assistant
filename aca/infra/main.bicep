@@ -56,27 +56,22 @@ module cosmos './shared/cosmosdb.bicep' = {
       {
         name: 'embedding'
         partitionKeyPath: '/id'
-        maxThroughput: 1000
       }
       {
         name: 'completions'
         partitionKeyPath: '/sessionId'
-        maxThroughput: 1000
       }
       {
         name: 'product'
         partitionKeyPath: '/categoryId'
-        maxThroughput: 1000
       }
       {
         name: 'customer'
         partitionKeyPath: '/customerId'
-        maxThroughput: 1000
       }
       {
         name: 'leases'
         partitionKeyPath: '/id'
-        maxThroughput: 1000
       }
     ]
     databaseName: 'vsai-database'

@@ -95,27 +95,22 @@ var cosmosContainers = {
   embeddingContainer: {
     name: 'embedding'
     partitionKeyPath : '/id'
-    maxThroughput: 1000
   }
   completionsContainer: {
     name: 'completions'
     partitionKeyPath: '/sessionId'
-    maxThroughput: 1000
   }
   productContainer: {
     name: 'product'
     partitionKeyPath: '/categoryId'
-    maxThroughput: 1000
   }
   customerContainer: {
     name: 'customer'
     partitionKeyPath: '/customerId'
-    maxThroughput: 1000
   }
   leasesContainer: {
     name: 'leases'
     partitionKeyPath: '/id'
-    maxThroughput: 1000
   }
 }
 
@@ -156,6 +151,11 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
         locationName: location
       }
     ]
+    capabilities: [
+      {
+        name: 'EnableServerless'
+      }
+    ]
   }
 }
 
@@ -181,11 +181,6 @@ resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/con
         ]
         kind: 'Hash'
         version: 2
-      }
-    }
-    options: {
-      autoscaleSettings: {
-        maxThroughput: container.value.maxThroughput
       }
     }
   }
