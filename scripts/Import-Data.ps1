@@ -15,13 +15,13 @@ Expand-Archive -Path dmt.zip -DestinationPath .
 Push-Location "windows-package"
 Copy-Item -Path "../../migrationsettings.json" -Destination "./migrationsettings.json" -Force
 
-Write-Host "Bumping up the throughput on the customer container to avoid a known DMT issue..."
-az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name database --name customer --resource-group $resourceGroup --max-throughput 2000
+#Write-Host "Bumping up the throughput on the customer container to avoid a known DMT issue..."
+#az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name vsai-database --name customer --resource-group $resourceGroup --max-throughput 2000
 
 & "./dmt.exe"
 
-Write-Host "Restoring the throughput on the customer container..."
-az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name database --name customer --resource-group $resourceGroup --max-throughput 1000
+#Write-Host "Restoring the throughput on the customer container..."
+#az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name vsai-database --name customer --resource-group $resourceGroup --max-throughput 1000
 
 Pop-Location
 Pop-Location

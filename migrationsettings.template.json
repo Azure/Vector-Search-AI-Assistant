@@ -8,7 +8,7 @@
       },
       "SinkSettings": {
         "ConnectionString": "{{cosmosConnectionString}}",
-        "Database":"database",
+        "Database":"vsai-database",
         "Container":"product",
         "PartitionKeyPath":"/categoryId",
         "RecreateContainer": false,
@@ -16,7 +16,6 @@
         "ConnectionMode": "Direct",
         "MaxRetryCount": 5,
         "InitialRetryDurationMs": 200,
-        "CreatedContainerMaxThroughput": 1000,
         "UseAutoscaleForCreatedContainer": true,
         "WriteMode": "InsertStream",
         "IsServerlessAccount": false
@@ -28,7 +27,7 @@
       },
       "SinkSettings": {
         "ConnectionString": "{{cosmosConnectionString}}",
-        "Database":"database",
+        "Database":"vsai-database",
         "Container":"customer",
         "PartitionKeyPath":"/customerId",
         "RecreateContainer": false,
@@ -36,7 +35,6 @@
         "ConnectionMode": "Direct",
         "MaxRetryCount": 5,
         "InitialRetryDurationMs": 200,
-        "CreatedContainerMaxThroughput": 1000,
         "UseAutoscaleForCreatedContainer": true,
         "WriteMode": "InsertStream",
         "IsServerlessAccount": false

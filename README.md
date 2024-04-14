@@ -87,15 +87,32 @@ The data is then persisted to the Cosmos DB database in the [UpdateSessionBatchA
 
 ### Deployment
 
-This solution deploys to Azure Kubernetes Service (AKS). Here is an example.
+This solution deploys to either Azure Kubernetes Service (**AKS**) or Azure Container Apps (**ACA**). The deployment scripts are located in the `aks` folder. The deployment scripts are designed to be run from the root of the repository. To deploy the solution, run the following commands from the root of the repository:
 
-```pwsh
+#### AKS deployment
+
+```bash
 cd ./aks
 azd up
 ```
 
-There are many options for deployment, including using an existing Azure OpenAI account and models. For deployment options and prerequisistes, please see [How to Deploy](./docs/deployment.md) page.
+After running `azd up` and the deployment finishes, you will see the output of the script which will include the URL of the web application. You can click on this URL to open the web application in your browser. The URL is beneath the "Done: Deploying service web" message, and is the second endpoint (the Ingress endpoint of type `LoadBalancer`).
 
+![The terminal output after azd up completes shows the endpoint links.](media/azd-aks-complete-output.png)
+
+If you closed the window and need to find the external IP address of the service, you can open the Azure portal, navigate to the resource group you deployed the solution to, and open the AKS service. In the AKS service, navigate to the `Services and Ingress` blade, and you will see the external IP address of the LoadBalancer service, named `nginx`:
+
+![The external IP address of the LoadBalancer service is shown in the Services and Ingress blade of the AKS service.](media/aks-external-ip.png)
+
+#### ACA deployment
+
+```bash
+cd ./aca
+azd up
+```
+
+> [!NOTE]
+> There are many options for deployment, including using an existing Azure OpenAI account and models. For deployment options and prerequisistes, please see [How to Deploy](./docs/deployment.md) page.
 
 Before moving to the next section, be sure to validate the deployment is successful. More information can be found in the [How to Deploy](./docs/deployment.md) page.
 
@@ -235,7 +252,7 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
             },
             "CosmosDB": {
                 "Containers": "completions, customer, product",
-                "Database": "database",
+                "Database": "vsai-database",
                 "ChangeFeedLeaseContainer": "leases"
             },
             "DurableSystemPrompt": {
@@ -317,7 +334,7 @@ Here is an example migrationsettings file setup to load a local JSON file, store
       },
       "SinkSettings": {
         "ConnectionString": "AccountEndpoint=YOUR_CONNECTION_STRING_HERE",
-        "Database":"database",
+        "Database":"vsai-database",
         "Container":"raw",
         "PartitionKeyPath":"/id",
         "RecreateContainer": false,
@@ -325,7 +342,6 @@ Here is an example migrationsettings file setup to load a local JSON file, store
         "ConnectionMode": "Direct",
         "MaxRetryCount": 5,
         "InitialRetryDurationMs": 200,
-        "CreatedContainerMaxThroughput": 1000,
         "UseAutoscaleForCreatedContainer": true,
         "WriteMode": "InsertStream",
         "IsServerlessAccount": false

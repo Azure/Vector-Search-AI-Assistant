@@ -22,7 +22,7 @@ data:
   MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMaxTokens: '200'
   MSCosmosDBOpenAI__CosmosDB__Containers: 'completions,customer,product'
   MSCosmosDBOpenAI__CosmosDB__MonitoredContainers: 'customer,product'
-  MSCosmosDBOpenAI__CosmosDB__Database: 'database'
+  MSCosmosDBOpenAI__CosmosDB__Database: 'vsai-database'
   MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer: 'leases'
   MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer: 'system-prompt'
   MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName: 'vector-index'
