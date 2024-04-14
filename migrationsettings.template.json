@@ -16,9 +16,9 @@
         "ConnectionMode": "Direct",
         "MaxRetryCount": 5,
         "InitialRetryDurationMs": 200,
-        "UseAutoscaleForCreatedContainer": true,
+        "UseAutoscaleForCreatedContainer": false,
         "WriteMode": "InsertStream",
-        "IsServerlessAccount": false
+        "IsServerlessAccount": true
         }
     },
     {
@@ -35,9 +35,9 @@
         "ConnectionMode": "Direct",
         "MaxRetryCount": 5,
         "InitialRetryDurationMs": 200,
-        "UseAutoscaleForCreatedContainer": true,
+        "UseAutoscaleForCreatedContainer": false,
         "WriteMode": "InsertStream",
-        "IsServerlessAccount": false
+        "IsServerlessAccount": true
         }
     }
   ]
