@@ -374,7 +374,24 @@ NOTE: If you want to build a reusable, automated script to deploy your files, ta
 
 ## Clean-up
 
-Delete the resource group to delete all deployed resources.
+From a command prompt, navigate to the `aks` or `aca` folder, depending on which deployment type you used, and run the following command to delete the resources created by the deployment script:
+
+### AKS clean-up
+
+```bash
+cd ./aks
+azd down --purge
+```
+
+### ACA clean-up
+
+```bash
+cd ./aca
+azd down --purge
+```
+
+> [!NOTE]
+> The `--purge` flag purges the resources that provide soft-delete functionality in Azure, including Azure KeyVault and Azure OpenAI. This flag is required to remove all resources.
 
 ## Resources
 
