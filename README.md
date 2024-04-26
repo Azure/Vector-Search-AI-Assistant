@@ -87,17 +87,46 @@ The data is then persisted to the Cosmos DB database in the [UpdateSessionBatchA
 
 ### Deployment
 
-This solution deploys to Azure Kubernetes Service (AKS). Here is an example.
+This solution deploys to either Azure Kubernetes Service (**AKS**) or Azure Container Apps (**ACA**). The deployment scripts are located in the `aks` folder. The deployment scripts are designed to be run from the root of the repository. To deploy the solution, run the following commands from the root of the repository:
 
-    ```pwsh
-    ./scripts/Unified-Deploy.ps1 -deployAks 1 -resourceGroup <rg_name> -location <location> -subscription <target_subscription_id>
-    ```
+#### AKS deployment
 
-There are many options for deployment, including using an existing Azure OpenAI account and models. For deployment options and prerequisistes, please see [How to Deploy](./docs/deployment.md) page.
+```bash
+cd ./aks
+azd up
+```
 
+After running `azd up` on the **AKS** deployment and the deployment finishes, you will see the output of the script which will include the URL of the web application. You can click on this URL to open the web application in your browser. The URL is beneath the "Done: Deploying service web" message, and is the second endpoint (the Ingress endpoint of type `LoadBalancer`).
+
+![The terminal output after azd up completes shows the endpoint links.](media/azd-aks-complete-output.png)
+
+If you closed the window and need to find the external IP address of the service, you can open the Azure portal, navigate to the resource group you deployed the solution to, and open the AKS service. In the AKS service, navigate to the `Services and Ingress` blade, and you will see the external IP address of the LoadBalancer service, named `nginx`:
+
+![The external IP address of the LoadBalancer service is shown in the Services and Ingress blade of the AKS service.](media/aks-external-ip.png)
+
+#### ACA deployment
+
+```bash
+cd ./aca
+azd up
+```
+
+After running `azd up` on the **ACA** deployment and the deployment finishes, you can locate the URL of the web application by navigating to the deployed resource group in the Azure portal. Click on the link to the new resource group in the output of the script to open the Azure portal.
+
+![The terminal output aafter azd up completes shows the resource group link.](media/azd-aca-complete-output.png)
+
+In the resource group, you will see the `ca-search-xxxx` Azure Container Apps service.
+
+![The Search Azure Container App is highlighted in the resource group.](media/search-container-app-resource-group.png)
+
+Select the service to open it, then select the `Application Url` to open the web application in your browser.
+
+![The Application Url is highlighted in the Search Azure Container App overview blade.](media/search-container-app-url.png)
+
+> [!NOTE]
+> There are many options for deployment, including using an existing Azure OpenAI account and models. For deployment options and prerequisistes, please see [How to Deploy](./docs/deployment.md) page.
 
 Before moving to the next section, be sure to validate the deployment is successful. More information can be found in the [How to Deploy](./docs/deployment.md) page.
-
 
 ### Quickstart
 
@@ -120,11 +149,11 @@ Change Feed capability to dynamically add and remove records. The steps below ca
 
 1. Start a new chat session in the web application.
 1. In the chat text box, type: "Can you list all of your socks?". The AI Assistant will list 4 different socks of two types, racing and mountain.
-1. Using either CURL or Postman, send the following payload in a PUT request with a `Content-Type` header value of `application/json` to `https://<chat-service-hostname>/products` to add a product.
+1. Using either CURL or Postman, send the following payload in a PUT request with a `Content-Type` header value of `application/json` to `https://<chat-service-hostname>/api/products` to add a product.
   
     ##### Curl Command
     ```pwsh
-    curl -X PUT -H "Content-Type: application/json" -d $JsonPayload https://<chat-service-hostname>/products
+    curl -X PUT -H "Content-Type: application/json" -d $JsonPayload https://<chat-service-hostname>/api/products
     ```
 
     ##### Json Payload
@@ -234,7 +263,7 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
             },
             "CosmosDB": {
                 "Containers": "completions, customer, product",
-                "Database": "database",
+                "Database": "vsai-database",
                 "ChangeFeedLeaseContainer": "leases"
             },
             "DurableSystemPrompt": {
@@ -316,7 +345,7 @@ Here is an example migrationsettings file setup to load a local JSON file, store
       },
       "SinkSettings": {
         "ConnectionString": "AccountEndpoint=YOUR_CONNECTION_STRING_HERE",
-        "Database":"database",
+        "Database":"vsai-database",
         "Container":"raw",
         "PartitionKeyPath":"/id",
         "RecreateContainer": false,
@@ -324,7 +353,6 @@ Here is an example migrationsettings file setup to load a local JSON file, store
         "ConnectionMode": "Direct",
         "MaxRetryCount": 5,
         "InitialRetryDurationMs": 200,
-        "CreatedContainerMaxThroughput": 1000,
         "UseAutoscaleForCreatedContainer": true,
         "WriteMode": "InsertStream",
         "IsServerlessAccount": false
@@ -346,7 +374,24 @@ NOTE: If you want to build a reusable, automated script to deploy your files, ta
 
 ## Clean-up
 
-Delete the resource group to delete all deployed resources.
+From a command prompt, navigate to the `aks` or `aca` folder, depending on which deployment type you used, and run the following command to delete the resources created by the deployment script:
+
+### AKS clean-up
+
+```bash
+cd ./aks
+azd down --purge
+```
+
+### ACA clean-up
+
+```bash
+cd ./aca
+azd down --purge
+```
+
+> [!NOTE]
+> The `--purge` flag purges the resources that provide soft-delete functionality in Azure, including Azure KeyVault and Azure OpenAI. This flag is required to remove all resources.
 
 ## Resources
 
