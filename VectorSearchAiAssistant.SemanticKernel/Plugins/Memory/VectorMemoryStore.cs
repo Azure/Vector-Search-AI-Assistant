@@ -1,15 +1,15 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel.AI.Embeddings;
+﻿using Azure.Search.Documents.Indexes;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
-using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
-using VectorSearchAiAssistant.SemanticKernel.Models;
 using Newtonsoft.Json;
-using System.Text;
-using System.Security.Cryptography;
-using Azure.AI.OpenAI;
-using Azure.Search.Documents.Indexes;
-using Azure.Search.Documents;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
+using VectorSearchAiAssistant.Common.Models.BusinessDomain;
+using VectorSearchAiAssistant.Common.Text;
+
+#pragma warning disable SKEXP0001
 
 namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
 {
@@ -17,7 +17,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
     {
         readonly string _collectionName;
         readonly IMemoryStore _memoryStore;
-        readonly ITextEmbeddingGeneration _textEmbedding;
+        readonly ITextEmbeddingGenerationService _textEmbedding;
         readonly ILogger<VectorMemoryStore> _logger;
         readonly SHA1 _hash;
 
@@ -26,7 +26,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
         public VectorMemoryStore(
             string collectionName,
             IMemoryStore memoryStore,
-            ITextEmbeddingGeneration textEmbedding,
+            ITextEmbeddingGenerationService textEmbedding,
             ILogger<VectorMemoryStore> logger) 
         {
             _collectionName = collectionName;
@@ -34,6 +34,25 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
             _textEmbedding = textEmbedding;
             _logger = logger;
             _hash = SHA1.Create();
+        }
+
+        public async Task AddMemory(string memory, ReadOnlyMemory<float> memoryEmbedding, string metadata = "")
+        {
+            await UpdateMemoryStore(
+                GetHash(memory),
+                memory,
+                memoryEmbedding,
+                metadata);
+        }
+
+        public async Task AddMemory(string memory, string metadata  ="")
+        {
+            var memoryEmbedding = await _textEmbedding.GenerateEmbeddingAsync(memory);
+            await UpdateMemoryStore(
+                GetHash(memory),
+                memory,
+                memoryEmbedding,
+                metadata);
         }
 
         public async Task AddMemory(object item, string itemName)
@@ -48,7 +67,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
                 // Prepare the object for embedding
                 var itemToEmbed = EmbeddingUtility.Transform(item);
 
-                // Get the embeddings from OpenAI: the ITextEmbeddingGeneration service is exposed by SemanticKernel
+                // Get the embeddings from OpenAI: the ITextEmbeddingGenerationService service is exposed by SemanticKernel
                 // and is responsible for calling the text embedding endpoint to get the vectorized representation
                 // of the incoming object.
                 // Use by default the more elaborate text representation based on EmbeddingFieldAttribute
@@ -59,19 +78,13 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
                 // Exercise: Test also using the JSON text representation - itemToEmbed.ObjectToEmbed
                 var embedding = await _textEmbedding.GenerateEmbeddingAsync(itemToEmbed.TextToEmbed);
 
-                // This will send the vectorized object to the Azure Cognitive Search index.
-                await _memoryStore.UpsertAsync(_collectionName, new MemoryRecord(
-                    new MemoryRecordMetadata(
-                        false,
-                        itemToEmbed.ObjectToEmbed.ContainsKey("id")
+                await UpdateMemoryStore(
+                    itemToEmbed.ObjectToEmbed.ContainsKey("id")
                             ? itemToEmbed.ObjectToEmbed.Value<string>("id")
                             : GetHash(itemToEmbed.TextToEmbed),
-                        itemToEmbed.TextToEmbed,
-                        string.Empty,
-                        string.Empty,
-                        JsonConvert.SerializeObject(item)),
+                    itemToEmbed.TextToEmbed,
                     embedding,
-                    null));
+                    JsonConvert.SerializeObject(item));
 
                 _logger.LogInformation($"Memorized vector for item: {itemName} of type {item.GetType().Name}");
             }
@@ -80,6 +93,22 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
                 _logger.LogError($"Exception while generating vector for [{itemName} of type {item.GetType().Name}]: " + x.Message);
             }
         }
+
+        #region Helpers for AddMemory
+
+        private async Task UpdateMemoryStore(string id, string text, ReadOnlyMemory<float> embedding, string metadata = "") =>
+            await _memoryStore.UpsertAsync(_collectionName, new MemoryRecord(
+                new MemoryRecordMetadata(
+                    false,
+                    id,
+                    text,
+                    string.Empty,
+                    string.Empty,
+                    metadata),
+                embedding,
+                null));
+
+        #endregion
 
         public async Task RemoveMemory(object item)
         {

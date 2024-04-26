@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
+﻿namespace VectorSearchAiAssistant.SemanticKernel.Models
 {
-    public record CognitiveSearchSettings
+    public record AISearchSettings
     {
         public required string IndexName { get; init; }
         public required int MaxVectorSearchResults { get; init; }

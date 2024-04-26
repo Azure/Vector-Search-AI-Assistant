@@ -1,17 +1,16 @@
-﻿using Microsoft.Azure.Cosmos.Fluent;
-using Microsoft.Azure.Cosmos;
+﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Extensions.Logging;
-using VectorSearchAiAssistant.Service.Models.Chat;
-using VectorSearchAiAssistant.Service.Interfaces;
-using VectorSearchAiAssistant.Service.Models.Search;
 using Microsoft.Extensions.Options;
-using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using Newtonsoft.Json.Linq;
-using VectorSearchAiAssistant.Service.Models;
-using VectorSearchAiAssistant.Service.Utils;
 using System.Diagnostics;
-using Castle.Core.Resource;
-using VectorSearchAiAssistant.SemanticKernel.Models;
+using VectorSearchAiAssistant.Common.Models;
+using VectorSearchAiAssistant.Common.Models.BusinessDomain;
+using VectorSearchAiAssistant.Common.Models.Chat;
+using VectorSearchAiAssistant.Service.Interfaces;
+using VectorSearchAiAssistant.Service.Models.Chat;
+using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
+using VectorSearchAiAssistant.Service.Utils;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -29,7 +28,7 @@ namespace VectorSearchAiAssistant.Service.Services
         readonly Dictionary<string, Type> _memoryTypes;
 
         private readonly IRAGService _ragService;
-        private readonly ICognitiveSearchService _cognitiveSearchService;
+        private readonly IAISearchService _aiSearchService;
         private readonly CosmosDbSettings _settings;
         private readonly ILogger _logger;
 
@@ -40,12 +39,12 @@ namespace VectorSearchAiAssistant.Service.Services
 
         public CosmosDbService(
             IRAGService ragService,
-            ICognitiveSearchService cognitiveSearchService,
+            IAISearchService AISearchService,
             IOptions<CosmosDbSettings> settings, 
             ILogger<CosmosDbService> logger)
         {
             _ragService = ragService;
-            _cognitiveSearchService = cognitiveSearchService;
+            _aiSearchService = AISearchService;
 
             _settings = settings.Value;
             ArgumentException.ThrowIfNullOrEmpty(_settings.Endpoint);
@@ -110,7 +109,7 @@ namespace VectorSearchAiAssistant.Service.Services
         private async Task StartChangeFeedProcessors()
         {
             _logger.LogInformation("Initializing the Cognitive Search index...");
-            await _cognitiveSearchService.Initialize(_memoryTypes.Values.ToList());
+            await _aiSearchService.Initialize(_memoryTypes.Values.ToList());
 
             _logger.LogInformation("Initializing the change feed processors...");
             _changeFeedProcessors = new List<ChangeFeedProcessor>();
@@ -172,7 +171,7 @@ namespace VectorSearchAiAssistant.Service.Services
 
                         // Add the entity to the Cognitive Search content index
                         // The content index is used by the Cognitive Search memory source to run create memories from faceted queries
-                        await _cognitiveSearchService.IndexItem(entity);
+                        await _aiSearchService.IndexItem(entity);
 
                         // Add the entity to the Semantic Kernel memory used by the RAG service
                         // We want to keep the VectorSearchAiAssistant.SemanticKernel project isolated from any domain-specific

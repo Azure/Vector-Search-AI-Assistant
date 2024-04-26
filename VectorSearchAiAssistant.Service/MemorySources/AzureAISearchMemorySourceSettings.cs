@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VectorSearchAiAssistant.Service.MemorySource
 {
-    public record AzureCognitiveSearchMemorySourceSettings
+    public record AzureAISearchMemorySourceSettings
     {
         public required string IndexName { get; init; }
         public required string Endpoint { get; init; }

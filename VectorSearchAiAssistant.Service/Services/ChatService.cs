@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
+using VectorSearchAiAssistant.Common.Models.BusinessDomain;
+using VectorSearchAiAssistant.Common.Models.Chat;
 using VectorSearchAiAssistant.Service.Constants;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
-using VectorSearchAiAssistant.Service.Models.Search;
 
 namespace VectorSearchAiAssistant.Service.Services;
 

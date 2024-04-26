@@ -1,8 +1,6 @@
 ﻿using Azure.Search.Documents.Indexes;
-using VectorSearchAiAssistant.SemanticKernel.Models;
-using VectorSearchAiAssistant.SemanticKernel.TextEmbedding;
 
-namespace VectorSearchAiAssistant.Service.Models.Search
+namespace VectorSearchAiAssistant.Common.Models.BusinessDomain
 {
     public class Customer : EmbeddedEntity
     {

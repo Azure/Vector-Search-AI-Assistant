@@ -1,42 +1,43 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Azure.AI.OpenAI;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.AI.Embeddings;
-using Microsoft.SemanticKernel.AI.TextCompletion;
-using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
-using Microsoft.SemanticKernel.Plugins.Memory;
-using Newtonsoft.Json;
+using Microsoft.SemanticKernel.Connectors.AzureAISearch;
+using Microsoft.SemanticKernel.Embeddings;
+using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Planning;
 using System.Text.RegularExpressions;
-using VectorSearchAiAssistant.SemanticKernel.Chat;
+using VectorSearchAiAssistant.Common.Models.BusinessDomain;
+using VectorSearchAiAssistant.Common.Models.Chat;
 using VectorSearchAiAssistant.SemanticKernel.Plugins.Core;
 using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
-using VectorSearchAiAssistant.SemanticKernel.Text;
 using VectorSearchAiAssistant.Service.Interfaces;
-using VectorSearchAiAssistant.Service.MemorySource;
-using VectorSearchAiAssistant.Service.Models;
-using VectorSearchAiAssistant.Service.Models.Chat;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
-using VectorSearchAiAssistant.Service.Models.Search;
+
+#pragma warning disable SKEXP0001, SKEXP0010, SKEXP0020, SKEXP0050, SKEXP0060
 
 namespace VectorSearchAiAssistant.Service.Services;
 
 public class SemanticKernelRAGService : IRAGService
 {
     readonly SemanticKernelRAGServiceSettings _settings;
-    readonly IKernel _semanticKernel;
+    readonly Kernel _semanticKernel;
     readonly IEnumerable<IMemorySource> _memorySources;
     readonly ILogger<SemanticKernelRAGService> _logger;
     readonly ISystemPromptService _systemPromptService;
-    readonly IChatCompletion _chat;
     readonly VectorMemoryStore _longTermMemory;
     readonly VectorMemoryStore _shortTermMemory;
-    readonly Dictionary<string, Type> _memoryTypes;
+    readonly VectorMemoryStore _semanticMemory;
 
     readonly string _shortTermCollectionName = "short-term";
+    readonly string _semanticMemoryCollectionName = "semantic-memory";
 
     bool _serviceInitialized = false;
     bool _shortTermMemoryInitialized = false;
+    bool _semanticMemoryInitialized = false;
+
+    string _prompt = string.Empty;
 
     public bool IsInitialized => _serviceInitialized;
 
@@ -44,7 +45,6 @@ public class SemanticKernelRAGService : IRAGService
         ISystemPromptService systemPromptService,
         IEnumerable<IMemorySource> memorySources,
         IOptions<SemanticKernelRAGServiceSettings> options,
-        IOptions<AzureCognitiveSearchMemorySourceSettings> cognitiveSearchMemorySourceSettings,
         ILogger<SemanticKernelRAGService> logger,
         ILoggerFactory loggerFactory)
     {
@@ -55,40 +55,59 @@ public class SemanticKernelRAGService : IRAGService
 
         _logger.LogInformation("Initializing the Semantic Kernel RAG service...");
 
-        _memoryTypes = ModelRegistry.Models.ToDictionary(m => m.Key, m => m.Value.Type);
+        var builder = Kernel.CreateBuilder();
 
-        var builder = new KernelBuilder();
+        builder.Services.AddSingleton<ILoggerFactory>(loggerFactory);
 
-        builder.WithLoggerFactory(loggerFactory);
-
-        builder.WithAzureTextEmbeddingGenerationService(
+        builder.AddAzureOpenAITextEmbeddingGeneration(
             _settings.OpenAI.EmbeddingsDeployment,
             _settings.OpenAI.Endpoint,
             _settings.OpenAI.Key);
 
-        builder.WithAzureChatCompletionService(
+        builder.AddAzureOpenAIChatCompletion(
             _settings.OpenAI.CompletionsDeployment,
             _settings.OpenAI.Endpoint,
             _settings.OpenAI.Key);
 
         _semanticKernel = builder.Build();
 
-        // The long-term memory uses an Azure Cognitive Search memory store
+        // The long-term memory uses an Azure AI Search memory store
         _longTermMemory = new VectorMemoryStore(
-            _settings.CognitiveSearch.IndexName,
-            new AzureCognitiveSearchMemoryStore(
-                _settings.CognitiveSearch.Endpoint,
-                _settings.CognitiveSearch.Key),
-            _semanticKernel.GetService<ITextEmbeddingGeneration>(),
+            _settings.AISearch.IndexName,
+            new AzureAISearchMemoryStore(
+                _settings.AISearch.Endpoint,
+                _settings.AISearch.Key),
+            _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
             loggerFactory.CreateLogger<VectorMemoryStore>());
 
         _shortTermMemory = new VectorMemoryStore(
             _shortTermCollectionName,
             new VolatileMemoryStore(),
-            _semanticKernel.GetService<ITextEmbeddingGeneration>(),
+            _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
             loggerFactory.CreateLogger<VectorMemoryStore>());
 
-        _chat = _semanticKernel.GetService<IChatCompletion>();
+        _semanticMemory = new VectorMemoryStore(
+            _semanticMemoryCollectionName,
+            new VolatileMemoryStore(),
+            _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
+            loggerFactory.CreateLogger<VectorMemoryStore>());
+
+        Task.Run(Initialize);
+    }
+
+    private async Task Initialize()
+    {
+        _prompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName);
+
+        var kmContextPlugin = new KnowledgeManagementContextPlugin(
+            _longTermMemory,
+            _shortTermMemory,
+            _prompt,
+            _settings.AISearch,
+            _settings.OpenAI,
+            _logger);
+
+        _semanticKernel.ImportPluginFromObject(kmContextPlugin);
 
         _serviceInitialized = true;
 
@@ -138,53 +157,67 @@ public class SemanticKernelRAGService : IRAGService
         }
     }
 
+    private async Task EnsureSemanticMemory()
+    {
+        try
+        {
+            if (_semanticMemoryInitialized)
+                return;
+
+            // The memories collection in the short term memory store must be created explicitly
+            await _semanticMemory.MemoryStore.CreateCollectionAsync(_semanticMemoryCollectionName);
+
+            // TODO: Load the semantic memory from Cosmos DB.
+
+            _semanticMemoryInitialized = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "The semantic memory failed to initialize.");
+        }
+    }
+
     public async Task<(string Completion, string UserPrompt, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
     {
+        // First, get the user prompt embedding since we will need to use it in multiple places
+        await EnsureSemanticMemory();
+        var userPromptEmbedding = await _semanticKernel.GetRequiredService<ITextEmbeddingGenerationService>().GenerateEmbeddingAsync(userPrompt);
+
+        // Check if a very similar question has been asked in the recent past
+        var semanticMemoryHits = await _semanticMemory
+            .GetNearestMatches(userPromptEmbedding, 1, 0.95f)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        if (semanticMemoryHits.Count > 0)
+        {
+            var cachedResponse = semanticMemoryHits[0].Metadata.AdditionalMetadata;
+            return (cachedResponse, userPrompt, 0, 0, userPromptEmbedding.ToArray());
+        }
+
+        // The semantic memory was not able to provide a cached answer, so we start the normal response flow
+
         await EnsureShortTermMemory();
 
-        var memoryPlugin = new TextEmbeddingObjectMemoryPlugin(
-            _longTermMemory,
-            _shortTermMemory,
-            _logger);
+        // Use observability features to capture the fully rendered prompt.
+        var promptFilter = new DefaultPromptFilter();
+        _semanticKernel.PromptFilters.Add(promptFilter);
+        
+        var arguments = new KernelArguments()
+        {
+            ["userPrompt"] = userPrompt,
+            ["messageHistory"] = messageHistory
+        };
 
-        var memories = await memoryPlugin.RecallAsync(
-            userPrompt,
-            _settings.CognitiveSearch.IndexName,
-            _settings.CognitiveSearch.MinRelevance,
-            _settings.CognitiveSearch.MaxVectorSearchResults);
+        var result = await _semanticKernel.InvokePromptAsync(_prompt, arguments);
 
-        // Read the resulting user prompt embedding as soon as possible
-        var userPromptEmbedding = memoryPlugin.LastInputTextEmbedding?.ToArray();
+        var completion = result.GetValue<string>()!;
+        var completionUsage = (result.Metadata!["Usage"] as CompletionsUsage)!;
 
-        List<string> memoryCollection;
-        if (string.IsNullOrEmpty(memories))
-            memoryCollection = new List<string>();
-        else
-            memoryCollection = JsonConvert.DeserializeObject<List<string>>(memories);
+        // Add the completion to the semantic memory
+        await _semanticMemory.AddMemory(userPrompt, userPromptEmbedding, completion);
 
-        var chatHistory = new ChatBuilder(
-                _semanticKernel,
-                _settings.OpenAI.CompletionsDeploymentMaxTokens,
-                _memoryTypes,
-                promptOptimizationSettings: _settings.OpenAI.PromptOptimization)
-            .WithSystemPrompt(
-                await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName))
-            .WithMemories(
-                memoryCollection)
-            .WithMessageHistory(
-                messageHistory.Select(m => (new AuthorRole(m.Sender.ToLower()), m.Text.NormalizeLineEndings())).ToList())
-            .Build();
-
-        chatHistory.AddUserMessage(userPrompt);
-
-        var chat = _semanticKernel.GetService<IChatCompletion>();
-        var completionResults = await chat.GetChatCompletionsAsync(chatHistory);
-
-        // TODO: Add validation and perhaps fall back to a standard response if no completions are generated.
-        var reply = await completionResults[0].GetChatMessageAsync();
-        var rawResult = (completionResults[0] as ITextResult).ModelResult.GetOpenAIChatResult();
-
-        return new(reply.Content, chatHistory[0].Content, rawResult.Usage.PromptTokens, rawResult.Usage.CompletionTokens, userPromptEmbedding);
+        return new(completion, promptFilter.RenderedPrompt, completionUsage!.PromptTokens, completionUsage.CompletionTokens, userPromptEmbedding.ToArray());
     }
 
     public async Task<string> Summarize(string sessionId, string userPrompt)

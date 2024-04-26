@@ -7,15 +7,16 @@ using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.SemanticKernel.Models;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
-    public class CognitiveSearchService : ICognitiveSearchService
+    public class AISearchService : IAISearchService
     {
-        readonly CognitiveSearchSettings _settings;
+        readonly AISearchSettings _settings;
         readonly ILogger _logger;
 
         readonly SearchIndexClient _adminClient;
@@ -24,9 +25,9 @@ namespace VectorSearchAiAssistant.Service.Services
 
         SearchClient _searchClient;
 
-        public CognitiveSearchService(
-            IOptions<CognitiveSearchSettings> options,
-            ILogger<CognitiveSearchSettings> logger)
+        public AISearchService(
+            IOptions<AISearchSettings> options,
+            ILogger<AISearchSettings> logger)
         {
             _settings = options.Value;
             _logger = logger;
