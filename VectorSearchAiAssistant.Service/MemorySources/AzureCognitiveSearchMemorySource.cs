@@ -8,20 +8,20 @@ using VectorSearchAiAssistant.Service.Interfaces;
 
 namespace VectorSearchAiAssistant.Service.MemorySource
 {
-    public class AzureCognitiveSearchMemorySource : IMemorySource
+    public class AzureAISearchMemorySource : IMemorySource
     {
-        private readonly ICognitiveSearchService _cognitiveSearchService;
-        private readonly AzureCognitiveSearchMemorySourceSettings _settings;
+        private readonly IAISearchService _AISearchService;
+        private readonly AzureAISearchMemorySourceSettings _settings;
         private readonly ILogger _logger;
 
-        private AzureCognitiveSearchMemorySourceConfig _config;
+        private AzureAISearchMemorySourceConfig _config;
 
-        public AzureCognitiveSearchMemorySource(
-            ICognitiveSearchService cognitiveSearchService,
-            IOptions<AzureCognitiveSearchMemorySourceSettings> settings,
-            ILogger<AzureCognitiveSearchMemorySource> logger)
+        public AzureAISearchMemorySource(
+            IAISearchService AISearchService,
+            IOptions<AzureAISearchMemorySourceSettings> settings,
+            ILogger<AzureAISearchMemorySource> logger)
         {
-            _cognitiveSearchService = cognitiveSearchService;
+            _AISearchService = AISearchService;
             _settings = settings.Value;
             _logger = logger;
         }
@@ -50,7 +50,7 @@ namespace VectorSearchAiAssistant.Service.MemorySource
 
                 var facetTemplates = memorySource.Facets.ToDictionary(f => f.Facet.Split(',')[0], f => f.CountMemoryTemplate);
 
-                var result = await _cognitiveSearchService.SearchAsync(searchOptions);
+                var result = await _AISearchService.SearchAsync(searchOptions);
 
                 long totalCount = 0;
                 foreach (var facet in result.Value.Facets)
@@ -80,7 +80,7 @@ namespace VectorSearchAiAssistant.Service.MemorySource
                 var reader = new StreamReader(await blobClient.OpenReadAsync());
                 var configContent = await reader.ReadToEndAsync();
 
-                _config = JsonConvert.DeserializeObject<AzureCognitiveSearchMemorySourceConfig>(configContent);
+                _config = JsonConvert.DeserializeObject<AzureAISearchMemorySourceConfig>(configContent);
             }
         }
     }

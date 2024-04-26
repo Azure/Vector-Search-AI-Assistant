@@ -1,7 +1,9 @@
+using VectorSearchAiAssistant.SemanticKernel.Models;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.MemorySource;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Service.Services;
+using VectorSearchAiAssistant.Service.Services.Text;
 
 namespace ChatServiceWebApi
 {
@@ -16,13 +18,13 @@ namespace ChatServiceWebApi
             builder.Services.AddOptions<CosmosDbSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CosmosDB"));
 
-            builder.Services.AddOptions<CognitiveSearchSettings>()
-                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CognitiveSearch"));
+            builder.Services.AddOptions<AISearchSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:AISearch"));
 
             builder.Services.AddOptions<SemanticKernelRAGServiceSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI"));
 
-            builder.Services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
+            builder.Services.AddSingleton<IAISearchService, AISearchService>();
             builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>();
             builder.Services.AddSingleton<IRAGService, SemanticKernelRAGService>();
             builder.Services.AddSingleton<IChatService, ChatService>();
@@ -35,13 +37,20 @@ namespace ChatServiceWebApi
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:DurableSystemPrompt"));
             builder.Services.AddSingleton<ISystemPromptService, DurableSystemPromptService>();
 
-            builder.Services.AddOptions<AzureCognitiveSearchMemorySourceSettings>()
-                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CognitiveSearchMemorySource"));
-            builder.Services.AddTransient<IMemorySource, AzureCognitiveSearchMemorySource>();
+            builder.Services.AddOptions<AzureAISearchMemorySourceSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:AISearchMemorySource"));
+            builder.Services.AddTransient<IMemorySource, AzureAISearchMemorySource>();
 
             builder.Services.AddOptions<BlobStorageMemorySourceSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:BlobStorageMemorySource"));
             builder.Services.AddTransient<IMemorySource, BlobStorageMemorySource>();
+
+            builder.Services.AddSingleton<ITokenizerService, MicrosoftBPETokenizerService>();
+            builder.Services.ActivateSingleton<ITokenizerService>();
+
+            builder.Services.AddOptions<TokenTextSplitterServiceSettings>()
+                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:TextSplitter"));
+            builder.Services.AddSingleton<ITextSplitterService, TokenTextSplitterService>();
 
             builder.Services.AddScoped<ChatEndpoints>();
 

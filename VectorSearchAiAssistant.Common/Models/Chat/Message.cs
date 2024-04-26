@@ -1,6 +1,6 @@
 using Azure.Search.Documents.Indexes;
 
-namespace VectorSearchAiAssistant.Service.Models.Chat;
+namespace VectorSearchAiAssistant.Common.Models.Chat;
 
 public record Message
 {

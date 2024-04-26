@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.Chat;
+using VectorSearchAiAssistant.Common.Models.Chat;
 
 namespace VectorSearchAiAssistant.Service.Tests
 {

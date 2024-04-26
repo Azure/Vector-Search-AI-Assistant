@@ -1,5 +1,4 @@
 {
-    "TextChunkMaxTokens": 250,
     "TextFileMemorySources": [
         {
             "ContainerName": "product-policy",

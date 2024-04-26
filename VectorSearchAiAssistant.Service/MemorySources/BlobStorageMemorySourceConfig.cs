@@ -8,8 +8,6 @@ namespace VectorSearchAiAssistant.Service.MemorySource
 {
     public class BlobStorageMemorySourceConfig
     {
-        public int TextChunkMaxTokens { get; init; }
-
         public List<TextFileMemorySource> TextFileMemorySources { get; init; }
     }
 

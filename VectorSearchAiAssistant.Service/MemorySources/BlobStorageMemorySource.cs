@@ -1,13 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.Text;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VectorSearchAiAssistant.Service.Interfaces;
 
 namespace VectorSearchAiAssistant.Service.MemorySource
@@ -15,6 +9,7 @@ namespace VectorSearchAiAssistant.Service.MemorySource
     public class BlobStorageMemorySource : IMemorySource
     {
         private readonly BlobStorageMemorySourceSettings _settings;
+        private readonly ITextSplitterService _textSplitterService;
         private readonly ILogger _logger;
 
         private BlobStorageMemorySourceConfig _config;
@@ -24,9 +19,11 @@ namespace VectorSearchAiAssistant.Service.MemorySource
 
         public BlobStorageMemorySource(
             IOptions<BlobStorageMemorySourceSettings> settings,
+            ITextSplitterService textSplitterService,
             ILogger<BlobStorageMemorySource> logger)
         {
             _settings = settings.Value;
+            _textSplitterService = textSplitterService;
             _logger = logger;
 
             _blobServiceClient = new BlobServiceClient(_settings.ConfigBlobStorageConnection);
@@ -42,7 +39,7 @@ namespace VectorSearchAiAssistant.Service.MemorySource
                 .SelectMany(x => x));
 
             var chunkedFilesContent = filesContent
-                .Select(txt => txt.SplitIntoChunks ? TextChunker.SplitPlainTextLines(txt.Content, _config.TextChunkMaxTokens) : new List<string>() { txt.Content })
+                .Select(txt => txt.SplitIntoChunks ? _textSplitterService.SplitPlainText(txt.Content).TextChunks : new List<string>() { txt.Content })
                 .SelectMany(x => x).ToList();
 
             return chunkedFilesContent;

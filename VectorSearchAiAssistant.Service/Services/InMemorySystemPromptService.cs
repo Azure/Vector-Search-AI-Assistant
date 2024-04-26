@@ -1,4 +1,4 @@
-﻿using VectorSearchAiAssistant.SemanticKernel.Text;
+﻿using VectorSearchAiAssistant.Common.Text;
 using VectorSearchAiAssistant.Service.Interfaces;
 
 namespace VectorSearchAiAssistant.Service.Services
