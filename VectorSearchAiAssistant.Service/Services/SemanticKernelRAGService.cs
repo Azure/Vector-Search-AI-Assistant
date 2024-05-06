@@ -10,6 +10,7 @@ using Microsoft.SemanticKernel.Planning;
 using System.Text.RegularExpressions;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.Common.Models.Chat;
+using VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
 using VectorSearchAiAssistant.SemanticKernel.Plugins.Core;
 using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
 using VectorSearchAiAssistant.Service.Interfaces;
@@ -74,9 +75,10 @@ public class SemanticKernelRAGService : IRAGService
         // The long-term memory uses an Azure AI Search memory store
         _longTermMemory = new VectorMemoryStore(
             _settings.AISearch.IndexName,
-            new AzureAISearchMemoryStore(
-                _settings.AISearch.Endpoint,
-                _settings.AISearch.Key),
+            new AzureCosmosDBNoSqlMemoryStore(
+                _settings.CosmosDBVectorStore.Endpoint,
+                _settings.CosmosDBVectorStore.Key,
+                _settings.CosmosDBVectorStore.Database),
             _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
             loggerFactory.CreateLogger<VectorMemoryStore>());
 
