@@ -6,5 +6,6 @@ namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
     {
         public required OpenAISettings OpenAI { get; init; }
         public required AISearchSettings AISearch { get; init; }
+        public required CosmosDbVectorStoreSettings CosmosDBVectorStore { get; init; }
     }
 }
