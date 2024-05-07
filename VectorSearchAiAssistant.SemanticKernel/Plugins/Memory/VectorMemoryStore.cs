@@ -6,6 +6,9 @@ using Newtonsoft.Json;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using VectorSearchAiAssistant.Common.Extensions;
+using VectorSearchAiAssistant.Common.Interfaces;
+using VectorSearchAiAssistant.Common.Models;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.Common.Text;
 
@@ -36,6 +39,9 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
             _hash = SHA1.Create();
         }
 
+        public async Task EnsureMemoryStoreCollectionExists(string collectionName) =>
+            await _memoryStore.CreateCollectionAsync(collectionName);
+
         public async Task AddMemory(string memory, ReadOnlyMemory<float> memoryEmbedding, string metadata = "")
         {
             await UpdateMemoryStore(
@@ -45,7 +51,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
                 metadata);
         }
 
-        public async Task AddMemory(string memory, string metadata  ="")
+        public async Task AddMemory(string memory, string metadata = "")
         {
             var memoryEmbedding = await _textEmbedding.GenerateEmbeddingAsync(memory);
             await UpdateMemoryStore(
@@ -55,58 +61,47 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
                 metadata);
         }
 
-        public async Task AddMemory(object item, string itemName)
+        public async Task AddMemory(IItemTransformer itemTransformer)
         {
             try
-            {
-                if (item is EmbeddedEntity entity)
-                    entity.entityType__ = item.GetType().Name;
-                else
-                    throw new ArgumentException("Only objects derived from EmbeddedEntity can be added to memory.");
-
-                // Prepare the object for embedding
-                var itemToEmbed = EmbeddingUtility.Transform(item);
-
+            {    
                 // Get the embeddings from OpenAI: the ITextEmbeddingGenerationService service is exposed by SemanticKernel
                 // and is responsible for calling the text embedding endpoint to get the vectorized representation
                 // of the incoming object.
-                // Use by default the more elaborate text representation based on EmbeddingFieldAttribute
+                // Use by default the more elaborate text representation based on the ModelRegistryItemTransformer which relies on the EmbeddingFieldAttribute attribute.
                 // The purely text representation generated based on the EmbeddingFieldAttribute is well suited for 
                 // embedding and it allows you to control precisely which attributes will be used as inputs in the process.
                 // In general, it is recommended to avoid identifier attributes (e.g., GUIDs) as they do not provide
                 // any meaningful context for the embedding process.
-                // Exercise: Test also using the JSON text representation - itemToEmbed.ObjectToEmbed
-                var embedding = await _textEmbedding.GenerateEmbeddingAsync(itemToEmbed.TextToEmbed);
+                // Exercise: Test also using the JSON text representation - itemTransformer.ObjectToEmbed
+                var embedding = await _textEmbedding.GenerateEmbeddingAsync(itemTransformer.TextToEmbed);
 
                 await UpdateMemoryStore(
-                    itemToEmbed.ObjectToEmbed.ContainsKey("id")
-                            ? itemToEmbed.ObjectToEmbed.Value<string>("id")
-                            : GetHash(itemToEmbed.TextToEmbed),
-                    itemToEmbed.TextToEmbed,
+                    itemTransformer.EmbeddingId,
+                    itemTransformer.TextToEmbed,
                     embedding,
-                    JsonConvert.SerializeObject(item));
+                    JsonConvert.SerializeObject(itemTransformer.TypedValue));
 
-                _logger.LogInformation($"Memorized vector for item: {itemName} of type {item.GetType().Name}");
+                _logger.LogInformation($"Memorized vector for item: {itemTransformer.Name} of type {itemTransformer.TypedValue.GetType().Name}");
             }
             catch (Exception x)
             {
-                _logger.LogError($"Exception while generating vector for [{itemName} of type {item.GetType().Name}]: " + x.Message);
+                _logger.LogError($"Exception while generating vector for [{itemTransformer.Name} of type {itemTransformer.TypedValue.GetType().Name}]: " + x.Message);
             }
         }
 
         #region Helpers for AddMemory
 
         private async Task UpdateMemoryStore(string id, string text, ReadOnlyMemory<float> embedding, string metadata = "") =>
-            await _memoryStore.UpsertAsync(_collectionName, new MemoryRecord(
-                new MemoryRecordMetadata(
-                    false,
+            await _memoryStore.UpsertAsync(
+                _collectionName,
+                MemoryRecord.LocalRecord(
                     id,
-                    text,
+                    text, 
                     string.Empty,
-                    string.Empty,
-                    metadata),
-                embedding,
-                null));
+                    embedding,
+                    metadata,
+                    timestamp: DateTimeOffset.UtcNow));
 
         #endregion
 

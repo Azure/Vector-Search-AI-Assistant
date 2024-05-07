@@ -1,9 +1,6 @@
-﻿using NUnit.Framework;
-using Moq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using VectorSearchAiAssistant.Service.Interfaces;
-using VectorSearchAiAssistant.Service.Models.Chat;
+﻿using Moq;
+using NUnit.Framework;
+using VectorSearchAiAssistant.Common.Interfaces;
 using VectorSearchAiAssistant.Common.Models.Chat;
 
 namespace VectorSearchAiAssistant.Service.Tests
@@ -11,12 +8,12 @@ namespace VectorSearchAiAssistant.Service.Tests
     [TestFixture]
     public class CosmosDbServiceTests
     {
-        private Mock<ICosmosDbService> _cosmosDbServiceMock;
+        private Mock<ICosmosDBService> _cosmosDbServiceMock;
 
         [SetUp]
         public void Setup()
         {
-            _cosmosDbServiceMock = new Mock<ICosmosDbService>();
+            _cosmosDbServiceMock = new Mock<ICosmosDBService>();
         }
 
         [Test]

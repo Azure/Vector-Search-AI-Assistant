@@ -4,20 +4,21 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using VectorSearchAiAssistant.Common.Exceptions;
+using VectorSearchAiAssistant.Common.Extensions;
+using VectorSearchAiAssistant.Common.Interfaces;
 using VectorSearchAiAssistant.Common.Models;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.Common.Models.Chat;
+using VectorSearchAiAssistant.Common.Models.Configuration;
 using VectorSearchAiAssistant.Service.Interfaces;
-using VectorSearchAiAssistant.Service.Models.Chat;
-using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
-using VectorSearchAiAssistant.Service.Utils;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
     /// <summary>
     /// Service to access Azure Cosmos DB for NoSQL.
     /// </summary>
-    public class CosmosDbService : ICosmosDbService
+    public class CosmosDBService : ICosmosDBService
     {
         private readonly Container _completions;
         private readonly Container _customer;
@@ -27,9 +28,10 @@ namespace VectorSearchAiAssistant.Service.Services
         private readonly Dictionary<string, Container> _containers;
         readonly Dictionary<string, Type> _memoryTypes;
 
+        private readonly IItemTransformerFactory _itemTransformerFactory;
         private readonly IRAGService _ragService;
         private readonly IAISearchService _aiSearchService;
-        private readonly CosmosDbSettings _settings;
+        private readonly CosmosDBSettings _settings;
         private readonly ILogger _logger;
 
         private List<ChangeFeedProcessor> _changeFeedProcessors;
@@ -37,12 +39,14 @@ namespace VectorSearchAiAssistant.Service.Services
 
         public bool IsInitialized => _changeFeedsInitialized;
 
-        public CosmosDbService(
+        public CosmosDBService(
+            IItemTransformerFactory itemTransformerFactory,
             IRAGService ragService,
             IAISearchService AISearchService,
-            IOptions<CosmosDbSettings> settings, 
-            ILogger<CosmosDbService> logger)
+            IOptions<CosmosDBSettings> settings, 
+            ILogger<CosmosDBService> logger)
         {
+            _itemTransformerFactory = itemTransformerFactory;
             _ragService = ragService;
             _aiSearchService = AISearchService;
 
@@ -158,29 +162,20 @@ namespace VectorSearchAiAssistant.Service.Services
                     if (cancellationToken.IsCancellationRequested)
                         break;
 
-                    var jObject = item as JObject;
-                    var typeMetadata = ModelRegistry.IdentifyType(jObject);
+                    if (item is JObject jObject)
+                    {
 
-                    if (typeMetadata == null)
-                    {
-                        _logger.LogError($"Unsupported entity type in Cosmos DB change feed handler: {jObject}");
-                    }
-                    else
-                    {
-                        var entity = jObject.ToObject(typeMetadata.Type);
+                        IItemTransformer itemTransformer = _itemTransformerFactory.CreateItemTransformer(jObject);
 
                         // Add the entity to the Cognitive Search content index
                         // The content index is used by the Cognitive Search memory source to run create memories from faceted queries
-                        await _aiSearchService.IndexItem(entity);
+                        await _aiSearchService.IndexItem(itemTransformer.TypedValue);
 
                         // Add the entity to the Semantic Kernel memory used by the RAG service
-                        // We want to keep the VectorSearchAiAssistant.SemanticKernel project isolated from any domain-specific
-                        // references/dependencies, so we use a generic mechanism to get the name of the entity as well as to 
-                        // set the vector property on the entity.
-                        await _ragService.AddMemory(
-                            entity,
-                            string.Join(" ", entity.GetPropertyValues(typeMetadata.NamingProperties)));
+                        await _ragService.AddMemory(itemTransformer);
                     }
+                    else
+                        throw new InvalidCastException($"The Cosmos DB change feed cannot providess objects of type {item.GetType()}.");
                 }
                 catch (Exception ex)
                 {

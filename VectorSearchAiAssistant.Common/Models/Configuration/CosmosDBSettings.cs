@@ -1,6 +1,6 @@
-﻿namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
+﻿namespace VectorSearchAiAssistant.Common.Models.Configuration
 {
-    public record CosmosDbSettings : CosmosDbSettingsBase
+    public record CosmosDBSettings : CosmosDBSettingsBase
     {
         public required string Containers { get; init; }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Microsoft.SemanticKernel.Memory;
+using VectorSearchAiAssistant.Common.Interfaces;
 
 namespace VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
 
@@ -7,46 +8,30 @@ namespace VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
 
 public class AzureCosmosDBNoSqlMemoryStore : IMemoryStore
 {
-    private readonly Database _database;
-
+    private readonly ICosmosDBVectorStoreService _cosmosDbVectorStoreService;
     public AzureCosmosDBNoSqlMemoryStore(
-        string endpoint,
-        string key,
-        string databaseName)
+        ICosmosDBVectorStoreService cosmosDbVectorStoreService)
     {
-        var client = new CosmosClient(endpoint, key);
-        _database = client.GetDatabase(databaseName);
+        _cosmosDbVectorStoreService = cosmosDbVectorStoreService;
     }
 
-    public Task CreateCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
+    public async Task CreateCollectionAsync(string collectionName, CancellationToken cancellationToken = default) =>
+        await _cosmosDbVectorStoreService.CreateCollection(collectionName);
 
-    public Task DeleteCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
+    public async Task DeleteCollectionAsync(string collectionName, CancellationToken cancellationToken = default) =>
+        await _cosmosDbVectorStoreService.DeleteCollection(collectionName);
 
-    public Task<bool> DoesCollectionExistAsync(string collectionName, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
+    public async Task<bool> DoesCollectionExistAsync(string collectionName, CancellationToken cancellationToken = default) =>
+        await Task.FromResult(_cosmosDbVectorStoreService.CollectionExists(collectionName));
 
-    public Task<MemoryRecord?> GetAsync(string collectionName, string key, bool withEmbedding = false, CancellationToken cancellationToken = default)
-    {
+    public Task<MemoryRecord?> GetAsync(string collectionName, string key, bool withEmbedding = false, CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
-    }
 
-    public IAsyncEnumerable<MemoryRecord> GetBatchAsync(string collectionName, IEnumerable<string> keys, bool withEmbeddings = false, CancellationToken cancellationToken = default)
-    {
+    public IAsyncEnumerable<MemoryRecord> GetBatchAsync(string collectionName, IEnumerable<string> keys, bool withEmbeddings = false, CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
-    }
 
-    public IAsyncEnumerable<string> GetCollectionsAsync(CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
+    public IAsyncEnumerable<string> GetCollectionsAsync(CancellationToken cancellationToken = default) =>
+        _cosmosDbVectorStoreService.GetCollections().ToAsyncEnumerable();
 
     public Task<(MemoryRecord, double)?> GetNearestMatchAsync(string collectionName, ReadOnlyMemory<float> embedding, double minRelevanceScore = 0, bool withEmbedding = false, CancellationToken cancellationToken = default)
     {
@@ -70,6 +55,8 @@ public class AzureCosmosDBNoSqlMemoryStore : IMemoryStore
 
     public Task<string> UpsertAsync(string collectionName, MemoryRecord record, CancellationToken cancellationToken = default)
     {
+        //var memoryRecord = new AzureCosmosDBNoSqlMemoryRecord(record);
+
         throw new NotImplementedException();
     }
 

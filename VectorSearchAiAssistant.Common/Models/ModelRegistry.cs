@@ -12,8 +12,8 @@ namespace VectorSearchAiAssistant.Common.Models
                     new ModelRegistryEntry 
                     { 
                         Type = typeof(Customer),
-                        TypeMatchingProperties = new List<string> { "customerId", "firstName" },
-                        NamingProperties = new List<string> { "firstName", "lastName" },
+                        TypeMatchingProperties = ["customerId", "firstName"],
+                        NamingProperties = ["firstName", "lastName"],
                     } 
                 },
                 { 
@@ -21,8 +21,8 @@ namespace VectorSearchAiAssistant.Common.Models
                     new ModelRegistryEntry 
                     { 
                         Type = typeof(Product),
-                        TypeMatchingProperties = new List<string> { "sku" },
-                        NamingProperties = new List<string> { "name" }
+                        TypeMatchingProperties = ["sku"],
+                        NamingProperties = ["name"]
                     } 
                 },
                 { 
@@ -30,8 +30,8 @@ namespace VectorSearchAiAssistant.Common.Models
                     new ModelRegistryEntry 
                     { 
                         Type = typeof(SalesOrder),
-                        TypeMatchingProperties = new List<string> { "orderDate", "shipDate" },
-                        NamingProperties = new List<string> { "id" }
+                        TypeMatchingProperties = ["orderDate", "shipDate"],
+                        NamingProperties = ["id"]
                     } 
                 },
                 {
@@ -39,8 +39,8 @@ namespace VectorSearchAiAssistant.Common.Models
                     new ModelRegistryEntry
                     {
                         Type = typeof(ShortTermMemory),
-                        TypeMatchingProperties = new List<string> { "memory__" },
-                        NamingProperties = new List<string>()
+                        TypeMatchingProperties = ["memory__"],
+                        NamingProperties = []
                     }
                 }
             };
@@ -52,9 +52,19 @@ namespace VectorSearchAiAssistant.Common.Models
             var result = ModelRegistry
                 .Models
                 .Select(m => m.Value)
-                .SingleOrDefault(x => objProps.Intersect(x.TypeMatchingProperties).Count() == x.TypeMatchingProperties.Count());
+                .SingleOrDefault(x => objProps.Intersect(x.TypeMatchingProperties!).Count() == x.TypeMatchingProperties!.Count());
 
             return result;
+        }
+
+        public static ModelRegistryEntry? IdentifyType(object obj)
+        {
+            if (Models.TryGetValue(obj.GetType().Name, out var result))
+            {
+                return result;
+            }
+
+            return null;
         }
     }
 

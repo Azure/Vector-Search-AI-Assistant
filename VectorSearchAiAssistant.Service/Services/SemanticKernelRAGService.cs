@@ -3,11 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AzureAISearch;
 using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
-using Microsoft.SemanticKernel.Planning;
 using System.Text.RegularExpressions;
+using VectorSearchAiAssistant.Common.Interfaces;
+using VectorSearchAiAssistant.Common.Models;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.Common.Models.Chat;
 using VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
@@ -27,9 +27,12 @@ public class SemanticKernelRAGService : IRAGService
     readonly IEnumerable<IMemorySource> _memorySources;
     readonly ILogger<SemanticKernelRAGService> _logger;
     readonly ISystemPromptService _systemPromptService;
+    readonly ICosmosDBVectorStoreService _cosmosDBVectorStoreService;
     readonly VectorMemoryStore _longTermMemory;
     readonly VectorMemoryStore _shortTermMemory;
     readonly VectorMemoryStore _semanticMemory;
+
+    readonly IItemTransformerFactory _itemTransformerFactory;
 
     readonly string _shortTermCollectionName = "short-term";
     readonly string _semanticMemoryCollectionName = "semantic-memory";
@@ -43,13 +46,17 @@ public class SemanticKernelRAGService : IRAGService
     public bool IsInitialized => _serviceInitialized;
 
     public SemanticKernelRAGService(
+        IItemTransformerFactory itemTransformerFactory,
         ISystemPromptService systemPromptService,
         IEnumerable<IMemorySource> memorySources,
+        ICosmosDBVectorStoreService cosmosDBVectorStoreService,
         IOptions<SemanticKernelRAGServiceSettings> options,
         ILogger<SemanticKernelRAGService> logger,
         ILoggerFactory loggerFactory)
     {
+        _itemTransformerFactory = itemTransformerFactory;
         _systemPromptService = systemPromptService;
+        _cosmosDBVectorStoreService = cosmosDBVectorStoreService;
         _memorySources = memorySources;
         _settings = options.Value;
         _logger = logger;
@@ -72,13 +79,10 @@ public class SemanticKernelRAGService : IRAGService
 
         _semanticKernel = builder.Build();
 
-        // The long-term memory uses an Azure AI Search memory store
+        // The long-term memory uses an Azure Cosmos DB NoSQL memory store
         _longTermMemory = new VectorMemoryStore(
-            _settings.AISearch.IndexName,
-            new AzureCosmosDBNoSqlMemoryStore(
-                _settings.CosmosDBVectorStore.Endpoint,
-                _settings.CosmosDBVectorStore.Key,
-                _settings.CosmosDBVectorStore.Database),
+            _settings.CosmosDBVectorStore.MainIndexName,
+            new AzureCosmosDBNoSqlMemoryStore(_cosmosDBVectorStoreService),
             _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
             loggerFactory.CreateLogger<VectorMemoryStore>());
 
@@ -99,6 +103,9 @@ public class SemanticKernelRAGService : IRAGService
 
     private async Task Initialize()
     {
+        await _longTermMemory.EnsureMemoryStoreCollectionExists(_settings.CosmosDBVectorStore.MainIndexName);
+        await _longTermMemory.EnsureMemoryStoreCollectionExists(_settings.CosmosDBVectorStore.SemanticCacheIndexName);
+
         _prompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName);
 
         var kmContextPlugin = new KnowledgeManagementContextPlugin(
@@ -139,14 +146,14 @@ public class SemanticKernelRAGService : IRAGService
                 shortTermMemories.AddRange(await memorySource.GetMemories());
             }
 
-            foreach (var stm in shortTermMemories
-                .Select(m => (object)new ShortTermMemory
+            foreach (var itemTransformer in shortTermMemories
+                .Select(m => _itemTransformerFactory.CreateItemTransformer(new ShortTermMemory
                 {
                     entityType__ = nameof(ShortTermMemory),
                     memory__ = m
-                }))
+                })))
             {
-                await _shortTermMemory.AddMemory(stm, "N/A");
+                await _shortTermMemory.AddMemory(itemTransformer);
             }
 
             _shortTermMemoryInitialized = true;
@@ -238,9 +245,9 @@ public class SemanticKernelRAGService : IRAGService
         return summary;
     }
 
-    public async Task AddMemory(object item, string itemName)
+    public async Task AddMemory(IItemTransformer itemTransformer)
     {
-        await _longTermMemory.AddMemory(item, itemName);
+        await _longTermMemory.AddMemory(itemTransformer);
     }
 
     public async Task RemoveMemory(object item)

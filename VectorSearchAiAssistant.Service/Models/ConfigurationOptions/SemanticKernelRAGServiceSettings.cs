@@ -1,4 +1,5 @@
-﻿using VectorSearchAiAssistant.SemanticKernel.Models;
+﻿using VectorSearchAiAssistant.Common.Models.Configuration;
+using VectorSearchAiAssistant.SemanticKernel.Models;
 
 namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
 {
@@ -6,6 +7,6 @@ namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
     {
         public required OpenAISettings OpenAI { get; init; }
         public required AISearchSettings AISearch { get; init; }
-        public required CosmosDbVectorStoreSettings CosmosDBVectorStore { get; init; }
+        public required CosmosDBVectorStoreServiceSettings CosmosDBVectorStore { get; init; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace VectorSearchAiAssistant.Service.Utils
+namespace VectorSearchAiAssistant.Common.Extensions
 {
     public static class ObjectExtensions
     {

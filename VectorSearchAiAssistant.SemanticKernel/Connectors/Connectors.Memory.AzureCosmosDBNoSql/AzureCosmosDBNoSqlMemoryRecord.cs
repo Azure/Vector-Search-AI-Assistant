@@ -37,10 +37,10 @@ public class AzureCosmosDBNoSqlMemoryRecord
     /// <param name="memoryRecord"><see cref="MemoryRecord"/> instance to copy values from.</param>
     public AzureCosmosDBNoSqlMemoryRecord(MemoryRecord memoryRecord)
     {
-        Id = memoryRecord.Key;
-        Metadata = new AzureCosmosDBNoSqlMemoryRecordMetadata(memoryRecord.Metadata);
-        Embedding = memoryRecord.Embedding.ToArray();
-        Timestamp = memoryRecord.Timestamp?.UtcDateTime;
+        this.Id = memoryRecord.Key;
+        this.Metadata = new AzureCosmosDBNoSqlMemoryRecordMetadata(memoryRecord.Metadata);
+        this.Embedding = memoryRecord.Embedding.ToArray();
+        this.Timestamp = memoryRecord.Timestamp?.UtcDateTime;
     }
 
     /// <summary>
