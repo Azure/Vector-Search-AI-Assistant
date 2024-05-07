@@ -213,7 +213,7 @@ namespace VectorSearchAiAssistant.Service.Services
 
             FeedIterator<Session> response = _completions.GetItemQueryIterator<Session>(query);
 
-            List<Session> output = new();
+            List<Session> output = [];
             while (response.HasMoreResults)
             {
                 FeedResponse<Session> results = await response.ReadNextAsync();
@@ -313,10 +313,10 @@ namespace VectorSearchAiAssistant.Service.Services
             var response = await _completions.PatchItemAsync<Message>(
                 id: id,
                 partitionKey: new PartitionKey(sessionId),
-                patchOperations: new[]
-                {
+                patchOperations:
+                [
                     PatchOperation.Set("/rating", rating),
-                }
+                ]
             );
             return response.Resource;
         }
@@ -520,7 +520,7 @@ namespace VectorSearchAiAssistant.Service.Services
         public async Task<string> GetVectorSearchDocumentsAsync(List<DocumentVector> vectorDocuments)
         {
 
-            List<string> searchDocuments = new List<string>();
+            List<string> searchDocuments = new();
 
             foreach (var document in vectorDocuments)
             {

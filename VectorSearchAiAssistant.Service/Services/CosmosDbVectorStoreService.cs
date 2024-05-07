@@ -3,7 +3,6 @@ using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
 using VectorSearchAiAssistant.Common.Interfaces;
 using VectorSearchAiAssistant.Common.Models.Configuration;
-using VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
 using VectorSearchAiAssistant.Service.Exceptions;
 
 namespace VectorSearchAiAssistant.Service.Services
