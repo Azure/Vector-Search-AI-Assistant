@@ -13,6 +13,8 @@
 		<PackageReference Include="Microsoft.DeepDev.TokenizerLib" Version="1.3.3" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.AutoActivation" Version="8.3.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.1" />
 		<PackageReference Include="Microsoft.SemanticKernel.Planners.OpenAI" Version="1.7.1-preview" />
 		<PackageReference Include="Moq" Version="4.18.4" />
@@ -20,6 +22,7 @@
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.7.0" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\VectorSearchAiAssistant.Common\VectorSearchAiAssistant.Common.csproj" />
 	  <ProjectReference Include="..\VectorSearchAiAssistant.SemanticKernel\VectorSearchAiAssistant.SemanticKernel.csproj" />
 	</ItemGroup>
 

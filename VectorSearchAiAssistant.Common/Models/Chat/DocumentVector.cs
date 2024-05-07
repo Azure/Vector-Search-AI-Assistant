@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Service.Models.Chat
+﻿namespace VectorSearchAiAssistant.Common.Models.Chat
 {
     public record DocumentVector
     {

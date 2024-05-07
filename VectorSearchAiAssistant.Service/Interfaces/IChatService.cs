@@ -1,6 +1,5 @@
 ﻿using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.Common.Models.Chat;
-using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace VectorSearchAiAssistant.Service.Interfaces;
 

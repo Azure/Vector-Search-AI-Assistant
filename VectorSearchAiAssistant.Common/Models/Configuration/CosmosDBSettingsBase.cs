@@ -1,6 +1,6 @@
-﻿namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
+﻿namespace VectorSearchAiAssistant.Common.Models.Configuration
 {
-    public record CosmosDbSettingsBase
+    public record CosmosDBSettingsBase
     {
         public required string Endpoint { get; init; }
 

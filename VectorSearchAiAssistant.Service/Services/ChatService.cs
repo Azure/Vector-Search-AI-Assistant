@@ -1,15 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
+using VectorSearchAiAssistant.Common.Interfaces;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.Common.Models.Chat;
 using VectorSearchAiAssistant.Service.Constants;
 using VectorSearchAiAssistant.Service.Interfaces;
-using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace VectorSearchAiAssistant.Service.Services;
 
 public class ChatService : IChatService
 {
-    private readonly ICosmosDbService _cosmosDbService;
+    private readonly ICosmosDBService _cosmosDBService;
     private readonly IRAGService _ragService;
     private readonly ILogger _logger;
 
@@ -17,12 +17,12 @@ public class ChatService : IChatService
     {
         get
         {
-            if (_cosmosDbService.IsInitialized && _ragService.IsInitialized)
+            if (_cosmosDBService.IsInitialized && _ragService.IsInitialized)
                 return "ready";
 
             var status = new List<string>();
 
-            if (!_cosmosDbService.IsInitialized)
+            if (!_cosmosDBService.IsInitialized)
                 status.Add("CosmosDBService: initializing");
             if (!_ragService.IsInitialized)
                 status.Add("SemanticKernelRAGService: initializing");
@@ -32,11 +32,11 @@ public class ChatService : IChatService
     }
 
     public ChatService(
-        ICosmosDbService cosmosDbService,
+        ICosmosDBService cosmosDBService,
         IRAGService ragService,
         ILogger<ChatService> logger)
     {
-        _cosmosDbService = cosmosDbService;
+        _cosmosDBService = cosmosDBService;
         _ragService = ragService;
         _logger = logger;
     }
@@ -46,7 +46,7 @@ public class ChatService : IChatService
     /// </summary>
     public async Task<List<Session>> GetAllChatSessionsAsync()
     {
-        return await _cosmosDbService.GetSessionsAsync();
+        return await _cosmosDBService.GetSessionsAsync();
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public class ChatService : IChatService
     public async Task<List<Message>> GetChatSessionMessagesAsync(string sessionId)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
-        return await _cosmosDbService.GetSessionMessagesAsync(sessionId);
+        return await _cosmosDBService.GetSessionMessagesAsync(sessionId);
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class ChatService : IChatService
     public async Task<Session> CreateNewChatSessionAsync()
     {
         Session session = new();
-        return await _cosmosDbService.InsertSessionAsync(session);
+        return await _cosmosDBService.InsertSessionAsync(session);
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(sessionId);
         ArgumentException.ThrowIfNullOrEmpty(newChatSessionName);
 
-        return await _cosmosDbService.UpdateSessionNameAsync(sessionId, newChatSessionName);
+        return await _cosmosDBService.UpdateSessionNameAsync(sessionId, newChatSessionName);
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class ChatService : IChatService
     public async Task DeleteChatSessionAsync(string sessionId)
     {
         ArgumentNullException.ThrowIfNull(sessionId);
-        await _cosmosDbService.DeleteSessionAndMessagesAsync(sessionId);
+        await _cosmosDBService.DeleteSessionAndMessagesAsync(sessionId);
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class ChatService : IChatService
             // However if you put this before the vector search it can get stuck on previous answers and not pull additional information. Worth experimenting
 
             // Retrieve conversation, including latest prompt.
-            var messages = await _cosmosDbService.GetSessionMessagesAsync(sessionId);
+            var messages = await _cosmosDBService.GetSessionMessagesAsync(sessionId);
 
             // Generate the completion to return to the user
             //(string completion, int promptTokens, int responseTokens) = await_openAiService.GetChatCompletionAsync(sessionId, conversation, retrievedDocuments);
@@ -155,7 +155,7 @@ public class ChatService : IChatService
     {
         Message promptMessage = new(sessionId, nameof(Participants.User), default, promptText, null, null);
 
-        return await _cosmosDbService.InsertMessageAsync(promptMessage);
+        return await _cosmosDBService.InsertMessageAsync(promptMessage);
     }
 
 
@@ -164,13 +164,13 @@ public class ChatService : IChatService
     /// </summary>
     private async Task AddPromptCompletionMessagesAsync(string sessionId, Message promptMessage, Message completionMessage, CompletionPrompt completionPrompt)
     {
-        var session = await _cosmosDbService.GetSessionAsync(sessionId);
+        var session = await _cosmosDBService.GetSessionAsync(sessionId);
 
         // Update session cache with tokens used
         session.TokensUsed += promptMessage.Tokens;
         session.TokensUsed += completionMessage.Tokens;
 
-        await _cosmosDbService.UpsertSessionBatchAsync(promptMessage, completionMessage, completionPrompt, session);
+        await _cosmosDBService.UpsertSessionBatchAsync(promptMessage, completionMessage, completionPrompt, session);
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(sessionId);
 
-        return await _cosmosDbService.UpdateMessageRatingAsync(id, sessionId, rating);
+        return await _cosmosDBService.UpdateMessageRatingAsync(id, sessionId, rating);
     }
 
     public async Task AddProduct(Product product)
@@ -190,7 +190,7 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNullOrEmpty(product.id);
         ArgumentNullException.ThrowIfNullOrEmpty(product.categoryId);
 
-        await _cosmosDbService.InsertProductAsync(product);
+        await _cosmosDBService.InsertProductAsync(product);
     }
 
     public async Task AddCustomer(Customer customer)
@@ -199,7 +199,7 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNullOrEmpty(customer.id);
         ArgumentNullException.ThrowIfNullOrEmpty(customer.customerId);
 
-        await _cosmosDbService.InsertCustomerAsync(customer);
+        await _cosmosDBService.InsertCustomerAsync(customer);
     }
 
     public async Task AddSalesOrder(SalesOrder salesOrder)
@@ -208,7 +208,7 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNullOrEmpty(salesOrder.id);
         ArgumentNullException.ThrowIfNullOrEmpty(salesOrder.customerId);
 
-        await _cosmosDbService.InsertSalesOrderAsync(salesOrder);
+        await _cosmosDBService.InsertSalesOrderAsync(salesOrder);
     }
 
     public async Task DeleteProduct(string productId, string categoryId)
@@ -216,7 +216,7 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNullOrEmpty(productId);
         ArgumentNullException.ThrowIfNullOrEmpty(categoryId);
 
-        await _cosmosDbService.DeleteProductAsync(productId, categoryId);
+        await _cosmosDBService.DeleteProductAsync(productId, categoryId);
 
         try
         {
@@ -233,6 +233,6 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNullOrEmpty(sessionId);
         ArgumentNullException.ThrowIfNullOrEmpty(completionPromptId);
 
-        return await _cosmosDbService.GetCompletionPrompt(sessionId, completionPromptId);
+        return await _cosmosDBService.GetCompletionPrompt(sessionId, completionPromptId);
     }
 }

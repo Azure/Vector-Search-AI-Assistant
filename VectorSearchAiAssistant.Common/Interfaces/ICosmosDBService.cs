@@ -1,10 +1,9 @@
 ﻿using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.Common.Models.Chat;
-using VectorSearchAiAssistant.Service.Models.Chat;
 
-namespace VectorSearchAiAssistant.Service.Interfaces;
+namespace VectorSearchAiAssistant.Common.Interfaces;
 
-public interface ICosmosDbService
+public interface ICosmosDBService
 {
     bool IsInitialized { get; }
 

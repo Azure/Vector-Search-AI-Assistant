@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using VectorSearchAiAssistant.Common.Models.Chat;
-using VectorSearchAiAssistant.Service.Models.Chat;
 
 namespace Search.Helpers
 {

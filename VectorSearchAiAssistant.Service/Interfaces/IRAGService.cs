@@ -1,4 +1,5 @@
-﻿using VectorSearchAiAssistant.Common.Models.Chat;
+﻿using VectorSearchAiAssistant.Common.Interfaces;
+using VectorSearchAiAssistant.Common.Models.Chat;
 
 namespace VectorSearchAiAssistant.Service.Interfaces
 {
@@ -10,7 +11,7 @@ namespace VectorSearchAiAssistant.Service.Interfaces
 
         Task<string> Summarize(string sessionId, string userPrompt);
 
-        Task AddMemory(object item, string itemName);
+        Task AddMemory(IItemTransformer itemTransformer);
 
         Task RemoveMemory(object item);
     }
