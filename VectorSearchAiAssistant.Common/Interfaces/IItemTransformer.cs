@@ -8,6 +8,8 @@ namespace VectorSearchAiAssistant.Common.Interfaces
 
         string EmbeddingId { get; }
 
+        string EmbeddingPartitionKey { get; }
+
         string Name { get; }
 
         JObject ObjectToEmbed { get; }

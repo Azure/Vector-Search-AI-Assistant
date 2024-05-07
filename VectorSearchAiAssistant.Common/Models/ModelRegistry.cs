@@ -14,6 +14,8 @@ namespace VectorSearchAiAssistant.Common.Models
                         Type = typeof(Customer),
                         TypeMatchingProperties = ["customerId", "firstName"],
                         NamingProperties = ["firstName", "lastName"],
+                        IdentifyingProperties = ["customerId"],
+                        PartitioningProperties = ["customerId"]
                     } 
                 },
                 { 
@@ -22,7 +24,9 @@ namespace VectorSearchAiAssistant.Common.Models
                     { 
                         Type = typeof(Product),
                         TypeMatchingProperties = ["sku"],
-                        NamingProperties = ["name"]
+                        NamingProperties = ["name"],
+                        IdentifyingProperties = ["id"],
+                        PartitioningProperties = ["categoryId"]
                     } 
                 },
                 { 
@@ -31,7 +35,9 @@ namespace VectorSearchAiAssistant.Common.Models
                     { 
                         Type = typeof(SalesOrder),
                         TypeMatchingProperties = ["orderDate", "shipDate"],
-                        NamingProperties = ["id"]
+                        NamingProperties = ["id"],
+                        IdentifyingProperties = ["id"],
+                        PartitioningProperties = ["customerId"]
                     } 
                 },
                 {
@@ -40,7 +46,9 @@ namespace VectorSearchAiAssistant.Common.Models
                     {
                         Type = typeof(ShortTermMemory),
                         TypeMatchingProperties = ["memory__"],
-                        NamingProperties = []
+                        NamingProperties = ["id"],
+                        IdentifyingProperties = ["id"],
+                        PartitioningProperties = ["id"]
                     }
                 }
             };
@@ -73,5 +81,7 @@ namespace VectorSearchAiAssistant.Common.Models
         public Type? Type { get; init; }
         public List<string>? TypeMatchingProperties { get; init; }
         public List<string>? NamingProperties { get; init; }
+        public List<string>? IdentifyingProperties { get; init; }
+        public List<string>? PartitioningProperties { get; init; }
     }
 }

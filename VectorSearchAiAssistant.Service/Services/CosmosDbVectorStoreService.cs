@@ -3,6 +3,8 @@ using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
 using VectorSearchAiAssistant.Common.Interfaces;
 using VectorSearchAiAssistant.Common.Models.Configuration;
+using VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
+using VectorSearchAiAssistant.Service.Exceptions;
 
 namespace VectorSearchAiAssistant.Service.Services
 {
@@ -17,7 +19,14 @@ namespace VectorSearchAiAssistant.Service.Services
             IOptions<CosmosDBVectorStoreServiceSettings> options)
         {
             _settings = options.Value;
-            _client = new CosmosClient(_settings.Endpoint, _settings.Key);
+            _client = new CosmosClient(_settings.Endpoint, _settings.Key, new CosmosClientOptions 
+            { 
+                ConnectionMode = ConnectionMode.Gateway,
+                SerializerOptions = new CosmosSerializationOptions
+                {
+                    PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
+                }
+            });
             _database = _client.GetDatabase(_settings.Database);
         }
 
@@ -26,7 +35,7 @@ namespace VectorSearchAiAssistant.Service.Services
             var throughputProperties = ThroughputProperties.CreateAutoscaleThroughput(4000);
 
             // Define new container properties including the vector indexing policy
-            ContainerProperties properties = new(id: collectionName, partitionKeyPath: "/id")
+            ContainerProperties properties = new(id: collectionName, partitionKeyPath: "/partitionKey")
             {
                 // Define the vector embedding container policy
                 VectorEmbeddingPolicy = new(
@@ -74,5 +83,43 @@ namespace VectorSearchAiAssistant.Service.Services
 
         public List<string> GetCollections() =>
             _containers.Keys.ToList();
+
+        public async Task<T> UpsertItem<T>(string collectionName, T item) where T : class
+        {
+            if (_containers.TryGetValue(collectionName, out var container))
+            {
+                    return await container.UpsertItemAsync<T>(item);
+            }
+            else
+                throw new CosmosDBException($"The collection {collectionName} is not available.");
+        }
+
+        public async IAsyncEnumerable<T> GetNearestRecords<T>(string collectionName, float[] embedding, double similarityScore, int topN) where T : class
+        {
+            if (_containers.TryGetValue(collectionName, out var container))
+            {
+                string queryText = "SELECT Top @topN x.id, x.partitionKey, x.metadata, x.similarityScore FROM(SELECT c.id, c.partitionKey, c.metadata, VectorDistance(c.embedding, @embedding, false) as similarityScore FROM c) x WHERE x.similarityScore > @similarityScore ORDER BY x.similarityScore desc";
+
+                var queryDef = new QueryDefinition(
+                        query: queryText)
+                    .WithParameter("@topN", topN)
+                    .WithParameter("@embedding", embedding)
+                    .WithParameter("@similarityScore", similarityScore);
+
+                using FeedIterator<T> resultSet = container.GetItemQueryIterator<T>(queryDefinition: queryDef);
+
+                while (resultSet.HasMoreResults)
+                {
+                    FeedResponse<T> response = await resultSet.ReadNextAsync();
+
+                    foreach (T item in response)
+                    {
+                        yield return item;
+                    }
+                }
+            }
+            else
+                throw new CosmosDBException($"The collection {collectionName} is not available.");
+        }
     }
 }

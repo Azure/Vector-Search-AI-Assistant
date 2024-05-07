@@ -5,12 +5,8 @@ using Microsoft.SemanticKernel.Memory;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Text;
-using VectorSearchAiAssistant.Common.Extensions;
 using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Models;
-using VectorSearchAiAssistant.Common.Models.BusinessDomain;
-using VectorSearchAiAssistant.Common.Text;
+using VectorSearchAiAssistant.Common.Extensions;
 
 #pragma warning disable SKEXP0001
 
@@ -22,7 +18,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
         readonly IMemoryStore _memoryStore;
         readonly ITextEmbeddingGenerationService _textEmbedding;
         readonly ILogger<VectorMemoryStore> _logger;
-        readonly SHA1 _hash;
 
         public IMemoryStore MemoryStore => _memoryStore;
 
@@ -36,29 +31,23 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
             _memoryStore = memoryStore;
             _textEmbedding = textEmbedding;
             _logger = logger;
-            _hash = SHA1.Create();
         }
 
         public async Task EnsureMemoryStoreCollectionExists(string collectionName) =>
             await _memoryStore.CreateCollectionAsync(collectionName);
 
-        public async Task AddMemory(string memory, ReadOnlyMemory<float> memoryEmbedding, string metadata = "")
-        {
-            await UpdateMemoryStore(
-                GetHash(memory),
+        public async Task AddMemory(string memory, ReadOnlyMemory<float> memoryEmbedding, string metadata = "") =>
+            await _memoryStore.UpsertAsync(_collectionName, MemoryRecord.LocalRecord(
+                memory.GetHash(),
                 memory,
+                string.Empty,
                 memoryEmbedding,
-                metadata);
-        }
+                metadata));
 
         public async Task AddMemory(string memory, string metadata = "")
         {
             var memoryEmbedding = await _textEmbedding.GenerateEmbeddingAsync(memory);
-            await UpdateMemoryStore(
-                GetHash(memory),
-                memory,
-                memoryEmbedding,
-                metadata);
+            await AddMemory(memory, memoryEmbedding, metadata);
         }
 
         public async Task AddMemory(IItemTransformer itemTransformer)
@@ -76,11 +65,13 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
                 // Exercise: Test also using the JSON text representation - itemTransformer.ObjectToEmbed
                 var embedding = await _textEmbedding.GenerateEmbeddingAsync(itemTransformer.TextToEmbed);
 
-                await UpdateMemoryStore(
+                await _memoryStore.UpsertAsync(_collectionName, MemoryRecord.LocalRecord(
                     itemTransformer.EmbeddingId,
                     itemTransformer.TextToEmbed,
+                    string.Empty,
                     embedding,
-                    JsonConvert.SerializeObject(itemTransformer.TypedValue));
+                    JsonConvert.SerializeObject(itemTransformer.TypedValue),
+                    itemTransformer.EmbeddingPartitionKey));
 
                 _logger.LogInformation($"Memorized vector for item: {itemTransformer.Name} of type {itemTransformer.TypedValue.GetType().Name}");
             }
@@ -89,21 +80,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
                 _logger.LogError($"Exception while generating vector for [{itemTransformer.Name} of type {itemTransformer.TypedValue.GetType().Name}]: " + x.Message);
             }
         }
-
-        #region Helpers for AddMemory
-
-        private async Task UpdateMemoryStore(string id, string text, ReadOnlyMemory<float> embedding, string metadata = "") =>
-            await _memoryStore.UpsertAsync(
-                _collectionName,
-                MemoryRecord.LocalRecord(
-                    id,
-                    text, 
-                    string.Empty,
-                    embedding,
-                    metadata,
-                    timestamp: DateTimeOffset.UtcNow));
-
-        #endregion
 
         public async Task RemoveMemory(object item)
         {
@@ -162,13 +138,6 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
         public async Task<ReadOnlyMemory<float>> GetEmbedding(string textToEmbed)
         {
             return await _textEmbedding.GenerateEmbeddingAsync(textToEmbed);
-        }
-
-        private string GetHash(string s)
-        {
-            return Convert.ToBase64String(
-                _hash.ComputeHash(
-                    Encoding.UTF8.GetBytes(s)));
         }
     }
 }
