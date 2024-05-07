@@ -74,10 +74,10 @@ public class AzureCosmosDBNoSqlMemoryRecordMetadata
     /// <returns><see cref="MemoryRecordMetadata"/> instance copied from the current instance.</returns>
     public MemoryRecordMetadata ToMemoryRecordMetadata() =>
         new (
-            this.IsReference,
-            this.ExternalSourceName,
-            this.Id,
-            this.Description,
-            this.Text,
-            this.AdditionalMetadata);
+            IsReference,
+            ExternalSourceName,
+            Id,
+            Description,
+            Text,
+            AdditionalMetadata);
 }
