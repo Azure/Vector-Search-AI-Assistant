@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using VectorSearchAiAssistant.Common.Exceptions;
 using VectorSearchAiAssistant.Common.Extensions;
 using VectorSearchAiAssistant.Common.Interfaces;
@@ -19,10 +17,9 @@ namespace VectorSearchAiAssistant.Common.Services
         private readonly JObject? _objectToEmbed;
         private readonly string? _textToEmbed;
         private readonly string? _embeddingId;
+        private readonly string? _embeddingPartitionKey;
 
         private readonly bool _isEmbeddedEntity;
-
-        private static readonly SHA1 _hash = SHA1.Create();
 
         public ModelRegistryItemTransformer(object item)
         {
@@ -52,9 +49,8 @@ namespace VectorSearchAiAssistant.Common.Services
                 _objectToEmbed = transformedItem.ObjectToEmbed;
                 _textToEmbed = transformedItem.TextToEmbed;
 
-                _embeddingId = (_jObjectItem != null && _jObjectItem.ContainsKey("id"))
-                    ? _jObjectItem.Value<string>("id")
-                    : GetHash(_textToEmbed);
+                _embeddingId = string.Join(" ", _typedItem.GetPropertyValues(_typeMetadata.IdentifyingProperties!));
+                _embeddingPartitionKey = string.Join(" ", _typedItem.GetPropertyValues(_typeMetadata.PartitioningProperties!));
             }
         }
 
@@ -62,6 +58,11 @@ namespace VectorSearchAiAssistant.Common.Services
             _isEmbeddedEntity
                 ? _embeddingId!
                 : throw new ItemTransformerException("Only EmbeddedEntity objects can have an embedding identifier.");
+
+        public string EmbeddingPartitionKey =>
+            _isEmbeddedEntity
+                ? _embeddingPartitionKey!
+                : throw new ItemTransformerException("Only EmbeddedEntity objects can have an embedding partition key.");
 
         public string Name =>
             _itemName;
@@ -78,12 +79,5 @@ namespace VectorSearchAiAssistant.Common.Services
             _isEmbeddedEntity
                 ? _textToEmbed!
                 : throw new ItemTransformerException("Only EmbeddedEntity objects can be embedded.");
-
-        private static string GetHash(string s)
-        {
-            return Convert.ToBase64String(
-                _hash.ComputeHash(
-                    Encoding.UTF8.GetBytes(s)));
-        }
     }
 }
