@@ -91,10 +91,30 @@ This solution deploys to either Azure Kubernetes Service (**AKS**) or Azure Cont
 
 #### AKS deployment
 
-```bash
-cd ./aks
-azd up
-```
+1. **Optional**: Bring Your Own Azure OpenAI Instance
+
+    If you have an existing Azure OpenAI instance, you can use it by setting the following environment variables:
+
+    ```pwsh
+    cd ./aks
+    azd env set OPENAI_NAME <OpenAI Name>
+    azd env set OPENAI_RESOURCE_GROUP <OpenAI Resource Group>
+    azd env set OPENAI_SUBSCRIPTION_ID <OpenAI Subscription ID>
+    ```
+    > [!NOTE]
+    > Configuration of an external Azure OpenAI service assumes that appropriately named and configured deployments for `completions` and `embeddings` already exist in the configured external Azure OpenAI service. Typical deployment configurations for `completions` and `embeddings` are reflected in the following table:
+    
+    | Deployment  | Model                  | Capacity |
+    |-------------|------------------------|----------|
+    | completions | gpt-35-turbo (0613)    | 120K TPM |
+    | embeddings  | text-embedding-ada-002 | 120K TPM |
+
+2. Deploy the solution
+
+    ```pwsh
+    cd ./aks
+    azd up
+    ```
 
 After running `azd up` on the **AKS** deployment and the deployment finishes, you will see the output of the script which will include the URL of the web application. You can click on this URL to open the web application in your browser. The URL is beneath the "Done: Deploying service web" message, and is the second endpoint (the Ingress endpoint of type `LoadBalancer`).
 
@@ -106,10 +126,30 @@ If you closed the window and need to find the external IP address of the service
 
 #### ACA deployment
 
-```bash
-cd ./aca
-azd up
-```
+1. **Optional**: Bring Your Own Azure OpenAI Instance
+
+    If you have an existing Azure OpenAI instance, you can use it by setting the following environment variables:
+
+    ```pwsh
+    cd ./aca
+    azd env set OPENAI_NAME <OpenAI Name>
+    azd env set OPENAI_RESOURCE_GROUP <OpenAI Resource Group>
+    azd env set OPENAI_SUBSCRIPTION_ID <OpenAI Subscription ID>
+    ```
+    > [!NOTE]
+    > Configuration of an external Azure OpenAI service assumes that appropriately named and configured deployments for `completions` and `embeddings` already exist in the configured external Azure OpenAI service. Typical deployment configurations for `completions` and `embeddings` are reflected in the following table:
+    
+    | Deployment  | Model                  | Capacity |
+    |-------------|------------------------|----------|
+    | completions | gpt-35-turbo (0613)    | 120K TPM |
+    | embeddings  | text-embedding-ada-002 | 120K TPM |
+
+2. Deploy the solution
+
+    ```pwsh
+    cd ./aca
+    azd up
+    ```
 
 After running `azd up` on the **ACA** deployment and the deployment finishes, you can locate the URL of the web application by navigating to the deployed resource group in the Azure portal. Click on the link to the new resource group in the output of the script to open the Azure portal.
 

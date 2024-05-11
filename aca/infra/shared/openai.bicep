@@ -1,5 +1,4 @@
 param deployments array
-param keyvaultName string
 param location string = resourceGroup().location
 param name string
 param sku string = 'S0'
@@ -39,20 +38,5 @@ resource openAiDeployments 'Microsoft.CognitiveServices/accounts/deployments@202
   }
 ]
 
-resource keyvault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
-  name: keyvaultName
-}
-
-resource apiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
-  name: 'openai-apikey'
-  parent: keyvault
-  tags: tags
-  properties: {
-    value: openAi.listKeys().key1
-  }
-}
-
 output endpoint string = openAi.properties.endpoint
-output keySecretName string = apiKeySecret.name
-output keySecretRef string = apiKeySecret.properties.secretUri
 output name string = openAi.name

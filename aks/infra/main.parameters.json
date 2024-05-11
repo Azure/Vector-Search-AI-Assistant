@@ -8,11 +8,18 @@
       "location": {
         "value": "${AZURE_LOCATION}"
       },
+      "existingOpenAiInstance": {
+        "value": {
+          "name": "${OPENAI_NAME}",
+          "resourceGroup": "${OPENAI_RESOURCE_GROUP}",
+          "subscriptionId": "${OPENAI_SUBSCRIPTION_ID}"
+        }
+      },
       "principalId": {
         "value": "${AZURE_PRINCIPAL_ID}"
       },
       "kubernetesVersion": {
-        "value": "1.26"
+        "value": "1.28"
       }
     }
   }
