@@ -9,6 +9,8 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+param existingOpenAiInstance object
+
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
@@ -18,6 +20,15 @@ param kubernetesVersion string = '1.26'
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
+
+var deployOpenAi = empty(existingOpenAiInstance.name)
+var azureOpenAiEndpoint = deployOpenAi ? openAi.outputs.endpoint : customerOpenAi.properties.endpoint
+var azureOpenAi = deployOpenAi ? openAiInstance : existingOpenAiInstance
+var openAiInstance = {
+  name: openAi.outputs.name
+  resourceGroup: resourceGroup.name
+  subscriptionId: subscription().subscriptionId
+}
 
 // Resource group to hold all resources
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -63,6 +74,18 @@ module containerRegistryAccess './role-assignments/aks-acr-role-assignment.bicep
     desc: 'AKS cluster managed identity'
   }
 }
+
+resource customerOpenAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing =
+  if (!deployOpenAi) {
+    scope: subscription(existingOpenAiInstance.subscriptionId)
+    name: existingOpenAiInstance.resourceGroup
+  }
+
+resource customerOpenAi 'Microsoft.CognitiveServices/accounts@2023-05-01' existing =
+  if (!deployOpenAi) {
+    name: existingOpenAiInstance.name
+    scope: customerOpenAiResourceGroup
+  }
 
 // Monitor application with Azure Monitor
 module monitoring './monitoring/monitoring.bicep' = {
@@ -152,7 +175,6 @@ module openAi './resources/openai.bicep' = {
         }
       }
     ]
-    keyvaultName: keyVault.outputs.name
     location: location
     name: '${abbrs.openAiAccounts}${resourceToken}'
     sku: 'S0'
@@ -171,6 +193,17 @@ module cogSearch './resources/search.bicep' = {
     tags: tags
   }
   scope: resourceGroup
+}
+
+module openAiSecrets './resources/openai-secrets.bicep' = {
+  name: 'openaiSecrets'
+  scope: resourceGroup
+
+  params: {
+    keyvaultName: keyVault.outputs.name
+    openAiInstance: azureOpenAi
+    tags: tags
+  }
 }
 
 module storage './resources/storage.bicep' = {
@@ -361,7 +394,7 @@ output AZURE_COSMOS_DB_NAME string = cosmos.outputs.name
 output AZURE_COSMOS_DB_ENDPOINT string = cosmos.outputs.endpoint
 output AZURE_COGNITIVE_SEARCH_NAME string = cogSearch.outputs.name
 output AZURE_COGNITIVE_SEARCH_ENDPOINT string = cogSearch.outputs.endpoint
-output AZURE_OPENAI_NAME string = openAi.outputs.name
-output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
+output AZURE_OPENAI_NAME string = openAiInstance.name
+output AZURE_OPENAI_ENDPOINT string = azureOpenAiEndpoint
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
 
