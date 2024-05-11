@@ -148,7 +148,7 @@ module keyVault './resources/keyvault.bicep' = {
   scope: resourceGroup
 }
 
-module openAi './resources/openai.bicep' = {
+module openAi './resources/openai.bicep' = if (deployOpenAi) {
   name: 'openai'
   params: {
     deployments: [

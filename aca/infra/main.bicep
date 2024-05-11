@@ -138,7 +138,7 @@ module keyVault './shared/keyvault.bicep' = {
   scope: rg
 }
 
-module openAi './shared/openai.bicep' = {
+module openAi './shared/openai.bicep' = if (deployOpenAi) {
   name: 'openai'
   params: {
     deployments: [
