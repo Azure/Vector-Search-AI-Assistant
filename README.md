@@ -101,6 +101,8 @@ This solution deploys to either Azure Kubernetes Service (**AKS**) or Azure Cont
     azd env set OPENAI_RESOURCE_GROUP <OpenAI Resource Group>
     azd env set OPENAI_SUBSCRIPTION_ID <OpenAI Subscription ID>
     ```
+    > [!NOTE]
+    > Configuration of an external Azure OpenAI service assumes that appropriately named and configured deployments for `completions` and `embeddings` already exist in the configured external Azure OpenAI service.
 
 2. Deploy the solution
 
@@ -129,6 +131,8 @@ If you closed the window and need to find the external IP address of the service
     azd env set OPENAI_RESOURCE_GROUP <OpenAI Resource Group>
     azd env set OPENAI_SUBSCRIPTION_ID <OpenAI Subscription ID>
     ```
+    > [!NOTE]
+    > Configuration of an external Azure OpenAI service assumes that appropriately named and configured deployments for `completions` and `embeddings` already exist in the configured external Azure OpenAI service.
 
 2. Deploy the solution
 
