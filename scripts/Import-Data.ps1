@@ -1,29 +1,48 @@
+#! /usr/bin/pwsh
+
 Param(
     [parameter(Mandatory=$true)][string]$resourceGroup,
-    [parameter(Mandatory=$true)][string]$cosmosDbAccountName
+    [parameter(Mandatory=$true)][string]$apiUrl
 )
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)
-Push-Location ..
-Remove-Item -Path dMT -Recurse -Force -ErrorAction Ignore
-New-Item -ItemType Directory -Force -Path "dMT"
-Push-Location "dMT"
 
-$dmtUrl="https://github.com/AzureCosmosDB/data-migration-desktop-tool/releases/download/2.1.1/dmt-2.1.1-win-x64.zip"
-Invoke-WebRequest -Uri $dmtUrl -OutFile dmt.zip
-Expand-Archive -Path dmt.zip -DestinationPath .
-Push-Location "windows-package"
-Copy-Item -Path "../../migrationsettings.json" -Destination "./migrationsettings.json" -Force
+$blobUri = "https://cosmosdbcosmicworks.blob.core.windows.net/cosmic-works-small/product.json"
+$result = Invoke-WebRequest -Uri $blobUri
+$products = $result.Content | ConvertFrom-Json
+Write-Output "Imported $($products.Length) products"
 
-#Write-Host "Bumping up the throughput on the customer container to avoid a known DMT issue..."
-#az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name vsai-database --name customer --resource-group $resourceGroup --max-throughput 2000
+$blobUri = "https://cosmosdbcosmicworks.blob.core.windows.net/cosmic-works-small/customer.json"
+$result = Invoke-WebRequest -Uri $blobUri
+# The customers file has a BOM which needs to be ignored
+$customers = $result.Content.Substring(1, $result.Content.Length - 1) | ConvertFrom-Json
+Write-Output "Imported $($customers.Length) customers"
 
-& "./dmt.exe"
+$OldProgressPreference = $ProgressPreference
+$ProgressPreference = "SilentlyContinue"
 
-#Write-Host "Restoring the throughput on the customer container..."
-#az cosmosdb sql container throughput update --account-name $cosmosDbAccountName --database-name vsai-database --name customer --resource-group $resourceGroup --max-throughput 1000
+$currentIndex = 0
+foreach($product in $products)
+{
+    Invoke-RestMethod -Uri $apiUrl/products -Method PUT -Body ($product | ConvertTo-Json) -ContentType 'application/json'
 
-Pop-Location
-Pop-Location
-Pop-Location
+    $currentIndex += 1
+    Write-Output "Imported product $currentIndex of $($products.Length)"
+}
+
+$currentIndex = 0
+foreach($customer in $customers)
+{
+    if ($customer.type -eq "customer") {
+        Invoke-RestMethod -Uri $apiUrl/customers -Method PUT -Body ($customer | ConvertTo-Json) -ContentType 'application/json'
+    } elseif ($customer.type -eq "salesOrder") {
+        Invoke-RestMethod -Uri $apiUrl/salesorders -Method PUT -Body ($customer | ConvertTo-Json) -ContentType 'application/json'
+    }
+
+    $currentIndex += 1
+    Write-Output "Imported customer/sales order $currentIndex of $($customers.Length)"
+}
+
+$ProgressPreference = $OldProgressPreference
+
 Pop-Location

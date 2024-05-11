@@ -174,11 +174,6 @@ if ($stepDeployImages) {
     }
 }
 
-if ($stepImportData) {
-    # Import Data
-    & ./Import-Data.ps1 -resourceGroup $resourceGroup -cosmosDbAccountName $cosmosDbAccountName
-}
-
 if ($deployAks)
 {
     $webappHostname=$(az aks show -n $aksName -g $resourceGroup -o json --query addonProfiles.httpApplicationRouting.config.HTTPApplicationRoutingZoneName | ConvertFrom-Json)
@@ -187,6 +182,14 @@ else
 {
     $webappHostname=$(az deployment group show -g $resourceGroup -n cosmosdb-openai-azuredeploy -o json --query properties.outputs.webFqdn.value | ConvertFrom-Json)
 }
+
+if ($stepImportData) {
+    # Import Data
+    $apiUrl = "https://$webappHostname/api"
+    & ./Import-Data.ps1 -resourceGroup $resourceGroup -apiUrl $apiUrl
+}
+
+
 
 Write-Host "===========================================================" -ForegroundColor Yellow
 Write-Host "The frontend is hosted at https://$webappHostname" -ForegroundColor Yellow
