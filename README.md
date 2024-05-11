@@ -102,7 +102,12 @@ This solution deploys to either Azure Kubernetes Service (**AKS**) or Azure Cont
     azd env set OPENAI_SUBSCRIPTION_ID <OpenAI Subscription ID>
     ```
     > [!NOTE]
-    > Configuration of an external Azure OpenAI service assumes that appropriately named and configured deployments for `completions` and `embeddings` already exist in the configured external Azure OpenAI service.
+    > Configuration of an external Azure OpenAI service assumes that appropriately named and configured deployments for `completions` and `embeddings` already exist in the configured external Azure OpenAI service. Typical deployment configurations for `completions` and `embeddings` are reflected in the following table:
+    
+    | Deployment  | Model                  | Capacity |
+    |-------------|------------------------|----------|
+    | completions | gpt-35-turbo (0613)    | 120K TPM |
+    | embeddings  | text-embedding-ada-002 | 120K TPM |
 
 2. Deploy the solution
 
@@ -132,7 +137,12 @@ If you closed the window and need to find the external IP address of the service
     azd env set OPENAI_SUBSCRIPTION_ID <OpenAI Subscription ID>
     ```
     > [!NOTE]
-    > Configuration of an external Azure OpenAI service assumes that appropriately named and configured deployments for `completions` and `embeddings` already exist in the configured external Azure OpenAI service.
+    > Configuration of an external Azure OpenAI service assumes that appropriately named and configured deployments for `completions` and `embeddings` already exist in the configured external Azure OpenAI service. Typical deployment configurations for `completions` and `embeddings` are reflected in the following table:
+    
+    | Deployment  | Model                  | Capacity |
+    |-------------|------------------------|----------|
+    | completions | gpt-35-turbo (0613)    | 120K TPM |
+    | embeddings  | text-embedding-ada-002 | 120K TPM |
 
 2. Deploy the solution
 
