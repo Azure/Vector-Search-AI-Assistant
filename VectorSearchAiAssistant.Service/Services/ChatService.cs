@@ -108,9 +108,25 @@ public class ChatService : IChatService
             var result = await _ragService.GetResponse(userPrompt, messages);
 
             // Add both prompt and completion to cache, then persist in Cosmos DB
-            var promptMessage = new Message(sessionId, nameof(Participants.User), result.UserPromptTokens, userPrompt, result.UserPromptEmbedding, null);
-            var completionMessage = new Message(sessionId, nameof(Participants.Assistant), result.ResponseTokens, result.Completion, null, null);
-            var completionPrompt = new CompletionPrompt(sessionId, completionMessage.Id, result.UserPrompt);
+            var promptMessage = new Message(
+                sessionId, 
+                nameof(Participants.User), 
+                result.UserPromptTokens, 
+                result.RenderedPromptTokens, 
+                result.FromCache ? 0 : result.RenderedPromptTokens, // if we hit the cache, the actual token consumption is zero.
+                result.UserPrompt, 
+                result.UserPromptEmbedding,
+                null);
+            var completionMessage = new Message(
+                sessionId,
+                nameof(Participants.Assistant),
+                result.CompletionTokens,
+                result.CompletionTokens, // in the case of a completion the text and the rendered text are identical.
+                result.FromCache ? 0: result.CompletionTokens, // if we hit the cache, the actual token consumption is zero.
+                result.Completion,
+                null,
+                null);
+            var completionPrompt = new CompletionPrompt(sessionId, completionMessage.Id, result.RenderedPrompt);
             completionMessage.CompletionPromptId = completionPrompt.Id;
 
             await AddPromptCompletionMessagesAsync(sessionId, promptMessage, completionMessage, completionPrompt);
@@ -149,17 +165,6 @@ public class ChatService : IChatService
     }
 
     /// <summary>
-    /// Add a new user prompt to the chat session and insert into the data service.
-    /// </summary>
-    private async Task<Message> AddPromptMessageAsync(string sessionId, string promptText)
-    {
-        Message promptMessage = new(sessionId, nameof(Participants.User), default, promptText, null, null);
-
-        return await _cosmosDBService.InsertMessageAsync(promptMessage);
-    }
-
-
-    /// <summary>
     /// Add user prompt and AI assistance response to the chat session message list object and insert into the data service as a transaction.
     /// </summary>
     private async Task AddPromptCompletionMessagesAsync(string sessionId, Message promptMessage, Message completionMessage, CompletionPrompt completionPrompt)
@@ -167,8 +172,8 @@ public class ChatService : IChatService
         var session = await _cosmosDBService.GetSessionAsync(sessionId);
 
         // Update session cache with tokens used
-        session.TokensUsed += promptMessage.Tokens;
-        session.TokensUsed += completionMessage.Tokens;
+        session.TokensUsed += promptMessage.TokensUsed;
+        session.TokensUsed += completionMessage.TokensUsed;
 
         await _cosmosDBService.UpsertSessionBatchAsync(promptMessage, completionMessage, completionPrompt, session);
     }

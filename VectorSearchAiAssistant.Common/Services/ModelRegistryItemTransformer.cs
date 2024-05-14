@@ -18,6 +18,7 @@ namespace VectorSearchAiAssistant.Common.Services
         private readonly string? _textToEmbed;
         private readonly string? _embeddingId;
         private readonly string? _embeddingPartitionKey;
+        private readonly ReadOnlyMemory<float> _embedding;
 
         private readonly bool _isEmbeddedEntity;
 

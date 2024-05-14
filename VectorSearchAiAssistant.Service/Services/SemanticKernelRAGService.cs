@@ -7,7 +7,6 @@ using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
 using System.Text.RegularExpressions;
 using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Models;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
 using VectorSearchAiAssistant.Common.Models.Chat;
 using VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
@@ -28,14 +27,14 @@ public class SemanticKernelRAGService : IRAGService
     readonly ILogger<SemanticKernelRAGService> _logger;
     readonly ISystemPromptService _systemPromptService;
     readonly ICosmosDBVectorStoreService _cosmosDBVectorStoreService;
+    readonly ITokenizerService _tokenizerService;
     readonly VectorMemoryStore _longTermMemory;
     readonly VectorMemoryStore _shortTermMemory;
-    readonly VectorMemoryStore _semanticMemory;
+    readonly ISemanticCacheService _semanticCache;
 
     readonly IItemTransformerFactory _itemTransformerFactory;
 
     readonly string _shortTermCollectionName = "short-term";
-    readonly string _semanticMemoryCollectionName = "semantic-memory";
 
     bool _serviceInitialized = false;
     bool _shortTermMemoryInitialized = false;
@@ -50,6 +49,7 @@ public class SemanticKernelRAGService : IRAGService
         ISystemPromptService systemPromptService,
         IEnumerable<IMemorySource> memorySources,
         ICosmosDBVectorStoreService cosmosDBVectorStoreService,
+        ITokenizerService tokenizerService,
         IOptions<SemanticKernelRAGServiceSettings> options,
         ILogger<SemanticKernelRAGService> logger,
         ILoggerFactory loggerFactory)
@@ -57,6 +57,7 @@ public class SemanticKernelRAGService : IRAGService
         _itemTransformerFactory = itemTransformerFactory;
         _systemPromptService = systemPromptService;
         _cosmosDBVectorStoreService = cosmosDBVectorStoreService;
+        _tokenizerService = tokenizerService;
         _memorySources = memorySources;
         _settings = options.Value;
         _logger = logger;
@@ -81,7 +82,7 @@ public class SemanticKernelRAGService : IRAGService
 
         // The long-term memory uses an Azure Cosmos DB NoSQL memory store
         _longTermMemory = new VectorMemoryStore(
-            _settings.CosmosDBVectorStore.MainIndexName,
+            _settings.KnowledgeRetrieval.IndexName,
             new AzureCosmosDBNoSqlMemoryStore(_cosmosDBVectorStoreService),
             _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
             loggerFactory.CreateLogger<VectorMemoryStore>());
@@ -92,19 +93,24 @@ public class SemanticKernelRAGService : IRAGService
             _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
             loggerFactory.CreateLogger<VectorMemoryStore>());
 
-        _semanticMemory = new VectorMemoryStore(
-            _semanticMemoryCollectionName,
-            new VolatileMemoryStore(),
-            _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
-            loggerFactory.CreateLogger<VectorMemoryStore>());
+        _semanticCache = new SemanticCacheService(
+            _settings.SemanticCache,
+            _settings.SemanticCacheRetrieval,
+            new VectorMemoryStore(
+                _settings.SemanticCacheRetrieval.IndexName,
+                new AzureCosmosDBNoSqlMemoryStore(_cosmosDBVectorStoreService),
+                _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
+                loggerFactory.CreateLogger<VectorMemoryStore>()),
+            _tokenizerService,
+            _settings.TextSplitter.TokenizerEncoder!);
 
         Task.Run(Initialize);
     }
 
     private async Task Initialize()
     {
-        await _longTermMemory.EnsureMemoryStoreCollectionExists(_settings.CosmosDBVectorStore.MainIndexName);
-        await _longTermMemory.EnsureMemoryStoreCollectionExists(_settings.CosmosDBVectorStore.SemanticCacheIndexName);
+        await _longTermMemory.Initialize();
+        await _semanticCache.Initialize();
 
         _prompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName);
 
@@ -112,7 +118,7 @@ public class SemanticKernelRAGService : IRAGService
             _longTermMemory,
             _shortTermMemory,
             _prompt,
-            _settings.AISearch,
+            _settings.KnowledgeRetrieval,
             _settings.OpenAI,
             _logger);
 
@@ -166,45 +172,25 @@ public class SemanticKernelRAGService : IRAGService
         }
     }
 
-    private async Task EnsureSemanticMemory()
+    public async Task<CompletionResult> GetResponse(string userPrompt, List<Message> messageHistory)
     {
-        try
-        {
-            if (_semanticMemoryInitialized)
-                return;
+        var cacheItem = await _semanticCache.GetCacheItem(userPrompt, messageHistory);
+        if (!string.IsNullOrEmpty(cacheItem.Completion))
+            // If the Completion property is set, it means the cache item was populated with a hit from the cache
+            return new CompletionResult
+            {
+                UserPrompt = userPrompt,
+                UserPromptTokens = cacheItem.UserPromptTokens,
+                UserPromptEmbedding = cacheItem.UserPromptEmbedding.ToArray(),
+                RenderedPrompt = cacheItem.ConversationContext,
+                RenderedPromptTokens = cacheItem.ConversationContextTokens,
+                Completion = cacheItem.Completion,
+                CompletionTokens = cacheItem.CompletionTokens,
+                FromCache = true
+            };
 
-            // The memories collection in the short term memory store must be created explicitly
-            await _semanticMemory.MemoryStore.CreateCollectionAsync(_semanticMemoryCollectionName);
-
-            // TODO: Load the semantic memory from Cosmos DB.
-
-            _semanticMemoryInitialized = true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "The semantic memory failed to initialize.");
-        }
-    }
-
-    public async Task<(string Completion, string UserPrompt, int UserPromptTokens, int ResponseTokens, float[]? UserPromptEmbedding)> GetResponse(string userPrompt, List<Message> messageHistory)
-    {
-        // First, get the user prompt embedding since we will need to use it in multiple places
-        await EnsureSemanticMemory();
-        var userPromptEmbedding = await _semanticKernel.GetRequiredService<ITextEmbeddingGenerationService>().GenerateEmbeddingAsync(userPrompt);
-
-        // Check if a very similar question has been asked in the recent past
-        var semanticMemoryHits = await _semanticMemory
-            .GetNearestMatches(userPromptEmbedding, 1, 0.95f)
-            .ToListAsync()
-            .ConfigureAwait(false);
-
-        if (semanticMemoryHits.Count > 0)
-        {
-            var cachedResponse = semanticMemoryHits[0].Metadata.AdditionalMetadata;
-            return (cachedResponse, userPrompt, 0, 0, userPromptEmbedding.ToArray());
-        }
-
-        // The semantic memory was not able to provide a cached answer, so we start the normal response flow
+        // The semantic cache was not able to retrieve a hit from the cache so we are moving on with the normal flow.
+        // We still need to keep the cache item around as it contains the properties we need later on to update the cache with the new entry.
 
         await EnsureShortTermMemory();
 
@@ -224,9 +210,21 @@ public class SemanticKernelRAGService : IRAGService
         var completionUsage = (result.Metadata!["Usage"] as CompletionsUsage)!;
 
         // Add the completion to the semantic memory
-        await _semanticMemory.AddMemory(userPrompt, userPromptEmbedding, completion);
+        cacheItem.Completion = completion;
+        cacheItem.CompletionTokens = completionUsage!.CompletionTokens;
+        await _semanticCache.SetCacheItem(cacheItem);
 
-        return new(completion, promptFilter.RenderedPrompt, completionUsage!.PromptTokens, completionUsage.CompletionTokens, userPromptEmbedding.ToArray());
+        return new CompletionResult
+        {
+            UserPrompt = userPrompt,
+            UserPromptTokens = cacheItem.UserPromptTokens,
+            UserPromptEmbedding = cacheItem.UserPromptEmbedding.ToArray(),
+            RenderedPrompt = promptFilter.RenderedPrompt,
+            RenderedPromptTokens = completionUsage.PromptTokens,
+            Completion = completion,
+            CompletionTokens = completionUsage.CompletionTokens,
+            FromCache = false
+        };
     }
 
     public async Task<string> Summarize(string sessionId, string userPrompt)
