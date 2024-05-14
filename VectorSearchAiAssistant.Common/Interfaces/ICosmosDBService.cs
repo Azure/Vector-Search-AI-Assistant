@@ -112,11 +112,5 @@ public interface ICosmosDBService
     /// <returns></returns>
     Task DeleteProductAsync(string productId, string categoryId);
 
-    /// <summary>
-    /// Reads all documents retrieved by Vector Search.
-    /// </summary>
-    /// <param name="vectorDocuments">List string of JSON documents from vector search results</param>
-    Task<string> GetVectorSearchDocumentsAsync(List<DocumentVector> vectorDocuments);
-
     Task<CompletionPrompt> GetCompletionPrompt(string sessionId, string completionPromptId);
 }

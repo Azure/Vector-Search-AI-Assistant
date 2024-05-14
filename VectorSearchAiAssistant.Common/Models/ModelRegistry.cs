@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
+using VectorSearchAiAssistant.Common.Models.Chat;
 
 namespace VectorSearchAiAssistant.Common.Models
 {
