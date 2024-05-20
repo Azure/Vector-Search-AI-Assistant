@@ -4,7 +4,6 @@ using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
 using Newtonsoft.Json;
 using System.Reflection;
-using VectorSearchAiAssistant.Common.Extensions;
 using VectorSearchAiAssistant.Common.Interfaces;
 
 #pragma warning disable SKEXP0001
