@@ -53,6 +53,8 @@ resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/con
           kind: 'Hash'
           version: 2
         }
+        indexingPolicy: container.indexingPolicy
+        vectorEmbeddingPolicy: container.vectorEmbeddingPolicy
       }
     }
     tags: tags

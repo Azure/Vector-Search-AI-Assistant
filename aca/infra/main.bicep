@@ -56,22 +56,32 @@ module cosmos './shared/cosmosdb.bicep' = {
       {
         name: 'embedding'
         partitionKeyPath: '/id'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
       {
         name: 'completions'
         partitionKeyPath: '/sessionId'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
       {
         name: 'product'
         partitionKeyPath: '/categoryId'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
       {
         name: 'customer'
         partitionKeyPath: '/customerId'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
       {
         name: 'leases'
         partitionKeyPath: '/id'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
     ]
     databaseName: 'vsai-database'
@@ -91,10 +101,79 @@ module cosmosVec './shared/cosmosdb.bicep' = {
         name: 'EnableNoSQLVectorSearch'
       }
       {
-        name: 'Serverless'
+        name: 'EnableServerless'
       }
     ]
-    containers: []
+    containers: [
+      {
+        name: 'main-vector-store'
+        partitionKeyPath: '/partitionKey'
+        indexingPolicy: {
+          indexingMode: 'consistent'
+          automatic: true
+          includedPaths: [
+            {
+              path: '/*'
+            }
+          ]
+          excludedPaths: [
+            {
+              path: '/embedding/?'
+            }
+          ]
+          vectorIndexes: [
+            {
+              path: '/embedding'
+              type: 'quantizedFlat'
+            }
+          ]
+        }
+        vectorEmbeddingPolicy: {
+          vectorEmbeddings: [
+            {
+              path: '/embedding'
+              dataType: 'float32'
+              dimensions: 1536
+              distanceFunction: 'cosine'
+            }
+          ]
+        }
+      }
+      {
+        name: 'cache-vector-store'
+        partitionKeyPath: '/partitionKey'
+        indexingPolicy: {
+          indexingMode: 'consistent'
+          automatic: true
+          includedPaths: [
+            {
+              path: '/*'
+            }
+          ]
+          excludedPaths: [
+            {
+              path: '/embedding/?'
+            }
+          ]
+          vectorIndexes: [
+            {
+              path: '/embedding'
+              type: 'quantizedFlat'
+            }
+          ]
+        }
+        vectorEmbeddingPolicy: {
+          vectorEmbeddings: [
+            {
+              path: '/embedding'
+              dataType: 'float32'
+              dimensions: 1536
+              distanceFunction: 'cosine'
+            }
+          ]
+        }
+      }
+    ]
     databaseName: 'cj-byd-to-chat-gpt'
     keyvaultName: keyVault.outputs.name
     secretName: 'cosmosdb-vec-key'
@@ -291,6 +370,14 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
         value: cogSearch.outputs.endpoint
       }
       {
+        name: 'MSCosmosDBOpenAI__AISearchMemorySource__Endpoint'
+        value: cogSearch.outputs.endpoint
+      }
+      {
+        name: 'MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint'
+        value: cosmosVec.outputs.endpoint
+      }
+      {
         name: 'MSCosmosDBOpenAI__OpenAI__Endpoint'
         value: openAi.outputs.endpoint
       }
@@ -298,21 +385,32 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
         name: 'MSCosmosDBOpenAI__CosmosDB__Endpoint'
         value: cosmos.outputs.endpoint
       }
-      {
-        name: 'MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint'
-        value: cosmosVec.outputs.endpoint
-      }
     ]
     secretSettings: [
+      {
+        name: 'ApplicationInsights__ConnectionString'
+        value: monitoring.outputs.applicationInsightsConnectionSecretRef
+        secretRef: monitoring.outputs.applicationInsightsConnectionSecretName
+      }
       {
         name: 'MSCosmosDBOpenAI__AISearch__Key'
         value: cogSearch.outputs.keySecretRef
         secretRef: cogSearch.outputs.keySecretName
       }
       {
-        name: 'MSCosmosDBOpenAI__OpenAI__Key'
-        value: openAi.outputs.keySecretRef
-        secretRef: openAi.outputs.keySecretName
+        name: 'MSCosmosDBOpenAI__AISearchMemorySource__ConfigBlobStorageConnection'
+        value: storage.outputs.connectionSecretRef
+        secretRef: storage.outputs.connectionSecretName
+      }
+      {
+        name: 'MSCosmosDBOpenAI__AISearchMemorySource__Key'
+        value: cogSearch.outputs.keySecretRef
+        secretRef: cogSearch.outputs.keySecretName
+      }
+      {
+        name: 'MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection'
+        value: storage.outputs.connectionSecretRef
+        secretRef: storage.outputs.connectionSecretName
       }
       {
         name: 'MSCosmosDBOpenAI__CosmosDB__Key'
@@ -330,19 +428,9 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
         secretRef: storage.outputs.connectionSecretName
       }
       {
-        name: 'MSCosmosDBOpenAI__AISearchMemorySource__ConfigBlobStorageConnection'
-        value: storage.outputs.connectionSecretRef
-        secretRef: storage.outputs.connectionSecretName
-      }
-      {
-        name: 'MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection'
-        value: storage.outputs.connectionSecretRef
-        secretRef: storage.outputs.connectionSecretName
-      }
-      {
-        name: 'ApplicationInsights__ConnectionString'
-        value: monitoring.outputs.applicationInsightsConnectionSecretRef
-        secretRef: monitoring.outputs.applicationInsightsConnectionSecretName
+        name: 'MSCosmosDBOpenAI__OpenAI__Key'
+        value: openAi.outputs.keySecretRef
+        secretRef: openAi.outputs.keySecretName
       }
     ]
   }

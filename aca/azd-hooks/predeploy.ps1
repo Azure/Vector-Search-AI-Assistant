@@ -1,4 +1,6 @@
 Write-Host "Uploading system prompts"
+az account set --subscription ${env:AZURE_SUBSCRIPTION_ID}
+
 az storage container create --account-name ${env:AZURE_STORAGE_ACCOUNT_NAME} --name "system-prompt" --only-show-errors
 az storage azcopy blob upload -c system-prompt --account-name ${env:AZURE_STORAGE_ACCOUNT_NAME} -s "../SystemPrompts/*" --recursive --only-show-errors
 
