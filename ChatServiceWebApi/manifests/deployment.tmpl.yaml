@@ -23,151 +23,31 @@ spec:
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
-            - name: MSCosmosDBOpenAI__CognitiveSearch__IndexName
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__CognitiveSearch__IndexName
-            - name: MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults
-            - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeployment
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__CompletionsDeployment
-            - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeploymentMaxTokens
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__CompletionsDeploymentMaxTokens
-            - name: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment
-            - name: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeploymentMaxTokens
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeploymentMaxTokens
-            - name: MSCosmosDBOpenAI__OpenAI__ChatCompletionPromptName
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__ChatCompletionPromptName
-            - name: MSCosmosDBOpenAI__OpenAI__ShortSummaryPromptName
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__ShortSummaryPromptName
-            - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMinTokens
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMinTokens
-            - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMaxTokens
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__PromptOptimization__CompletionsMaxTokens
-            - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__SystemMaxTokens
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__PromptOptimization__SystemMaxTokens
-            - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMinTokens
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMinTokens
-            - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMaxTokens
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MemoryMaxTokens
-            - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMinTokens
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMinTokens
-            - name: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMaxTokens
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__OpenAI__PromptOptimization__MessagesMaxTokens
-            - name: MSCosmosDBOpenAI__CosmosDB__Containers
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__CosmosDB__Containers
-            - name: MSCosmosDBOpenAI__CosmosDB__MonitoredContainers
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__CosmosDB__MonitoredContainers
-            - name: MSCosmosDBOpenAI__CosmosDB__Database
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__CosmosDB__Database
-            - name: MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer
-            - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer
-            - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName
-            - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageContainer
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageContainer
-            - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigFilePath
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigFilePath
-            - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageContainer
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageContainer
-            - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigFilePath
-              valueFrom:
-                configMapKeyRef:
-                  name: cfg-api
-                  key: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigFilePath
-            - name: MSCosmosDBOpenAI__CognitiveSearch__Endpoint
+            - name: MSCosmosDBOpenAI__AISearch__Endpoint
               valueFrom:
                 secretKeyRef:
                   name: secret-api
-                  key: MSCosmosDBOpenAI__CognitiveSearch__Endpoint
-            - name: MSCosmosDBOpenAI__CognitiveSearch__Key
+                  key: MSCosmosDBOpenAI__AISearch__Endpoint
+            - name: MSCosmosDBOpenAI__AISearch__Key
               valueFrom:
                 secretKeyRef:
                   name: secret-api
-                  key: MSCosmosDBOpenAI__CognitiveSearch__Key
-            - name: MSCosmosDBOpenAI__OpenAI__Endpoint
+                  key: MSCosmosDBOpenAI__AISearch__Key
+            - name: MSCosmosDBOpenAI__AISearchMemorySource__Endpoint
               valueFrom:
                 secretKeyRef:
                   name: secret-api
-                  key: MSCosmosDBOpenAI__OpenAI__Endpoint
-            - name: MSCosmosDBOpenAI__OpenAI__Key
+                  key: MSCosmosDBOpenAI__AISearchMemorySource__Endpoint
+            - name: MSCosmosDBOpenAI__AISearchMemorySource__Key
               valueFrom:
                 secretKeyRef:
                   name: secret-api
-                  key: MSCosmosDBOpenAI__OpenAI__Key
+                  key: MSCosmosDBOpenAI__AISearchMemorySource__Key
+            - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
             - name: MSCosmosDBOpenAI__CosmosDB__Endpoint
               valueFrom:
                 secretKeyRef:
@@ -178,31 +58,31 @@ spec:
                 secretKeyRef:
                   name: secret-api
                   key: MSCosmosDBOpenAI__CosmosDB__Key
+            - name: MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint
+            - name: MSCosmosDBOpenAI__CosmosDBVectorStore__Key
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__CosmosDBVectorStore__Key
             - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection
               valueFrom:
                 secretKeyRef:
                   name: secret-api
                   key: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection
-            - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__Endpoint
+            - name: MSCosmosDBOpenAI__OpenAI__Endpoint
               valueFrom:
                 secretKeyRef:
                   name: secret-api
-                  key: MSCosmosDBOpenAI__CognitiveSearchMemorySource__Endpoint
-            - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__Key
+                  key: MSCosmosDBOpenAI__OpenAI__Endpoint
+            - name: MSCosmosDBOpenAI__OpenAI__Key
               valueFrom:
                 secretKeyRef:
                   name: secret-api
-                  key: MSCosmosDBOpenAI__CognitiveSearchMemorySource__Key
-            - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageConnection
-              valueFrom:
-                secretKeyRef:
-                  name: secret-api
-                  key: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageConnection
-            - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
-              valueFrom:
-                secretKeyRef:
-                  name: secret-api
-                  key: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
+                  key: MSCosmosDBOpenAI__OpenAI__Key
           ports:
             - name: http
               containerPort: 80
