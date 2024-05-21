@@ -87,28 +87,129 @@ module cosmos './resources/cosmosdb.bicep' = {
       {
         name: 'embedding'
         partitionKeyPath: '/id'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
       {
         name: 'completions'
         partitionKeyPath: '/sessionId'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
       {
         name: 'product'
         partitionKeyPath: '/categoryId'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
       {
         name: 'customer'
         partitionKeyPath: '/customerId'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
       {
         name: 'leases'
         partitionKeyPath: '/id'
+        indexingPolicy: null
+        vectorEmbeddingPolicy: {}
       }
     ]
     databaseName: 'vsai-database'
     keyvaultName: keyVault.outputs.name
     location: location
     name: '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
+    tags: tags
+  }
+  scope: resourceGroup
+}
+
+module cosmosVec './resources/cosmosdb.bicep' = {
+  name: 'cosmosVec'
+  params: {
+    capabilities: [
+      {
+        name: 'EnableNoSQLVectorSearch'
+      }
+      {
+        name: 'EnableServerless'
+      }
+    ]
+    containers: [
+      {
+        name: 'main-vector-store'
+        partitionKeyPath: '/partitionKey'
+        indexingPolicy: {
+          indexingMode: 'consistent'
+          automatic: true
+          includedPaths: [
+            {
+              path: '/*'
+            }
+          ]
+          excludedPaths: [
+            {
+              path: '/embedding/?'
+            }
+          ]
+          vectorIndexes: [
+            {
+              path: '/embedding'
+              type: 'quantizedFlat'
+            }
+          ]
+        }
+        vectorEmbeddingPolicy: {
+          vectorEmbeddings: [
+            {
+              path: '/embedding'
+              dataType: 'float32'
+              dimensions: 1536
+              distanceFunction: 'cosine'
+            }
+          ]
+        }
+      }
+      {
+        name: 'cache-vector-store'
+        partitionKeyPath: '/partitionKey'
+        indexingPolicy: {
+          indexingMode: 'consistent'
+          automatic: true
+          includedPaths: [
+            {
+              path: '/*'
+            }
+          ]
+          excludedPaths: [
+            {
+              path: '/embedding/?'
+            }
+          ]
+          vectorIndexes: [
+            {
+              path: '/embedding'
+              type: 'quantizedFlat'
+            }
+          ]
+        }
+        vectorEmbeddingPolicy: {
+          vectorEmbeddings: [
+            {
+              path: '/embedding'
+              dataType: 'float32'
+              dimensions: 1536
+              distanceFunction: 'cosine'
+            }
+          ]
+        }
+      }
+    ]
+    databaseName: 'cj-byd-to-chat-gpt'
+    keyvaultName: keyVault.outputs.name
+    secretName: 'cosmosdb-vec-key'
+    location: location
+    name: '${abbrs.documentDBDatabaseAccounts}vec${resourceToken}'
     tags: tags
   }
   scope: resourceGroup
@@ -359,6 +460,8 @@ output PROMETHEUS_ENDPOINT string = monitoring.outputs.prometheusEndpoint
 
 output AZURE_COSMOS_DB_NAME string = cosmos.outputs.name
 output AZURE_COSMOS_DB_ENDPOINT string = cosmos.outputs.endpoint
+output AZURE_COSMOS_DB_VEC_NAME string = cosmosVec.outputs.name
+output AZURE_COSMOS_DB_VEC_ENDPOINT string = cosmosVec.outputs.endpoint
 output AZURE_COGNITIVE_SEARCH_NAME string = cogSearch.outputs.name
 output AZURE_COGNITIVE_SEARCH_ENDPOINT string = cogSearch.outputs.endpoint
 output AZURE_OPENAI_NAME string = openAi.outputs.name
