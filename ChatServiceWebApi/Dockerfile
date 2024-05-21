@@ -11,19 +11,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY . .
 
-RUN dotnet restore "VectorSearchAiAssistant.Common/VectorSearchAiAssistant.Common.csproj"
-WORKDIR "/src/VectorSearchAiAssistant.Common"
-RUN dotnet build "VectorSearchAiAssistant.Common.csproj" -c Release -o /app/build
-
-RUN dotnet restore "VectorSearchAiAssistant.SemanticKernel/VectorSearchAiAssistant.SemanticKernel.csproj"
-WORKDIR "/src/VectorSearchAiAssistant.SemanticKernel"
-RUN dotnet build "VectorSearchAiAssistant.SemanticKernel.csproj" -c Release -o /app/build
-
-RUN dotnet restore "VectorSearchAiAssistant.Service/VectorSearchAiAssistant.Service.csproj"
-WORKDIR "/src/VectorSearchAiAssistant.Service"
-RUN dotnet build "VectorSearchAiAssistant.Service.csproj" -c Release -o /app/build
-
-RUN dotnet restore "ChatServiceWebApi/ChatServiceWebApi.csproj"
+RUN dotnet restore "VectorSearchAiAssistant.sln"
 WORKDIR "/src/ChatServiceWebApi"
 RUN dotnet build "ChatServiceWebApi.csproj" -c Release -o /app/build
 
