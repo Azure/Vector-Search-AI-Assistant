@@ -83,6 +83,28 @@ module cosmos './shared/cosmosdb.bicep' = {
   scope: rg
 }
 
+module cosmosVec './shared/cosmosdb.bicep' = {
+  name: 'cosmosVec'
+  params: {
+    capabilities: [
+      {
+        name: 'EnableNoSQLVectorSearch'
+      }
+      {
+        name: 'Serverless'
+      }
+    ]
+    containers: []
+    databaseName: 'cj-byd-to-chat-gpt'
+    keyvaultName: keyVault.outputs.name
+    secretName: 'cosmosdb-vec-key'
+    location: location
+    name: '${abbrs.documentDBDatabaseAccounts}vec${resourceToken}'
+    tags: tags
+  }
+  scope: rg
+}
+
 module dashboard './shared/dashboard-web.bicep' = {
   name: 'dashboard'
   params: {
@@ -265,7 +287,7 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
     appDefinition: chatServiceWebApiDefinition
     envSettings: [
       {
-        name: 'MSCosmosDBOpenAI__CognitiveSearch__Endpoint'
+        name: 'MSCosmosDBOpenAI__AISearch__Endpoint'
         value: cogSearch.outputs.endpoint
       }
       {
@@ -277,13 +299,13 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
         value: cosmos.outputs.endpoint
       }
       {
-        name: 'MSCosmosDBOpenAI__CognitiveSearchMemorySource__Endpoint'
-        value: cogSearch.outputs.endpoint
+        name: 'MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint'
+        value: cosmosVec.outputs.endpoint
       }
     ]
     secretSettings: [
       {
-        name: 'MSCosmosDBOpenAI__CognitiveSearch__Key'
+        name: 'MSCosmosDBOpenAI__AISearch__Key'
         value: cogSearch.outputs.keySecretRef
         secretRef: cogSearch.outputs.keySecretName
       }
@@ -298,17 +320,17 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
         secretRef: cosmos.outputs.keySecretName
       }
       {
+        name: 'MSCosmosDBOpenAI__CosmosDBVectorStore__Key'
+        value: cosmosVec.outputs.keySecretRef
+        secretRef: cosmosVec.outputs.keySecretName
+      }
+      {
         name: 'MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection'
         value: storage.outputs.connectionSecretRef
         secretRef: storage.outputs.connectionSecretName
       }
       {
-        name: 'MSCosmosDBOpenAI__CognitiveSearchMemorySource__Key'
-        value: cogSearch.outputs.keySecretRef
-        secretRef: cogSearch.outputs.keySecretName
-      }
-      {
-        name: 'MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageConnection'
+        name: 'MSCosmosDBOpenAI__AISearchMemorySource__ConfigBlobStorageConnection'
         value: storage.outputs.connectionSecretRef
         secretRef: storage.outputs.connectionSecretName
       }
@@ -366,6 +388,7 @@ module search './app/Search.bicep' = {
 
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 output AZURE_COSMOS_DB_NAME string = cosmos.outputs.name
+output AZURE_COSMOS_DB_VEC_NAME string = cosmosVec.outputs.name
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name

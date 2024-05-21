@@ -1,15 +1,28 @@
 #See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 
 ENV ASPNETCORE_URLS=http://+:80
 ENV ASPNETCORE_ENVIRONMENT=Development
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY . .
+
+RUN dotnet restore "VectorSearchAiAssistant.Common/VectorSearchAiAssistant.Common.csproj"
+WORKDIR "/src/VectorSearchAiAssistant.Common"
+RUN dotnet build "VectorSearchAiAssistant.Common.csproj" -c Release -o /app/build
+
+RUN dotnet restore "VectorSearchAiAssistant.SemanticKernel/VectorSearchAiAssistant.SemanticKernel.csproj"
+WORKDIR "/src/VectorSearchAiAssistant.SemanticKernel"
+RUN dotnet build "VectorSearchAiAssistant.SemanticKernel.csproj" -c Release -o /app/build
+
+RUN dotnet restore "VectorSearchAiAssistant.Service/VectorSearchAiAssistant.Service.csproj"
+WORKDIR "/src/VectorSearchAiAssistant.Service"
+RUN dotnet build "VectorSearchAiAssistant.Service.csproj" -c Release -o /app/build
+
 RUN dotnet restore "ChatServiceWebApi/ChatServiceWebApi.csproj"
 WORKDIR "/src/ChatServiceWebApi"
 RUN dotnet build "ChatServiceWebApi.csproj" -c Release -o /app/build
