@@ -4,8 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
-using VectorSearchAiAssistant.Common.Exceptions;
-using VectorSearchAiAssistant.Common.Extensions;
 using VectorSearchAiAssistant.Common.Interfaces;
 using VectorSearchAiAssistant.Common.Models;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
@@ -511,54 +509,6 @@ namespace VectorSearchAiAssistant.Service.Services
                 else
                     throw;
             }
-        }
-
-        /// <summary>
-        /// Reads all documents retrieved by Vector Search.
-        /// </summary>
-        /// <param name="vectorDocuments">List string of JSON documents from vector search results</param>
-        public async Task<string> GetVectorSearchDocumentsAsync(List<DocumentVector> vectorDocuments)
-        {
-
-            List<string> searchDocuments = new();
-
-            foreach (var document in vectorDocuments)
-            {
-
-                try
-                {
-                    var response = await _containers[document.containerName].ReadItemStreamAsync(
-                        document.itemId, new PartitionKey(document.partitionKey));
-
-
-                    if ((int) response.StatusCode < 200 || (int) response.StatusCode >= 400)
-                        _logger.LogError(
-                            $"Failed to retrieve an item for id '{document.itemId}' - status code '{response.StatusCode}");
-
-                    if (response.Content == null)
-                    {
-                        _logger.LogInformation(
-                            $"Null content received for document '{document.itemId}' - status code '{response.StatusCode}");
-                        continue;
-                    }
-
-                    string item;
-                    using (StreamReader sr = new StreamReader(response.Content))
-                        item = await sr.ReadToEndAsync();
-
-                    searchDocuments.Add(item);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message, ex);
-
-                }
-            }
-
-            var resultDocuments = string.Join(Environment.NewLine + "-", searchDocuments);
-
-            return resultDocuments;
-
         }
 
         public async Task<CompletionPrompt> GetCompletionPrompt(string sessionId, string completionPromptId)
