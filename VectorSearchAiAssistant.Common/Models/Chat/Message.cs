@@ -20,8 +20,10 @@ public record Message
     public DateTime TimeStamp { get; set; }
     [SimpleField]
     public string Sender { get; set; }
+    public int? TokensSize { get; set; }
+    public int? RenderedTokensSize { get; set; }
     [SimpleField]
-    public int? Tokens { get; set; }
+    public int? TokensUsed { get; set; }
     [SimpleField]
     public string Text { get; set; }
     [SimpleField]
@@ -30,13 +32,15 @@ public record Message
     public float[]? Vector { get; set; }
     public string CompletionPromptId { get; set; }
 
-    public Message(string sessionId, string sender, int? tokens, string text, float[]? vector, bool? rating)
+    public Message(string sessionId, string sender, int? tokensSize, int? renderedTokensSize, int? tokensUsed, string text, float[]? vector, bool? rating)
     {
         Id = Guid.NewGuid().ToString();
         Type = nameof(Message);
         SessionId = sessionId;
         Sender = sender;
-        Tokens = tokens ?? 0;
+        TokensSize = tokensSize;
+        RenderedTokensSize = renderedTokensSize ?? 0;
+        TokensUsed = tokensUsed ?? 0;
         TimeStamp = DateTime.UtcNow;
         Text = text;
         Rating = rating;

@@ -4,9 +4,7 @@ using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
 using Newtonsoft.Json;
 using System.Reflection;
-using System.Security.Cryptography;
 using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Extensions;
 
 #pragma warning disable SKEXP0001
 
@@ -33,22 +31,17 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
             _logger = logger;
         }
 
-        public async Task EnsureMemoryStoreCollectionExists(string collectionName) =>
-            await _memoryStore.CreateCollectionAsync(collectionName);
+        public async Task Initialize() =>
+            await _memoryStore.CreateCollectionAsync(_collectionName);
 
-        public async Task AddMemory(string memory, ReadOnlyMemory<float> memoryEmbedding, string metadata = "") =>
+        public async Task AddMemory(string id, string memory, ReadOnlyMemory<float> memoryEmbedding, string? metadata = null, string? key = null) =>
             await _memoryStore.UpsertAsync(_collectionName, MemoryRecord.LocalRecord(
-                memory.GetHash(),
+                id,
                 memory,
                 string.Empty,
                 memoryEmbedding,
-                metadata));
-
-        public async Task AddMemory(string memory, string metadata = "")
-        {
-            var memoryEmbedding = await _textEmbedding.GenerateEmbeddingAsync(memory);
-            await AddMemory(memory, memoryEmbedding, metadata);
-        }
+                metadata,
+                key));
 
         public async Task AddMemory(IItemTransformer itemTransformer)
         {

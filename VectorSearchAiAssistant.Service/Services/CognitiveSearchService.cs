@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using VectorSearchAiAssistant.Common.Models.BusinessDomain;
+using VectorSearchAiAssistant.Common.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.SemanticKernel.Models;
 using VectorSearchAiAssistant.Service.Interfaces;
 using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
@@ -17,6 +18,7 @@ namespace VectorSearchAiAssistant.Service.Services
     public class AISearchService : IAISearchService
     {
         readonly AISearchSettings _settings;
+        readonly VectorSearchSettings _searchSettings;
         readonly ILogger _logger;
 
         readonly SearchIndexClient _adminClient;
@@ -27,12 +29,14 @@ namespace VectorSearchAiAssistant.Service.Services
 
         public AISearchService(
             IOptions<AISearchSettings> options,
+            IOptions<VectorSearchSettings> searchOptions,
             ILogger<AISearchSettings> logger)
         {
             _settings = options.Value;
+            _searchSettings = searchOptions.Value;
             _logger = logger;
 
-            _searchIndexName = $"{_settings.IndexName}-content";
+            _searchIndexName = $"{_searchSettings.IndexName}-content";
 
             _searchClientOptions = new SearchClientOptions
             {

@@ -5,6 +5,7 @@ using Microsoft.SemanticKernel.Memory;
 using System.ComponentModel;
 using VectorSearchAiAssistant.Common.Models;
 using VectorSearchAiAssistant.Common.Models.Chat;
+using VectorSearchAiAssistant.Common.Models.ConfigurationOptions;
 using VectorSearchAiAssistant.Common.Text;
 using VectorSearchAiAssistant.SemanticKernel.Chat;
 using VectorSearchAiAssistant.SemanticKernel.Models;
@@ -23,7 +24,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
         private readonly VectorMemoryStore _longTermMemory;
         private readonly VectorMemoryStore _shortTermMemory;
         private readonly string _systemPrompt;
-        private readonly AISearchSettings _searchSettings;
+        private readonly VectorSearchSettings _searchSettings;
         private readonly OpenAISettings _openAISettings;
         private readonly ILogger _logger;
 
@@ -34,7 +35,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
             VectorMemoryStore longTermMemory,
             VectorMemoryStore shortTermMemory,
             string systemPrompt,
-            AISearchSettings searchSettings,
+            VectorSearchSettings searchSettings,
             OpenAISettings openAISettings,
             ILogger logger)
         {
