@@ -1,6 +1,8 @@
+param capabilities array = [ { name: 'EnableServerless' } ] 
 param containers array
 param databaseName string
 param keyvaultName string
+param secretName string = 'cosmosdb-key'
 param location string = resourceGroup().location
 param name string
 param tags object = {}
@@ -21,11 +23,7 @@ resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
         locationName: location
       }
     ]
-    capabilities: [
-      {
-        name: 'EnableServerless'
-      }
-    ]
+    capabilities: capabilities
   }
   tags: tags
 }
@@ -66,7 +64,7 @@ resource keyvault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
 }
 
 resource cosmosKey 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
-  name: 'cosmos-key'
+  name: secretName
   parent: keyvault
   tags: tags
   properties: {
