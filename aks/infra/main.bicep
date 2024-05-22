@@ -262,18 +262,6 @@ module openAi './resources/openai.bicep' = {
   scope: resourceGroup
 }
 
-module cogSearch './resources/search.bicep' = {
-  name: 'cogsearch'
-  params: {
-    keyvaultName: keyVault.outputs.name
-    location: location
-    name: '${abbrs.searchSearchServices}${resourceToken}'
-    sku: 'basic'
-    tags: tags
-  }
-  scope: resourceGroup
-}
-
 module storage './resources/storage.bicep' = {
   name: 'storage'
   params: {
@@ -462,8 +450,6 @@ output AZURE_COSMOS_DB_NAME string = cosmos.outputs.name
 output AZURE_COSMOS_DB_ENDPOINT string = cosmos.outputs.endpoint
 output AZURE_COSMOS_DB_VEC_NAME string = cosmosVec.outputs.name
 output AZURE_COSMOS_DB_VEC_ENDPOINT string = cosmosVec.outputs.endpoint
-output AZURE_COGNITIVE_SEARCH_NAME string = cogSearch.outputs.name
-output AZURE_COGNITIVE_SEARCH_ENDPOINT string = cogSearch.outputs.endpoint
 output AZURE_OPENAI_NAME string = openAi.outputs.name
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
