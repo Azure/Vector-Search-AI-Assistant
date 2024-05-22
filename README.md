@@ -19,9 +19,9 @@ The application includes a left-hand navigation that contains individual chat se
 </p>
 
 
-## Solution Architecture
+## What is RAG?
 
-The solution architecture is represented by this diagram:
+RAG is an aconymn for Retrival Augmentmented Generation, a fancy term that essentially means retrieving additional data to provide to a large language model to use when generating a response (completion) to a user's question(prompt). The data can be any kind of text. However, there is a limit to how much text can be sent due to the limit of [tokens for each model](https://platform.openai.com/docs/models/overview) that can be consumed in a single request/response from Azure OpenAI Service. This solution will highlight these challenges and other challenges faced when designing and building this type of solution and provide  examples of how we addressed them.
 
 <p align="center">
     <img src="img/architecture.png" width="100%">
@@ -395,6 +395,6 @@ azd down --purge
 
 ## Resources
 
-- [Upcoming blog post announcement](https://devblogs.microsoft.com/cosmosdb/)
 - [Azure Cosmos DB Free Trial](https://aka.ms/TryCosmos)
 - [OpenAI Platform documentation](https://platform.openai.com/docs/introduction/overview)
+- [Azure OpenAI Service documentation](https://learn.microsoft.com/azure/cognitive-services/openai/)
