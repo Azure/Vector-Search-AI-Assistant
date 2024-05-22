@@ -140,9 +140,7 @@ public class SemanticKernelRAGService : IRAGService
             await _shortTermMemory.MemoryStore.CreateCollectionAsync(_shortTermCollectionName);
 
             // Get current short term memories. Short term memories are generated or loaded at runtime and kept in SK's volatile memory.
-            //The memories (data) here were generated from ACSMemorySourceConfig.json in blob storage that was used to execute faceted queries in Cog Search to iterate through
-            //each product category stored and count up the number of products in each category. The query also counts all the products for the entire company.
-            //The content here has embeddings generated on it so it can be used in a vector query by the user
+            //The content here has embeddings generated on it so it can be used in a vector query by the user.
 
             // TODO: Explore the option of moving static memories loaded from blob storage into the long-term memory (e.g., the Azure Cosmos DB vector store collection).
             // For now, the static memories are re-loaded each time.
