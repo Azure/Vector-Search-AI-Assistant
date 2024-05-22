@@ -73,6 +73,15 @@ $AZURE_COSMOS_DB_KEY=$(
 
 azd env set AZURE_COSMOS_DB_KEY ${AZURE_COSMOS_DB_KEY}
 
+Write-Host "Retrieving CosmosDB Key"
+$AZURE_COSMOS_DB_VEC_KEY=$(
+  az cosmosdb keys list `
+    --name ${env:AZURE_COSMOS_DB_NAME} `
+    --resource-group ${env:AZURE_RESOURCE_GROUP} `
+    -o json | ConvertFrom-Json).primaryMasterKey
+
+azd env set AZURE_COSMOS_DB_VEC_KEY ${AZURE_COSMOS_DB_VEC_KEY}
+
 Write-Host "Retrieving Storage Connection String"
 $AZURE_STORAGE_KEY=$(
   az storage account keys list `
@@ -83,6 +92,8 @@ $AZURE_STORAGE_KEY=$(
 $AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=https;AccountName=${env:AZURE_STORAGE_ACCOUNT_NAME};AccountKey=${AZURE_STORAGE_KEY};EndpointSuffix=core.windows.net"
 
 azd env set AZURE_STORAGE_CONNECTION_STRING ${AZURE_STORAGE_CONNECTION_STRING}
+
+az account set --subscription ${env:AZURE_SUBSCRIPTION_ID}
 
 az storage container create --account-name ${env:AZURE_STORAGE_ACCOUNT_NAME} --name "system-prompt" --only-show-errors
 az storage azcopy blob upload -c system-prompt --account-name ${env:AZURE_STORAGE_ACCOUNT_NAME} -s "../SystemPrompts/*" --recursive --only-show-errors
