@@ -32,7 +32,7 @@ namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
         {
             var result = await _kernel.InvokeAsync<string>(_summarizeConversation, new()
             {
-                { "text", text }
+                { "input", text }
             });
             return result ?? string.Empty;
         }

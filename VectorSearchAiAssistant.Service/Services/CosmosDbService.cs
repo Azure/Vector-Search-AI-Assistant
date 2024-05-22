@@ -28,7 +28,6 @@ namespace VectorSearchAiAssistant.Service.Services
 
         private readonly IItemTransformerFactory _itemTransformerFactory;
         private readonly IRAGService _ragService;
-        private readonly IAISearchService _aiSearchService;
         private readonly CosmosDBSettings _settings;
         private readonly ILogger _logger;
 
@@ -40,13 +39,11 @@ namespace VectorSearchAiAssistant.Service.Services
         public CosmosDBService(
             IItemTransformerFactory itemTransformerFactory,
             IRAGService ragService,
-            IAISearchService AISearchService,
             IOptions<CosmosDBSettings> settings, 
             ILogger<CosmosDBService> logger)
         {
             _itemTransformerFactory = itemTransformerFactory;
             _ragService = ragService;
-            _aiSearchService = AISearchService;
 
             _settings = settings.Value;
             ArgumentException.ThrowIfNullOrEmpty(_settings.Endpoint);
@@ -110,9 +107,6 @@ namespace VectorSearchAiAssistant.Service.Services
 
         private async Task StartChangeFeedProcessors()
         {
-            _logger.LogInformation("Initializing the Cognitive Search index...");
-            await _aiSearchService.Initialize(_memoryTypes.Values.ToList());
-
             _logger.LogInformation("Initializing the change feed processors...");
             _changeFeedProcessors = new List<ChangeFeedProcessor>();
 
@@ -164,10 +158,6 @@ namespace VectorSearchAiAssistant.Service.Services
                     {
 
                         IItemTransformer itemTransformer = _itemTransformerFactory.CreateItemTransformer(jObject);
-
-                        // Add the entity to the Cognitive Search content index
-                        // The content index is used by the Cognitive Search memory source to run create memories from faceted queries
-                        await _aiSearchService.IndexItem(itemTransformer.TypedValue);
 
                         // Add the entity to the Semantic Kernel memory used by the RAG service
                         await _ragService.AddMemory(itemTransformer);

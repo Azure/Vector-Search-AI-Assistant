@@ -1,27 +1,24 @@
-﻿using Azure.Search.Documents.Indexes;
-
-namespace VectorSearchAiAssistant.Common.Models.BusinessDomain
+﻿namespace VectorSearchAiAssistant.Common.Models.BusinessDomain
 {
     public class Product : EmbeddedEntity
     {
-        [SimpleField]
         public string categoryId { get; set; }
-        [SearchableField(IsFilterable = true, IsFacetable = true)]
+
         [EmbeddingField(Label = "Product category name")]
         public string categoryName { get; set; }
-        [SimpleField]
+
         [EmbeddingField(Label = "Product stock keeping unit (SKU)")]
         public string sku { get; set; }
-        [SimpleField]
+
         [EmbeddingField(Label = "Product name")]
         public string name { get; set; }
-        [SimpleField]
+
         [EmbeddingField(Label = "Product description")]
         public string description { get; set; }
-        [SimpleField]
+
         [EmbeddingField(Label = "Product price")]
         public double price { get; set; }
-        [SimpleField]
+
         [EmbeddingField(Label = "Product tags")]
         public List<Tag> tags { get; set; }
 
@@ -44,11 +41,10 @@ namespace VectorSearchAiAssistant.Common.Models.BusinessDomain
 
     public class ProductCategory
     {
-        [SimpleField]
         public string id { get; set; }
-        [SimpleField]
+
         public string type { get; set; }
-        [SimpleField]
+
         public string name { get; set; }
 
         public ProductCategory(string id, string type, string name)
@@ -61,9 +57,8 @@ namespace VectorSearchAiAssistant.Common.Models.BusinessDomain
 
     public class Tag
     {
-        [SimpleField]
         public string id { get; set; }
-        [SimpleField]
+
         [EmbeddingField(Label = "Product tag name")]
         public string name { get; set; }
 

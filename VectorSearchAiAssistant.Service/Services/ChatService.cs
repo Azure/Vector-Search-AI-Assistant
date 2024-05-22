@@ -149,8 +149,6 @@ public class ChatService : IChatService
         {
             ArgumentNullException.ThrowIfNull(sessionId);
 
-            await Task.CompletedTask;
-
             var summary = await _ragService.Summarize(sessionId, prompt);
 
             await RenameChatSessionAsync(sessionId, summary);
