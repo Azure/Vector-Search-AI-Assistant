@@ -29,17 +29,6 @@ namespace VectorSearchAiAssistant
         }
 
         /// <summary>
-        /// Registers the <see cref="IAISearchService"/> implementation with the dependency injection container.
-        /// </summary>
-        /// <param name="builder">The hosted applications and services builder.</param>
-        public static void AddAISearchService(this IHostApplicationBuilder builder)
-        {
-            builder.Services.AddOptions<AISearchSettings>()
-                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:AISearch"));
-            builder.Services.AddSingleton<IAISearchService, AISearchService>();
-        }
-
-        /// <summary>
         /// Registers the <see cref="IRAGService"/> implementation with the dependency injection container.
         /// </summary>
         /// <param name="builder">The hosted applications and services builder.</param>

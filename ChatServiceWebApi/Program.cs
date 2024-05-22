@@ -13,7 +13,6 @@ namespace ChatServiceWebApi
             builder.AddItemTransformerFactory();
 
             builder.AddCosmosDBService();
-            builder.AddAISearchService();
 
             builder.AddSemanticKernelRAGService();
             builder.AddCosmosDBVectorStoreService();
