@@ -1,4 +1,4 @@
-# Vector Search & AI Assistant for Azure Cosmos DB and Azure Cognitive Search (aka Bring Your Data to ChatGPT)
+# Vector Search & AI Assistant for Azure Cosmos DB (aka Bring Your Data to ChatGPT)
 
 ## Release notes for AZD Template Updates
 

@@ -117,9 +117,9 @@ Next, you should be able to see multiple entries referring to the vectorization 
 
 ![API vectorization sequence of events](../img/initialization-embedding.png)
 
-Finally, you should be able to see the Cognitive Search index being populated with the vectorized data:
+Finally, you should be able to see the Azure Cosmos DB vector store collection being populated with the vectorized data:
 
-![Cognitive Search index populated with vectorized data](../img/initialization-vector-index.png)
+![Cosmos DB vector store collection populated with vectorized data](../img/initialization-vector-index.png)
 
 >**NOTE**:
 >

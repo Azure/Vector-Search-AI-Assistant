@@ -45,16 +45,6 @@ if ($kedatatus -like "Error: release: not found") {
   Write-Host "KEDA installed, skipping"
 }
 
-Write-Host "Retrieving Cognitive Search Key"
-az account set -s ${env:AZURE_SUBSCRIPTION_ID}
-$AZURE_COGNITIVE_SEARCH_KEY=$(
-  az search admin-key show `
-    --service-name ${env:AZURE_COGNITIVE_SEARCH_NAME} `
-    --resource-group ${env:AZURE_RESOURCE_GROUP} `
-    -o json | ConvertFrom-Json).primaryKey
-
-azd env set AZURE_COGNITIVE_SEARCH_KEY ${AZURE_COGNITIVE_SEARCH_KEY}
-
 Write-Host "Retrieving OpenAI Key"
 $AZURE_OPENAI_KEY=$(
   az cognitiveservices account keys list `

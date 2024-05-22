@@ -67,10 +67,6 @@ if ($openAiName) {
 
 $openAiKey=$(az cognitiveservices account keys list -g $openAiRg -n $openAi.name -o json --query key1 | ConvertFrom-Json)
 
-## Getting Cognitive Search info
-$search=$(az search service list -g $resourceGroup --query "[].{name: name, kind:kind}" -o json | ConvertFrom-Json)
-$searchKey=$(az search admin-key show -g $resourceGroup --service-name $search.name -o json --query primaryKey | ConvertFrom-Json)
-
 ## Getting App Insights instrumentation key, if required
 $appinsightsId=@()
 $appInsightsName=$(az resource list -g $resourceGroup --resource-type Microsoft.Insights/components --query [].name | ConvertFrom-Json)
@@ -97,7 +93,6 @@ $tokens.cosmosKey=$docdbKey
 $tokens.openAiEndpoint=$openAi.properties.endpoint
 $tokens.openAiKey=$openAiKey
 $tokens.searchEndpoint="https://$($search.name).search.windows.net/"
-$tokens.searchAdminKey=$searchKey
 $tokens.aiConnectionString=$appinsightsConnectionString
 
 # Standard fixed tokens

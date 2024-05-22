@@ -252,18 +252,6 @@ module openAi './shared/openai.bicep' = {
   scope: rg
 }
 
-module cogSearch './shared/search.bicep' = {
-  name: 'cogsearch'
-  params: {
-    keyvaultName: keyVault.outputs.name
-    location: location
-    name: '${abbrs.searchSearchServices}${resourceToken}'
-    sku: 'basic'
-    tags: tags
-  }
-  scope: rg
-}
-
 module storage './shared/storage.bicep' = {
   name: 'storage'
   params: {
@@ -366,14 +354,6 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
     appDefinition: chatServiceWebApiDefinition
     envSettings: [
       {
-        name: 'MSCosmosDBOpenAI__AISearch__Endpoint'
-        value: cogSearch.outputs.endpoint
-      }
-      {
-        name: 'MSCosmosDBOpenAI__AISearchMemorySource__Endpoint'
-        value: cogSearch.outputs.endpoint
-      }
-      {
         name: 'MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint'
         value: cosmosVec.outputs.endpoint
       }
@@ -393,19 +373,9 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
         secretRef: monitoring.outputs.applicationInsightsConnectionSecretName
       }
       {
-        name: 'MSCosmosDBOpenAI__AISearch__Key'
-        value: cogSearch.outputs.keySecretRef
-        secretRef: cogSearch.outputs.keySecretName
-      }
-      {
         name: 'MSCosmosDBOpenAI__AISearchMemorySource__ConfigBlobStorageConnection'
         value: storage.outputs.connectionSecretRef
         secretRef: storage.outputs.connectionSecretName
-      }
-      {
-        name: 'MSCosmosDBOpenAI__AISearchMemorySource__Key'
-        value: cogSearch.outputs.keySecretRef
-        secretRef: cogSearch.outputs.keySecretName
       }
       {
         name: 'MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection'
@@ -435,7 +405,7 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
     ]
   }
   scope: rg
-  dependsOn: [ cogSearch, cosmos, monitoring, openAi, storage ]
+  dependsOn: [ cosmos, monitoring, openAi, storage ]
 }
 
 module search './app/Search.bicep' = {

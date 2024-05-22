@@ -144,8 +144,8 @@ public class SemanticKernelRAGService : IRAGService
             //each product category stored and count up the number of products in each category. The query also counts all the products for the entire company.
             //The content here has embeddings generated on it so it can be used in a vector query by the user
 
-            // TODO: Explore the option of moving static memories loaded from blob storage into the long-term memory (e.g., the Azure Cognitive Search index).
-            // For now, the static memories are re-loaded each time together with the analytical short-term memories originating from Azure Cognitive Search faceted queries.
+            // TODO: Explore the option of moving static memories loaded from blob storage into the long-term memory (e.g., the Azure Cosmos DB vector store collection).
+            // For now, the static memories are re-loaded each time.
             var shortTermMemories = new List<string>();
             foreach (var memorySource in _memorySources)
             {
