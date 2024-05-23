@@ -22,8 +22,8 @@
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.7.0" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\VectorSearchAiAssistant.Common\VectorSearchAiAssistant.Common.csproj" />
-	  <ProjectReference Include="..\VectorSearchAiAssistant.SemanticKernel\VectorSearchAiAssistant.SemanticKernel.csproj" />
+	  <ProjectReference Include="..\Common\Common.csproj" />
+	  <ProjectReference Include="..\SemanticKernel\SemanticKernel.csproj" />
 	</ItemGroup>
 
 </Project>
