@@ -150,11 +150,6 @@ module cosmosVec './shared/cosmosdb.bicep' = {
               path: '/*'
             }
           ]
-          excludedPaths: [
-            {
-              path: '/embedding/?'
-            }
-          ]
           vectorIndexes: [
             {
               path: '/embedding'
@@ -174,7 +169,7 @@ module cosmosVec './shared/cosmosdb.bicep' = {
         }
       }
     ]
-    databaseName: 'cj-byd-to-chat-gpt'
+    databaseName: 'byoc-database'
     keyvaultName: keyVault.outputs.name
     secretName: 'cosmosdb-vec-key'
     location: location
@@ -287,13 +282,6 @@ module storage './shared/storage.bicep' = {
         path: 'Summarizer/TwoWords.txt'
         content: loadTextContent('../../SystemPrompts/Summarizer/TwoWords.txt')
         container: 'system-prompt'
-      }
-      {
-        name: 'acsmemorysourceconfig-json'
-        file: 'ACSMemorySourceConfig.json'
-        path: 'ACSMemorySourceConfig.json'
-        content: loadTextContent('../../MemorySources/ACSMemorySourceConfig.json')
-        container: 'memory-source'
       }
       {
         name: 'blobmemorysourceconfig-json'

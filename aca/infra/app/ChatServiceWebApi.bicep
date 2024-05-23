@@ -52,6 +52,7 @@ resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
     principalType: 'ServicePrincipal'
     principalId: identity.properties.principalId
   }
+  dependsOn: [identity]
 }
 
 resource keyvault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
@@ -70,6 +71,7 @@ resource secretsAccessPolicy 'Microsoft.KeyVault/vaults/accessPolicies@2023-07-0
       }
     ]
   }
+  dependsOn: [identity]
 }
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
@@ -84,6 +86,7 @@ resource storageBlobAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-0
     roleDefinitionId: resourceId('Microsoft.Authorization/roleAssignmentDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
     principalType: 'ServicePrincipal'
   }
+  dependsOn: [identity]
 }
 
 resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-11-15' existing = {
@@ -98,6 +101,7 @@ resource cosmosAccessRole 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignme
     roleDefinitionId: resourceId('Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions', cosmosDb.name, '00000000-0000-0000-0000-000000000002')
     scope: cosmosDb.id
   }
+  dependsOn: [identity]
 }
 
 module fetchLatestImage '../modules/fetch-container-image.bicep' = {
@@ -112,7 +116,7 @@ resource app 'Microsoft.App/containerApps@2023-04-01-preview' = {
   name: name
   location: location
   tags: union(tags, {'azd-service-name':  'ChatServiceWebApi' })
-  dependsOn: [ acrPullRole ]
+  dependsOn: [ acrPullRole, identity ]
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: { '${identity.id}': {} }
