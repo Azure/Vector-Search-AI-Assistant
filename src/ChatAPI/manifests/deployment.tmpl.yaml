@@ -23,26 +23,6 @@ spec:
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
-            - name: MSCosmosDBOpenAI__AISearch__Endpoint
-              valueFrom:
-                secretKeyRef:
-                  name: secret-api
-                  key: MSCosmosDBOpenAI__AISearch__Endpoint
-            - name: MSCosmosDBOpenAI__AISearch__Key
-              valueFrom:
-                secretKeyRef:
-                  name: secret-api
-                  key: MSCosmosDBOpenAI__AISearch__Key
-            - name: MSCosmosDBOpenAI__AISearchMemorySource__Endpoint
-              valueFrom:
-                secretKeyRef:
-                  name: secret-api
-                  key: MSCosmosDBOpenAI__AISearchMemorySource__Endpoint
-            - name: MSCosmosDBOpenAI__AISearchMemorySource__Key
-              valueFrom:
-                secretKeyRef:
-                  name: secret-api
-                  key: MSCosmosDBOpenAI__AISearchMemorySource__Key
             - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
               valueFrom:
                 secretKeyRef:

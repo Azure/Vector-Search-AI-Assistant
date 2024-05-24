@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Search": {
+    "UserPortal": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

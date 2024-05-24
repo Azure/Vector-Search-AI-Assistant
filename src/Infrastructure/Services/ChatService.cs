@@ -4,6 +4,8 @@ using BuildYourOwnCopilot.Common.Models.BusinessDomain;
 using BuildYourOwnCopilot.Common.Models.Chat;
 using BuildYourOwnCopilot.Service.Constants;
 using BuildYourOwnCopilot.Service.Interfaces;
+using BuildYourOwnCopilot.Common.Services;
+using Newtonsoft.Json.Linq;
 
 namespace BuildYourOwnCopilot.Service.Services;
 
@@ -11,6 +13,7 @@ public class ChatService : IChatService
 {
     private readonly ICosmosDBService _cosmosDBService;
     private readonly IRAGService _ragService;
+    private readonly IItemTransformerFactory _itemTransformerFactory;
     private readonly ILogger _logger;
 
     public string Status
@@ -34,10 +37,12 @@ public class ChatService : IChatService
     public ChatService(
         ICosmosDBService cosmosDBService,
         IRAGService ragService,
+        IItemTransformerFactory itemTransformerFactory,
         ILogger<ChatService> logger)
     {
         _cosmosDBService = cosmosDBService;
         _ragService = ragService;
+        _itemTransformerFactory = itemTransformerFactory;
         _logger = logger;
     }
 
@@ -223,7 +228,11 @@ public class ChatService : IChatService
 
         try
         {
-            await _ragService.RemoveMemory(new Product { id = productId });
+            IItemTransformer itemTransformer = _itemTransformerFactory.CreateItemTransformer(
+                new Product { id = productId });
+
+            // Remove the entity from the Semantic Kernel memory used by the RAG service
+            await _ragService.RemoveMemory(itemTransformer);
         }
         catch (Exception ex)
         {

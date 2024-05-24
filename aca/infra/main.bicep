@@ -366,11 +366,6 @@ module chatAPI './app/ChatAPI.bicep' = {
         secretRef: monitoring.outputs.applicationInsightsConnectionSecretName
       }
       {
-        name: 'MSCosmosDBOpenAI__AISearchMemorySource__ConfigBlobStorageConnection'
-        value: storage.outputs.connectionSecretRef
-        secretRef: storage.outputs.connectionSecretName
-      }
-      {
         name: 'MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection'
         value: storage.outputs.connectionSecretRef
         secretRef: storage.outputs.connectionSecretName
@@ -402,7 +397,7 @@ module chatAPI './app/ChatAPI.bicep' = {
 }
 
 module search './app/UserPortal.bicep' = {
-  name: 'Search'
+  name: 'UserPortal'
   params: {
     apiUri: chatAPI.outputs.uri
     name: '${abbrs.appContainerApps}search-${resourceToken}'

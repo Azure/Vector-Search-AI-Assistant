@@ -83,7 +83,7 @@ module fetchLatestImage '../modules/fetch-container-image.bicep' = {
 resource app 'Microsoft.App/containerApps@2023-04-01-preview' = {
   name: name
   location: location
-  tags: union(tags, {'azd-service-name':  'Search' })
+  tags: union(tags, {'azd-service-name':  'UserPortal' })
   dependsOn: [ acrPullRole ]
   identity: {
     type: 'UserAssigned'

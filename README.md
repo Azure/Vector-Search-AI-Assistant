@@ -207,7 +207,7 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
 
 #### Configure local settings
 
-- In the `Search` project, make sure the content of the `appsettings.json` file is similar to this:
+- In the `UserPortal` project, make sure the content of the `appsettings.json` file is similar to this:
 
     ```json
     {
@@ -240,10 +240,6 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
         },
         "AllowedHosts": "*",
         "MSCosmosDBOpenAI": {
-            "AISearch": {
-                "IndexName": "vector-index",
-                "MaxVectorSearchResults": 10
-            },
             "OpenAI": {
                 "CompletionsDeployment": "completions",
                 "CompletionsDeploymentMaxTokens": 4096,
@@ -278,10 +274,6 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
     ```json
     {
         "MSCosmosDBOpenAI": {
-            "AISearch": {
-                "Endpoint": "https://<...>.search.windows.net",
-                "Key": "<...>"
-            },
             "OpenAI": {
                 "Endpoint": "https://<...>.openai.azure.com/",
                 "Key": "<...>"
@@ -295,23 +287,18 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
             },
             "BlobStorageMemorySource": {
                 "ConfigBlobStorageConnection": "<...>"
-            },
-            "AISearchMemorySource": {
-                "Endpoint": "https://<...>.search.windows.net",
-                "Key": "<...>",
-                "ConfigBlobStorageConnection": "<...>"
             }
         }
     }
     ```
 
-    >**NOTE**: The `BlobStorageConnection` and `ConfigBlobStorageConnection` values can be found in the Azure Portal by navigating to the Storage Account created by the deployment (the one that has a container named `system-prompt`) and selecting the `Access keys` blade. The value is the `Connection string` for the `key1` key. `AISearchMemorySource` has the same values and `AISearch` section.
+    >**NOTE**: The `BlobStorageConnection` and `ConfigBlobStorageConnection` values can be found in the Azure Portal by navigating to the Storage Account created by the deployment (the one that has a container named `system-prompt`) and selecting the `Access keys` blade. The value is the `Connection string` for the `key1` key.
 
 #### Using Visual Studio
 
 To run locally and debug using Visual Studio, open the solution file.
 
-Before you can start debugging, you need to set the startup projects. To do this, right-click on the solution in the Solution Explorer and select `Configure Startup Projects...`. In the dialog that opens, select `Multiple startup projects` and set the `Action` for the `ChatAPI` and `Search` projects to `Start`.
+Before you can start debugging, you need to set the startup projects. To do this, right-click on the solution in the Solution Explorer and select `Configure Startup Projects...`. In the dialog that opens, select `Multiple startup projects` and set the `Action` for the `ChatAPI` and `UserPortal` projects to `Start`.
 
 Also, make sure the newly created `appsettings.Development.json` file is copied to the output directory. To do this, right-click on the file in the Solution Explorer and select `Properties`. In the properties window, set the `Copy to Output Directory` property to `Copy always`..
 
