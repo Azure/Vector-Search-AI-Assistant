@@ -16,14 +16,14 @@ hooks:
       run: ./azd-hooks/postdeploy.ps1
 services:
     ChatAPI:
-        project: ../ChatAPI
+        project: ../src/ChatAPI
         host: containerapp
         language: dotnet
         docker:
             context: ../
             path: Dockerfile
-    Search:
-        project: ../Search
+    UserPortal:
+        project: ../src/UserPortal
         host: containerapp
         language: dotnet
         docker:
