@@ -401,7 +401,7 @@ module chatAPI './app/ChatAPI.bicep' = {
   dependsOn: [ cosmos, monitoring, openAi, storage ]
 }
 
-module search './app/Search.bicep' = {
+module search './app/UserPortal.bicep' = {
   name: 'Search'
   params: {
     apiUri: chatAPI.outputs.uri
