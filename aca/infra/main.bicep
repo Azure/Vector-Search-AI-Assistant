@@ -150,11 +150,6 @@ module cosmosVec './shared/cosmosdb.bicep' = {
               path: '/*'
             }
           ]
-          excludedPaths: [
-            {
-              path: '/embedding/?'
-            }
-          ]
           vectorIndexes: [
             {
               path: '/embedding'
@@ -174,7 +169,7 @@ module cosmosVec './shared/cosmosdb.bicep' = {
         }
       }
     ]
-    databaseName: 'cj-byd-to-chat-gpt'
+    databaseName: 'byoc-database'
     keyvaultName: keyVault.outputs.name
     secretName: 'cosmosdb-vec-key'
     location: location
