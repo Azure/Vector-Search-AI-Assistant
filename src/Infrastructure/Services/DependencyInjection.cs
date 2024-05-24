@@ -1,16 +1,15 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using BuildYourOwnCopilot.Common.Interfaces;
+﻿using BuildYourOwnCopilot.Common.Interfaces;
 using BuildYourOwnCopilot.Common.Models.Configuration;
 using BuildYourOwnCopilot.Common.Services;
-using BuildYourOwnCopilot.SemanticKernel.Models;
 using BuildYourOwnCopilot.Service.Interfaces;
 using BuildYourOwnCopilot.Service.MemorySource;
 using BuildYourOwnCopilot.Service.Models.ConfigurationOptions;
 using BuildYourOwnCopilot.Service.Services;
 using BuildYourOwnCopilot.Service.Services.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-namespace using BuildYourOwnCopilot.
+namespace BuildYourOwnCopilot
 {
     /// <summary>
     /// General purpose dependency injection extensions.

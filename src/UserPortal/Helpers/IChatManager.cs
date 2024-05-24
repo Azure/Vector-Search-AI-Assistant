@@ -1,6 +1,6 @@
 ﻿using BuildYourOwnCopilot.Common.Models.Chat;
 
-namespace Search.Helpers;
+namespace BuildYourOwnCopilot.Helpers;
 
 public interface IChatManager
 {

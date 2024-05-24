@@ -1,4 +1,4 @@
-﻿namespace Search.Helpers
+﻿namespace BuildYourOwnCopilot.Helpers
 {
     public class ChatManagerSettings
     {
