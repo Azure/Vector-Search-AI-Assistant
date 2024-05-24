@@ -76,10 +76,6 @@ namespace BuildYourOwnCopilot
         /// <param name="builder">The hosted applications and services builder.</param>
         public static void AddMemorySourceServices(this IHostApplicationBuilder builder)
         {
-            //builder.Services.AddOptions<AzureAISearchMemorySourceSettings>()
-            //    .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:AISearchMemorySource"));
-            //builder.Services.AddTransient<IMemorySource, AzureAISearchMemorySource>();
-
             builder.Services.AddOptions<BlobStorageMemorySourceSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:BlobStorageMemorySource"));
             builder.Services.AddTransient<IMemorySource, BlobStorageMemorySource>();

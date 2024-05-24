@@ -246,8 +246,8 @@ public class SemanticKernelRAGService : IRAGService
         await _longTermMemory.AddMemory(itemTransformer);
     }
 
-    public async Task RemoveMemory(object item)
+    public async Task RemoveMemory(IItemTransformer itemTransformer)
     {
-        await _longTermMemory.RemoveMemory(item);
+        await _longTermMemory.RemoveMemory(itemTransformer);
     }
 }

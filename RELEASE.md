@@ -1,4 +1,4 @@
-# Vector Search & AI Assistant for Azure Cosmos DB (aka Bring Your Data to ChatGPT)
+# Build Your Own Copilot with Azure Cosmos DB
 
 ## Release notes for AZD Template Updates
 

@@ -1,5 +1,4 @@
-﻿using Azure.Search.Documents.Indexes;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
 using Newtonsoft.Json;
@@ -74,28 +73,11 @@ namespace BuildYourOwnCopilot.SemanticKernel.Plugins.Memory
             }
         }
 
-        public async Task RemoveMemory(object item)
+        public async Task RemoveMemory(IItemTransformer itemTransformer)
         {
             try
             {
-                var objectType = item.GetType();
-                var properties = objectType.GetProperties();
-
-                foreach (var property in properties)
-                {
-                    var searchableAttribute = property.GetCustomAttribute<SearchableFieldAttribute>();
-                    if (searchableAttribute != null && searchableAttribute.IsKey)
-                    {
-                        var propertyName = property.Name;
-                        var propertyValue = property.GetValue(item);
-
-                        _logger.LogInformation($"Found key property: {propertyName}, Value: {propertyValue}");
-                        await _memoryStore.RemoveAsync(_collectionName, propertyValue?.ToString());
-
-                        _logger.LogInformation("Removed memory successfully.");
-                        return;
-                    }
-                }
+                await _memoryStore.RemoveAsync(_collectionName, itemTransformer.EmbeddingId);
             }
             catch (Exception ex)
             {

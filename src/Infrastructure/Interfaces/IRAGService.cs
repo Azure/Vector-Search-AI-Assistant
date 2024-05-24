@@ -13,6 +13,6 @@ namespace BuildYourOwnCopilot.Service.Interfaces
 
         Task AddMemory(IItemTransformer itemTransformer);
 
-        Task RemoveMemory(object item);
+        Task RemoveMemory(IItemTransformer itemTransformer);
     }
 }
