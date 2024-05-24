@@ -1,8 +1,8 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Microsoft.SemanticKernel.Memory;
-using VectorSearchAiAssistant.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Interfaces;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
+namespace BuildYourOwnCopilot.SemanticKernel.Connectors.AzureCosmosDBNoSql;
 
 #pragma warning disable SKEXP0001
 

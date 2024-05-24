@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VectorSearchAiAssistant.Service.Interfaces
+namespace BuildYourOwnCopilot.Service.Interfaces
 {
     public interface ISystemPromptService
     {

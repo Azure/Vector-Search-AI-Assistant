@@ -2,7 +2,7 @@
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 
-namespace VectorSearchAiAssistant.Service.Interfaces
+namespace BuildYourOwnCopilot.Service.Interfaces
 {
     public interface IAISearchService
     {

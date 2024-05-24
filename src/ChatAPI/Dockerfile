@@ -11,14 +11,14 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY . .
 
-RUN dotnet restore "VectorSearchAiAssistant.sln"
-WORKDIR "/src/ChatServiceWebApi"
-RUN dotnet build "ChatServiceWebApi.csproj" -c Release -o /app/build
+RUN dotnet restore "BuildYourOwnCopilot.sln"
+WORKDIR "/src/ChatAPI"
+RUN dotnet build "ChatAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "ChatServiceWebApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "ChatAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "ChatServiceWebApi.dll"]
+ENTRYPOINT ["dotnet", "ChatAPI.dll"]

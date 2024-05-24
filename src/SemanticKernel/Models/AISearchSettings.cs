@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.SemanticKernel.Models
+﻿namespace BuildYourOwnCopilot.SemanticKernel.Models
 {
     public record AISearchSettings
     {

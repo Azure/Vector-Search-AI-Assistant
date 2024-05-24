@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: bhm7vnpxv6irqcr.azurecr.io/chatservicewebapi
+  repository: bhm7vnpxv6irqcr.azurecr.io/chatAPI
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest
@@ -36,8 +36,6 @@ ingress:
 
 env:
   configmap:
-    - name: MSCosmosDBOpenAI__CognitiveSearch__IndexName
-    - name: MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults
     - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeployment
     - name: MSCosmosDBOpenAI__OpenAI__CompletionsDeploymentMaxTokens
     - name: MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment
@@ -56,22 +54,14 @@ env:
     - name: MSCosmosDBOpenAI__CosmosDB__Database
     - name: MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer
     - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer
-    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName
-    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageContainer
-    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigFilePath
     - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageContainer
     - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigFilePath
   secret:
-    - name: MSCosmosDBOpenAI__CognitiveSearch__Endpoint
-    - name: MSCosmosDBOpenAI__CognitiveSearch__Key
     - name: MSCosmosDBOpenAI__OpenAI__Endpoint
     - name: MSCosmosDBOpenAI__OpenAI__Key
     - name: MSCosmosDBOpenAI__CosmosDB__Endpoint
     - name: MSCosmosDBOpenAI__CosmosDB__Key
     - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection
-    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__Endpoint
-    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__Key
-    - name: MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageConnection
     - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
     - name: ApplicationInsights__ConnectionString
   values:

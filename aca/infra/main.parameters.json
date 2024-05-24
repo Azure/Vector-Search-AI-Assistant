@@ -8,10 +8,10 @@
       "location": {
         "value": "${AZURE_LOCATION}"
       },
-      "chatServiceWebApiExists": {
-        "value": "${SERVICE_CHATSERVICEWEBAPI_RESOURCE_EXISTS=false}"
+      "chatAPIExists": {
+        "value": "${SERVICE_CHATAPI_RESOURCE_EXISTS=false}"
       },
-      "chatServiceWebApiDefinition": {
+      "chatAPIDefinition": {
         "value": {
           "settings": [
             {

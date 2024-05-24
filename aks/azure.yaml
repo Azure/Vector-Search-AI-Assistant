@@ -21,14 +21,14 @@ infra:
     module: main
 services:
     api:
-        project: ../ChatServiceWebApi 
+        project: ../ChatAPI 
         language: dotnet 
         host: aks 
         docker:
             context: ../
             path: Dockerfile
         k8s:
-            deploymentPath: ../ChatServiceWebApi/manifests
+            deploymentPath: ../ChatAPI/manifests
             deployment:
                 name: api
             service:

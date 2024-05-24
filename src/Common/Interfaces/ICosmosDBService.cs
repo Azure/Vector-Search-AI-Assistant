@@ -1,7 +1,7 @@
-﻿using VectorSearchAiAssistant.Common.Models.BusinessDomain;
-using VectorSearchAiAssistant.Common.Models.Chat;
+﻿using BuildYourOwnCopilot.Common.Models.BusinessDomain;
+using BuildYourOwnCopilot.Common.Models.Chat;
 
-namespace VectorSearchAiAssistant.Common.Interfaces;
+namespace BuildYourOwnCopilot.Common.Interfaces;
 
 public interface ICosmosDBService
 {

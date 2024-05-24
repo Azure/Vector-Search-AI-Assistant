@@ -21,14 +21,14 @@ Follow the steps below to deploy the solution to your Azure subscription.
 2. Clone the repository:
    
     ```cmd
-    git clone https://github.com/Azure/Vector-Search-AI-Assistant.git
+    git clone https://github.com/Azure/BuildYourOwnCopilot.git
     ```
 
-3. Switch to the `cognitive-search-vector` branch:
+3. Switch to the `main` branch:
 
     ```cmd
-    cd Vector-Search-AI-Assistant
-    git checkout cognitive-search-vector
+    cd BuildYourOwnCopilot
+    git checkout main
     ```
 
 4. Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into your choice of Azure Kubeternetes Service or Azure Container Apps, and import data into Azure Cosmos DB.

@@ -1,6 +1,6 @@
-﻿using VectorSearchAiAssistant.SemanticKernel.Chat;
+﻿using BuildYourOwnCopilot.SemanticKernel.Chat;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Models
+namespace BuildYourOwnCopilot.SemanticKernel.Models
 {
     public record OpenAISettings
     {

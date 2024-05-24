@@ -1,9 +1,9 @@
 ﻿using Moq;
 using NUnit.Framework;
-using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Models.Chat;
+using BuildYourOwnCopilot.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Models.Chat;
 
-namespace VectorSearchAiAssistant.Service.Tests
+namespace BuildYourOwnCopilot.Service.Tests
 {
     [TestFixture]
     public class CosmosDbServiceTests

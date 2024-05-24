@@ -1,6 +1,6 @@
-﻿using VectorSearchAiAssistant.Service.Exceptions;
+﻿using BuildYourOwnCopilot.Service.Exceptions;
 
-namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
+namespace BuildYourOwnCopilot.Service.Models.ConfigurationOptions
 {
     /// <summary>
     /// Provides configuration settings that control token-based text splitting.

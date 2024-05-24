@@ -1,8 +1,8 @@
-﻿using VectorSearchAiAssistant.Common.Models.Configuration;
-using VectorSearchAiAssistant.Common.Models.ConfigurationOptions;
-using VectorSearchAiAssistant.SemanticKernel.Models;
+﻿using BuildYourOwnCopilot.Common.Models.Configuration;
+using BuildYourOwnCopilot.Common.Models.ConfigurationOptions;
+using BuildYourOwnCopilot.SemanticKernel.Models;
 
-namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
+namespace BuildYourOwnCopilot.Service.Models.ConfigurationOptions
 {
     public record SemanticKernelRAGServiceSettings
     {

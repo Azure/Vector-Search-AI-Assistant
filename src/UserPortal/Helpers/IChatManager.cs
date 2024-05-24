@@ -1,4 +1,4 @@
-﻿using VectorSearchAiAssistant.Common.Models.Chat;
+﻿using BuildYourOwnCopilot.Common.Models.Chat;
 
 namespace Search.Helpers;
 

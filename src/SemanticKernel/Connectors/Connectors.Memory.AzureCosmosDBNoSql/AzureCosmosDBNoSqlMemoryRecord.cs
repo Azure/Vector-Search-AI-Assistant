@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
+namespace BuildYourOwnCopilot.SemanticKernel.Connectors.AzureCosmosDBNoSql;
 
 #pragma warning disable SKEXP0001
 

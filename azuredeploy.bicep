@@ -42,10 +42,10 @@ param mongoDbUserName string
 param mongoDbPassword string
 
 
-@description('Git repository URL for the application source. This defaults to the [`AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant) repository.')
-param appGitRepository string = 'https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git'
+@description('Git repository URL for the application source. This defaults to the [`Azure/BuildYourOwnCopilot`](https://github.com/Azure/BuildYourOwnCopilot) repository.')
+param appGitRepository string = 'https://github.com/Azure/BuildYourOwnCopilot.git'
 
-@description('Git repository branch for the application source. This defaults to the [**MongovCore** branch of the `AzureCosmosDB/VectorSearchAiAssistant`](https://github.com/AzureCosmosDB/VectorSearchAiAssistant/tree/MongovCore) repository.')
+@description('Git repository branch for the application source. This defaults to the [**MongovCore** branch of the `Azure/BuildYourOwnCopilot`](https://github.com/Azure/BuildYourOwnCopilot/tree/MongovCore) repository.')
 param appGetRepositoryBranch string = 'MongovCore'
 
 var openAiSettings = {

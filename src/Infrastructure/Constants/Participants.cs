@@ -1,4 +1,4 @@
-namespace VectorSearchAiAssistant.Service.Constants;
+namespace BuildYourOwnCopilot.Service.Constants;
 
 public enum Participants
 {

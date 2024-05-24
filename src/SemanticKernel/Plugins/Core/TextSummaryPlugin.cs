@@ -1,7 +1,7 @@
 ﻿using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
+namespace BuildYourOwnCopilot.SemanticKernel.Plugins.Core
 {
     public class TextSummaryPlugin
     {

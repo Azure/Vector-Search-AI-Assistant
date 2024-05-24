@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Common.Models.ConfigurationOptions
+﻿namespace BuildYourOwnCopilot.Common.Models.ConfigurationOptions
 {
     public record VectorSearchSettings
     {

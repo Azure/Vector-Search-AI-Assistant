@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Common.Models.BusinessDomain
+﻿namespace BuildYourOwnCopilot.Common.Models.BusinessDomain
 {
     public class ShortTermMemory : EmbeddedEntity
     {

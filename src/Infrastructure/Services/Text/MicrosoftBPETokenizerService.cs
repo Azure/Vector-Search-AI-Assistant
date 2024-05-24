@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
-using VectorSearchAiAssistant.Service.Exceptions;
-using VectorSearchAiAssistant.Service.Interfaces;
+using BuildYourOwnCopilot.Service.Exceptions;
+using BuildYourOwnCopilot.Service.Interfaces;
 
-namespace VectorSearchAiAssistant.Service.Services.Text
+namespace BuildYourOwnCopilot.Service.Services.Text
 {
     /// <summary>
     /// Implements an <see cref="ITokenizerService"/> using the Microsoft BPE tokenizer (https://github.com/microsoft/Tokenizer).

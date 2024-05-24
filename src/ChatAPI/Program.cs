@@ -1,6 +1,6 @@
-using VectorSearchAiAssistant;
+using BuildYourOwnCopilot;
 
-namespace ChatServiceWebApi
+namespace ChatAPI
 {
     public class Program
     {

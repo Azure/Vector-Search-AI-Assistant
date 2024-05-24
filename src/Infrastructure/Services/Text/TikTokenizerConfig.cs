@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Service.Services.Text
+﻿namespace BuildYourOwnCopilot.Service.Services.Text
 {
     /// <summary>
     /// Provides the configuration values required to create a new <see cref="TikTokenizer"/> instance.

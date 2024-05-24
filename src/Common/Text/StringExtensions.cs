@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Common.Text
+﻿namespace BuildYourOwnCopilot.Common.Text
 {
     public static class StringExtensions
     {

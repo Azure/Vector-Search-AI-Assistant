@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Service.Services.Text
+﻿namespace BuildYourOwnCopilot.Service.Services.Text
 {
     /// <summary>
     /// Well-known special TikTokenizer token names.

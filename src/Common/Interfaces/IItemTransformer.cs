@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace VectorSearchAiAssistant.Common.Interfaces
+namespace BuildYourOwnCopilot.Common.Interfaces
 {
     public interface IItemTransformer
     {

@@ -1,7 +1,7 @@
-﻿using VectorSearchAiAssistant.Common.Text;
-using VectorSearchAiAssistant.Service.Interfaces;
+﻿using BuildYourOwnCopilot.Common.Text;
+using BuildYourOwnCopilot.Service.Interfaces;
 
-namespace VectorSearchAiAssistant.Service.Services
+namespace BuildYourOwnCopilot.Service.Services
 {
     public class InMemorySystemPromptService : ISystemPromptService
     {

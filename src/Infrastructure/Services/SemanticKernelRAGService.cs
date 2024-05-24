@@ -6,18 +6,18 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
 using System.Text.RegularExpressions;
-using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Models.BusinessDomain;
-using VectorSearchAiAssistant.Common.Models.Chat;
-using VectorSearchAiAssistant.SemanticKernel.Connectors.AzureCosmosDBNoSql;
-using VectorSearchAiAssistant.SemanticKernel.Plugins.Core;
-using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
-using VectorSearchAiAssistant.Service.Interfaces;
-using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
+using BuildYourOwnCopilot.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Models.BusinessDomain;
+using BuildYourOwnCopilot.Common.Models.Chat;
+using BuildYourOwnCopilot.SemanticKernel.Connectors.AzureCosmosDBNoSql;
+using BuildYourOwnCopilot.SemanticKernel.Plugins.Core;
+using BuildYourOwnCopilot.SemanticKernel.Plugins.Memory;
+using BuildYourOwnCopilot.Service.Interfaces;
+using BuildYourOwnCopilot.Service.Models.ConfigurationOptions;
 
 #pragma warning disable SKEXP0001, SKEXP0010, SKEXP0020, SKEXP0050, SKEXP0060
 
-namespace VectorSearchAiAssistant.Service.Services;
+namespace BuildYourOwnCopilot.Service.Services;
 
 public class SemanticKernelRAGService : IRAGService
 {

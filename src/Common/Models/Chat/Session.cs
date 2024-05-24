@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace VectorSearchAiAssistant.Common.Models.Chat;
+namespace BuildYourOwnCopilot.Common.Models.Chat;
 
 public record Session
 {

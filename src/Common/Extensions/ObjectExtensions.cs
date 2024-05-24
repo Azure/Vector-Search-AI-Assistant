@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace VectorSearchAiAssistant.Common.Extensions
+namespace BuildYourOwnCopilot.Common.Extensions
 {
     public static class ObjectExtensions
     {

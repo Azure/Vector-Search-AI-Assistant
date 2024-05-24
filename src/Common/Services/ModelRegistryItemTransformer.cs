@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
-using VectorSearchAiAssistant.Common.Exceptions;
-using VectorSearchAiAssistant.Common.Extensions;
-using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Models;
-using VectorSearchAiAssistant.Common.Models.BusinessDomain;
-using VectorSearchAiAssistant.Common.Text;
+using BuildYourOwnCopilot.Common.Exceptions;
+using BuildYourOwnCopilot.Common.Extensions;
+using BuildYourOwnCopilot.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Models;
+using BuildYourOwnCopilot.Common.Models.BusinessDomain;
+using BuildYourOwnCopilot.Common.Text;
 
-namespace VectorSearchAiAssistant.Common.Services
+namespace BuildYourOwnCopilot.Common.Services
 {
     public class ModelRegistryItemTransformer : IItemTransformer
     {

@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Common.Exceptions
+﻿namespace BuildYourOwnCopilot.Common.Exceptions
 {
     /// <summary>
     /// Represents an error in the tokenization process.

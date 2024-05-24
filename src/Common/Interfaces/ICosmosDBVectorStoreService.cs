@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Common.Interfaces
+﻿namespace BuildYourOwnCopilot.Common.Interfaces
 {
     public interface ICosmosDBVectorStoreService
     {

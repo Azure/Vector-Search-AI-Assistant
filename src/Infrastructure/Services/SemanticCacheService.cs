@@ -1,14 +1,14 @@
 ﻿using MathNet.Numerics;
 using Newtonsoft.Json;
-using VectorSearchAiAssistant.Common.Models.Chat;
-using VectorSearchAiAssistant.Common.Models.ConfigurationOptions;
-using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
-using VectorSearchAiAssistant.Service.Constants;
-using VectorSearchAiAssistant.Service.Interfaces;
-using VectorSearchAiAssistant.Service.Models.Chat;
-using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
+using BuildYourOwnCopilot.Common.Models.Chat;
+using BuildYourOwnCopilot.Common.Models.ConfigurationOptions;
+using BuildYourOwnCopilot.SemanticKernel.Plugins.Memory;
+using BuildYourOwnCopilot.Service.Constants;
+using BuildYourOwnCopilot.Service.Interfaces;
+using BuildYourOwnCopilot.Service.Models.Chat;
+using BuildYourOwnCopilot.Service.Models.ConfigurationOptions;
 
-namespace VectorSearchAiAssistant.Service.Services
+namespace BuildYourOwnCopilot.Service.Services
 {
     public class SemanticCacheService : ISemanticCacheService
     {

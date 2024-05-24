@@ -1,7 +1,7 @@
-﻿using VectorSearchAiAssistant.Common.Models.Chat;
-using VectorSearchAiAssistant.Service.Models.Chat;
+﻿using BuildYourOwnCopilot.Common.Models.Chat;
+using BuildYourOwnCopilot.Service.Models.Chat;
 
-namespace VectorSearchAiAssistant.Service.Interfaces
+namespace BuildYourOwnCopilot.Service.Interfaces
 {
     public interface ISemanticCacheService
     {

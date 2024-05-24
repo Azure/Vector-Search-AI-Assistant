@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Text;
-using VectorSearchAiAssistant.Common.Models.BusinessDomain;
+using BuildYourOwnCopilot.Common.Models.BusinessDomain;
 
-namespace VectorSearchAiAssistant.Common.Text
+namespace BuildYourOwnCopilot.Common.Text
 {
     public static class EmbeddingUtility
     {

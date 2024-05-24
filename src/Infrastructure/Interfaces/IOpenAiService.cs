@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Service.Interfaces;
+﻿namespace BuildYourOwnCopilot.Service.Interfaces;
 
 public interface IOpenAiService
 {

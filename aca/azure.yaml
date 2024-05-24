@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
-name: Vector-Search-AI-Assistant
+name: BuildYourOwnCopilot
 metadata:
     template: azd-init@1.5.1
 hooks:
@@ -15,8 +15,8 @@ hooks:
       interactive: true
       run: ./azd-hooks/postdeploy.ps1
 services:
-    ChatServiceWebApi:
-        project: ../ChatServiceWebApi
+    ChatAPI:
+        project: ../ChatAPI
         host: containerapp
         language: dotnet
         docker:
