@@ -10,14 +10,14 @@ ENV ASPNETCORE_ENVIRONMENT=Development
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY . .
-RUN dotnet restore "Search/Search.csproj"
+RUN dotnet restore "UserPortal/UserPortal.csproj"
 WORKDIR "/src/Search"
-RUN dotnet build "Search.csproj" -c Release -o /app/build
+RUN dotnet build "UserPortal.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Search.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "UserPortal.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Search.dll"]
+ENTRYPOINT ["dotnet", "UserPortal.dll"]
