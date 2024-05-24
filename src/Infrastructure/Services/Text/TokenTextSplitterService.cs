@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VectorSearchAiAssistant.Service.Exceptions;
-using VectorSearchAiAssistant.Service.Interfaces;
-using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
+using BuildYourOwnCopilot.Service.Exceptions;
+using BuildYourOwnCopilot.Service.Interfaces;
+using BuildYourOwnCopilot.Service.Models.ConfigurationOptions;
 
-namespace VectorSearchAiAssistant.Service.Services.Text
+namespace BuildYourOwnCopilot.Service.Services.Text
 {
 
     /// <summary>

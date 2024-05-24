@@ -1,6 +1,6 @@
-﻿using VectorSearchAiAssistant.Common.Models.BusinessDomain;
+﻿using BuildYourOwnCopilot.Common.Models.BusinessDomain;
 
-namespace VectorSearchAiAssistant.Service.Models.Chat
+namespace BuildYourOwnCopilot.Service.Models.Chat
 {
     public class SemanticCacheItem
     {

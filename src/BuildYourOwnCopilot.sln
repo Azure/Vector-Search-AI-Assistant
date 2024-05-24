@@ -3,24 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Search", "Search\Search.csproj", "{E8C2FE79-83B4-460F-BACD-467E9200C9DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserPortal", "UserPortal\UserPortal.csproj", "{E8C2FE79-83B4-460F-BACD-467E9200C9DD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D7AF34B5-704A-406D-962A-B27B064F23C0}"
-	ProjectSection(SolutionItems) = preProject
-		azuredeploy.bicep = azuredeploy.bicep
-		azuredeploy.json = azuredeploy.json
-		LICENSE = LICENSE
-		migrationsettings.json = migrationsettings.json
-		README.md = README.md
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{5AA7F0B6-30E6-451A-B1BE-F003BD3EC203}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorSearchAiAssistant.Service", "VectorSearchAiAssistant.Service\VectorSearchAiAssistant.Service.csproj", "{5AA7F0B6-30E6-451A-B1BE-F003BD3EC203}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatAPI", "ChatAPI\ChatAPI.csproj", "{3450C557-BECA-4F6D-B414-5941129229A6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatServiceWebApi", "ChatServiceWebApi\ChatServiceWebApi.csproj", "{3450C557-BECA-4F6D-B414-5941129229A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SemanticKernel", "SemanticKernel\SemanticKernel.csproj", "{503CE23D-63D7-4A26-8475-AA71A45D519B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VectorSearchAiAssistant.SemanticKernel", "VectorSearchAiAssistant.SemanticKernel\VectorSearchAiAssistant.SemanticKernel.csproj", "{503CE23D-63D7-4A26-8475-AA71A45D519B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VectorSearchAiAssistant.Common", "VectorSearchAiAssistant.Common\VectorSearchAiAssistant.Common.csproj", "{C90FD307-0EA7-41CF-8969-C6B44ACE4163}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{C90FD307-0EA7-41CF-8969-C6B44ACE4163}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

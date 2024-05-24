@@ -4,14 +4,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
-using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Models;
-using VectorSearchAiAssistant.Common.Models.BusinessDomain;
-using VectorSearchAiAssistant.Common.Models.Chat;
-using VectorSearchAiAssistant.Common.Models.Configuration;
-using VectorSearchAiAssistant.Service.Interfaces;
+using BuildYourOwnCopilot.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Models;
+using BuildYourOwnCopilot.Common.Models.BusinessDomain;
+using BuildYourOwnCopilot.Common.Models.Chat;
+using BuildYourOwnCopilot.Common.Models.Configuration;
+using BuildYourOwnCopilot.Service.Interfaces;
 
-namespace VectorSearchAiAssistant.Service.Services
+namespace BuildYourOwnCopilot.Service.Services
 {
     /// <summary>
     /// Service to access Azure Cosmos DB for NoSQL.

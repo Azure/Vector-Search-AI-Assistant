@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace VectorSearchAiAssistant.Common.Extensions
+namespace BuildYourOwnCopilot.Common.Extensions
 {
     public static class JsonExtensions
     {

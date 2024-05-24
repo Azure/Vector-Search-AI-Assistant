@@ -1,7 +1,7 @@
-﻿using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Models.Chat;
+﻿using BuildYourOwnCopilot.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Models.Chat;
 
-namespace VectorSearchAiAssistant.Service.Interfaces
+namespace BuildYourOwnCopilot.Service.Interfaces
 {
     public interface IRAGService
     {

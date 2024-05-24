@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
-using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Models.BusinessDomain;
-using VectorSearchAiAssistant.Common.Models.Chat;
-using VectorSearchAiAssistant.Service.Constants;
-using VectorSearchAiAssistant.Service.Interfaces;
+using BuildYourOwnCopilot.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Models.BusinessDomain;
+using BuildYourOwnCopilot.Common.Models.Chat;
+using BuildYourOwnCopilot.Service.Constants;
+using BuildYourOwnCopilot.Service.Interfaces;
 
-namespace VectorSearchAiAssistant.Service.Services;
+namespace BuildYourOwnCopilot.Service.Services;
 
 public class ChatService : IChatService
 {

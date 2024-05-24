@@ -2,7 +2,7 @@
 
 #pragma warning disable SKEXP0001
 
-namespace VectorSearchAiAssistant.Service.Services
+namespace BuildYourOwnCopilot.Service.Services
 {
     public class DefaultPromptFilter : IPromptFilter
     {

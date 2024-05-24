@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
-using VectorSearchAiAssistant.Common.Models.BusinessDomain;
-using VectorSearchAiAssistant.Common.Models.Chat;
+using BuildYourOwnCopilot.Common.Models.BusinessDomain;
+using BuildYourOwnCopilot.Common.Models.Chat;
 
-namespace VectorSearchAiAssistant.Common.Models
+namespace BuildYourOwnCopilot.Common.Models
 {
     public class ModelRegistry
     {

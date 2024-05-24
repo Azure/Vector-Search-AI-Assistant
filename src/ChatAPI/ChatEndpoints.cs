@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VectorSearchAiAssistant.Common.Models.BusinessDomain;
-using VectorSearchAiAssistant.Service.Interfaces;
+using BuildYourOwnCopilot.Common.Models.BusinessDomain;
+using BuildYourOwnCopilot.Service.Interfaces;
 
-namespace ChatServiceWebApi
+namespace ChatAPI
 {
     public class ChatEndpoints
     {

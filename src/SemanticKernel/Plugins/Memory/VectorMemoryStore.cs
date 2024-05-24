@@ -4,11 +4,11 @@ using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
 using Newtonsoft.Json;
 using System.Reflection;
-using VectorSearchAiAssistant.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Interfaces;
 
 #pragma warning disable SKEXP0001
 
-namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Memory
+namespace BuildYourOwnCopilot.SemanticKernel.Plugins.Memory
 {
     public class VectorMemoryStore
     {

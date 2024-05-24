@@ -1,9 +1,9 @@
 ﻿using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
 using System.Text;
-using VectorSearchAiAssistant.Common.Text;
+using BuildYourOwnCopilot.Common.Text;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Chat
+namespace BuildYourOwnCopilot.SemanticKernel.Chat
 {
     public class ContextBuilder
     {

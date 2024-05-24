@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VectorSearchAiAssistant.Service.Interfaces;
+using BuildYourOwnCopilot.Service.Interfaces;
 
-namespace VectorSearchAiAssistant.Service.Tests
+namespace BuildYourOwnCopilot.Service.Tests
 {
     [TestFixture]
     public class OpenAiServiceTests

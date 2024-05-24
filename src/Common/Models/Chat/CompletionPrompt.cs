@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Common.Models.Chat
+﻿namespace BuildYourOwnCopilot.Common.Models.Chat
 {
     public class CompletionPrompt
     {

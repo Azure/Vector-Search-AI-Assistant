@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using VectorSearchAiAssistant.Service.Interfaces;
+using BuildYourOwnCopilot.Service.Interfaces;
 
-namespace VectorSearchAiAssistant.Service.MemorySource
+namespace BuildYourOwnCopilot.Service.MemorySource
 {
     public class BlobStorageMemorySource : IMemorySource
     {

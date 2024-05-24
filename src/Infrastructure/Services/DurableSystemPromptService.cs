@@ -1,10 +1,10 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
-using VectorSearchAiAssistant.Common.Text;
-using VectorSearchAiAssistant.Service.Interfaces;
-using VectorSearchAiAssistant.Service.Models.ConfigurationOptions;
+using BuildYourOwnCopilot.Common.Text;
+using BuildYourOwnCopilot.Service.Interfaces;
+using BuildYourOwnCopilot.Service.Models.ConfigurationOptions;
 
-namespace VectorSearchAiAssistant.Service.Services
+namespace BuildYourOwnCopilot.Service.Services
 {
     public class DurableSystemPromptService : ISystemPromptService
     {

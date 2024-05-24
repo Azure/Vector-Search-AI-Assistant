@@ -3,17 +3,17 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Memory;
 using System.ComponentModel;
-using VectorSearchAiAssistant.Common.Models;
-using VectorSearchAiAssistant.Common.Models.Chat;
-using VectorSearchAiAssistant.Common.Models.ConfigurationOptions;
-using VectorSearchAiAssistant.Common.Text;
-using VectorSearchAiAssistant.SemanticKernel.Chat;
-using VectorSearchAiAssistant.SemanticKernel.Models;
-using VectorSearchAiAssistant.SemanticKernel.Plugins.Memory;
+using BuildYourOwnCopilot.Common.Models;
+using BuildYourOwnCopilot.Common.Models.Chat;
+using BuildYourOwnCopilot.Common.Models.ConfigurationOptions;
+using BuildYourOwnCopilot.Common.Text;
+using BuildYourOwnCopilot.SemanticKernel.Chat;
+using BuildYourOwnCopilot.SemanticKernel.Models;
+using BuildYourOwnCopilot.SemanticKernel.Plugins.Memory;
 
 #pragma warning disable SKEXP0001
 
-namespace VectorSearchAiAssistant.SemanticKernel.Plugins.Core
+namespace BuildYourOwnCopilot.SemanticKernel.Plugins.Core
 {
     /// <summary>
     /// AdvancedChatPlugin provides the capability to build the context for chat completions by recalling object information from the long term memory using vector-based similarity.

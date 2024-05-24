@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Service.Models.ConfigurationOptions
+﻿namespace BuildYourOwnCopilot.Service.Models.ConfigurationOptions
 {
     public record SemanticCacheServiceSettings
     {

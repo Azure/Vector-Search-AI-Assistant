@@ -2,11 +2,11 @@
 
 ## Using ACA
 
-Clone the VectorSearchAiAssistant repository and change to the `cognitive-search-vector` branch
+Clone the BuildYourOwnCopilot repository and change to the `main` branch
 
 ```pwsh
-git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant
-git checkout cognitive-search-vector
+git clone https://github.com/Azure/BuildYourOwnCopilot
+git checkout main
 ```
 
 Run the following script to provision the infrastructure and deploy the API and frontend. This will provision all of the required infrastructure, deploy the API and web app services into ACA, and import data into Cosmos.
@@ -52,7 +52,7 @@ The following flags can be used to enable/disable specific deployment steps in t
 | stepBuildPush | Enables or disables the build and push of Docker images to the Azure Container Registry in the target resource group. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/BuildPush.ps1` script.
 | stepDeployCertManager | Enables or disables the Helm deployment of a LetsEncrypt capable certificate manager to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/DeployCertManager.ps1` script.
 | stepDeployTls | Enables or disables the Helm deployment of the LetsEncrypt certificate request resources to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/PublishTlsSupport.ps1` script.
-| stepDeployImages | Enables or disables the Helm deployment of the ChatServiceWebApi and Search services to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Deploy-Images-Aks.ps1` script.
+| stepDeployImages | Enables or disables the Helm deployment of the ChatAPI and UserPortal services to the AKS cluster. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Deploy-Images-Aks.ps1` script.
 | stepUploadSystemPrompts | Enables or disables the upload of OpenAI system prompt artifacts to a storage account in the target resource group. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/UploadSystemPrompts.ps1` script.
 | stepImportData | Enables or disables the import of data into a Cosmos account in the target resource group using the Data Migration Tool. Valid values are 0 (Disabled) and 1 (Enabled). See the `scripts/Import-Data.ps1` script.
 | stepLoginAzure | Enables or disables interactive Azure login. If disabled, the deployment assumes that the current Azure CLI session is valid. Valid values are 0 (Disabled). 

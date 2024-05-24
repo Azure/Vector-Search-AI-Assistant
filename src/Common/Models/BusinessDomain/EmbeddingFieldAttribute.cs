@@ -1,4 +1,4 @@
-﻿namespace VectorSearchAiAssistant.Common.Models.BusinessDomain
+﻿namespace BuildYourOwnCopilot.Common.Models.BusinessDomain
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
     public class EmbeddingFieldAttribute : Attribute

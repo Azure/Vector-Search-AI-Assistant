@@ -1,6 +1,6 @@
-﻿using VectorSearchAiAssistant.Common.Interfaces;
+﻿using BuildYourOwnCopilot.Common.Interfaces;
 
-namespace VectorSearchAiAssistant.Common.Services
+namespace BuildYourOwnCopilot.Common.Services
 {
     public class ItemTransformerFactory : IItemTransformerFactory
     {

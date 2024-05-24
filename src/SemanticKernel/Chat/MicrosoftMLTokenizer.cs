@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML.Tokenizers;
 
-namespace VectorSearchAiAssistant.SemanticKernel.Chat
+namespace BuildYourOwnCopilot.SemanticKernel.Chat
 {
     public class MicrosoftMLTokenizer : ITokenizer
     {

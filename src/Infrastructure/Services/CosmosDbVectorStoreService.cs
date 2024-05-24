@@ -1,11 +1,11 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
-using VectorSearchAiAssistant.Common.Interfaces;
-using VectorSearchAiAssistant.Common.Models.Configuration;
-using VectorSearchAiAssistant.Service.Exceptions;
+using BuildYourOwnCopilot.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Models.Configuration;
+using BuildYourOwnCopilot.Service.Exceptions;
 
-namespace VectorSearchAiAssistant.Service.Services
+namespace BuildYourOwnCopilot.Service.Services
 {
     public class CosmosDBVectorStoreService : ICosmosDBVectorStoreService
     {
