@@ -1,17 +1,18 @@
 ﻿using Microsoft.Extensions.Options;
 using BuildYourOwnCopilot.Common.Models.Chat;
+using Newtonsoft.Json;
 
-namespace Search.Helpers
+namespace BuildYourOwnCopilot.Helpers
 {
     public class ChatManager : IChatManager
     {
         /// <summary>
         /// All data is cached in the _sessions List object.
         /// </summary>
-        private List<Session> _sessions { get; set; }
+        private List<Session> _sessions = [];
 
         private readonly ChatManagerSettings _settings;
-        private HttpClient _httpClient;
+        private readonly HttpClient _httpClient;
 
         public ChatManager(
             IOptions<ChatManagerSettings> settings)
@@ -148,22 +149,15 @@ namespace Search.Helpers
 
         private async Task<T> SendRequest<T>(HttpMethod method, string requestUri, object payload = null)
         {
-            HttpResponseMessage responseMessage;
-            switch (method)
+            HttpResponseMessage responseMessage = method switch
             {
-                case HttpMethod m when m == HttpMethod.Get:
-                    responseMessage = await _httpClient.GetAsync($"{_settings.APIRoutePrefix}{requestUri}");
-                    break;
-                case HttpMethod m when m == HttpMethod.Post:
-                    responseMessage = await _httpClient.PostAsync($"{_settings.APIRoutePrefix}{requestUri}",
-                        payload == null ? null : JsonContent.Create(payload, payload.GetType()));
-                    break;
-                default:
-                    throw new NotImplementedException($"The Http method {method.Method} is not supported.");
-            }
-
+                HttpMethod m when m == HttpMethod.Get => await _httpClient.GetAsync($"{_settings.APIRoutePrefix}{requestUri}"),
+                HttpMethod m when m == HttpMethod.Post => await _httpClient.PostAsync($"{_settings.APIRoutePrefix}{requestUri}",
+                                        payload == null ? null : JsonContent.Create(payload, payload.GetType())),
+                _ => throw new NotImplementedException($"The Http method {method.Method} is not supported."),
+            };
             var content = await responseMessage.Content.ReadAsStringAsync();
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(content);
+            return JsonConvert.DeserializeObject<T>(content);
         }
 
         private async Task SendRequest(HttpMethod method, string requestUri)

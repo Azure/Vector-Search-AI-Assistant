@@ -1,9 +1,4 @@
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Logging;
-using Search.Helpers;
-using BuildYourOwnCopilot.Service.Services;
-using BuildYourOwnCopilot.Service.Interfaces;
-using BuildYourOwnCopilot.Service.Models.ConfigurationOptions;
+using BuildYourOwnCopilot.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 

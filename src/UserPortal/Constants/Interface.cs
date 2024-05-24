@@ -1,4 +1,4 @@
-namespace Search.Constants;
+namespace BuildYourOwnCopilot.Constants;
 
 public static class Interface
 {
