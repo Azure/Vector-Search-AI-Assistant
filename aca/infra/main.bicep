@@ -12,9 +12,9 @@ param location string
 param chatAPIExists bool
 @secure()
 param chatAPIDefinition object
-param searchExists bool
+param userPortalExists bool
 @secure()
-param searchDefinition object
+param userPortalDefinition object
 
 @description('Id of the user or app to assign application roles')
 param principalId string
@@ -328,12 +328,12 @@ module appsEnv './shared/apps-env.bicep' = {
 module chatAPI './app/ChatAPI.bicep' = {
   name: 'ChatAPI'
   params: {
-    name: '${abbrs.appContainerApps}chatservicew-${resourceToken}'
+    name: '${abbrs.appContainerApps}chatapi-${resourceToken}'
     location: location
     tags: tags
     cosmosDbAccountName: cosmos.outputs.name
     storageAccountName: storage.outputs.name
-    identityName: '${abbrs.managedIdentityUserAssignedIdentities}chatservicew-${resourceToken}'
+    identityName: '${abbrs.managedIdentityUserAssignedIdentities}chatapi-${resourceToken}'
     keyvaultName: keyVault.outputs.name
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     containerAppsEnvironmentName: appsEnv.outputs.name
@@ -391,20 +391,20 @@ module chatAPI './app/ChatAPI.bicep' = {
   dependsOn: [ cosmos, monitoring, openAi, storage ]
 }
 
-module search './app/UserPortal.bicep' = {
+module userPortal './app/UserPortal.bicep' = {
   name: 'UserPortal'
   params: {
     apiUri: chatAPI.outputs.uri
-    name: '${abbrs.appContainerApps}search-${resourceToken}'
+    name: '${abbrs.appContainerApps}userportal-${resourceToken}'
     location: location
     tags: tags
     keyvaultName: keyVault.outputs.name
-    identityName: '${abbrs.managedIdentityUserAssignedIdentities}search-${resourceToken}'
+    identityName: '${abbrs.managedIdentityUserAssignedIdentities}userportal-${resourceToken}'
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     containerAppsEnvironmentName: appsEnv.outputs.name
     containerRegistryName: registry.outputs.name
-    exists: searchExists
-    appDefinition: searchDefinition
+    exists: userPortalExists
+    appDefinition: userPortalDefinition
     envSettings: [
       {
         name: 'MSCosmosDBOpenAI__ChatManager__APIRoutePrefix'

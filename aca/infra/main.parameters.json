@@ -137,10 +137,10 @@
           ]
         }
       },
-      "searchExists": {
-        "value": "${SERVICE_SEARCH_RESOURCE_EXISTS=false}"
+      "userPortalExists": {
+        "value": "${SERVICE_USERPORTAL_RESOURCE_EXISTS=false}"
       },
-      "searchDefinition": {
+      "userPortalDefinition": {
         "value": {
           "settings": []
         }
