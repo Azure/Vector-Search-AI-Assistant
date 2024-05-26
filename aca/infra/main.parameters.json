@@ -8,24 +8,12 @@
       "location": {
         "value": "${AZURE_LOCATION}"
       },
-      "chatServiceWebApiExists": {
-        "value": "${SERVICE_CHATSERVICEWEBAPI_RESOURCE_EXISTS=false}"
+      "chatAPIExists": {
+        "value": "${SERVICE_CHATAPI_RESOURCE_EXISTS=false}"
       },
-      "chatServiceWebApiDefinition": {
+      "chatAPIDefinition": {
         "value": {
           "settings": [
-            {
-              "name": "MSCosmosDBOpenAI__CognitiveSearch__IndexName",
-              "value": "vector-index",
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
-            },
-            {
-              "name": "MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults",
-              "value": "10",
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
-            },
             {
               "name": "MSCosmosDBOpenAI__OpenAI__CompletionsDeployment",
               "value": "completions",
@@ -131,24 +119,6 @@
             {
               "name": "MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer",
               "value": "system-prompt",
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
-            },
-            {
-              "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName",
-              "value": "vector-index",
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
-            },
-            {
-              "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageContainer",
-              "value": "memory-source",
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
-            },
-            {
-              "name": "MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigFilePath",
-              "value": "ACSMemorySourceConfig.json",
               "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
               "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
             },

@@ -2,7 +2,7 @@
 
 Param(
     [parameter(Mandatory=$false)][string]$resourceGroup=$env:AZURE_RESOURCE_GROUP,
-    [parameter(Mandatory=$false)][string]$apiUrl=$env:SERVICE_CHATSERVICEWEBAPI_ENDPOINT_URL
+    [parameter(Mandatory=$false)][string]$apiUrl=$env:SERVICE_CHATAPI_ENDPOINT_URL
 )
 
 Push-Location $($MyInvocation.InvocationName | Split-Path)

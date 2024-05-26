@@ -10,8 +10,6 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 data:
-  MSCosmosDBOpenAI__CognitiveSearch__IndexName: {{ .Values.cognitiveSearch.indexName }}
-  MSCosmosDBOpenAI__CognitiveSearch__MaxVectorSearchResults: {{ .Values.cognitiveSearch.maxVectorSearchResults | quote }}
   MSCosmosDBOpenAI__OpenAI__CompletionsDeployment: {{ .Values.openAi.completionsDeployment }}
   MSCosmosDBOpenAI__OpenAI__CompletionsDeploymentMaxTokens: {{ .Values.openAi.completionsDeploymentMaxTokens | quote }}
   MSCosmosDBOpenAI__OpenAI__EmbeddingsDeployment: {{ .Values.openAi.embeddingsDeployment }}
@@ -30,8 +28,5 @@ data:
   MSCosmosDBOpenAI__CosmosDB__Database: {{ .Values.cosmosDb.database }}
   MSCosmosDBOpenAI__CosmosDB__ChangeFeedLeaseContainer: {{ .Values.cosmosDb.changeFeedLeaseContainer }}
   MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageContainer: {{ .Values.durableSystemPrompt.blobStorageContainer }}
-  MSCosmosDBOpenAI__CognitiveSearchMemorySource__IndexName: {{ .Values.cognitiveSearch.indexName }}
-  MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigBlobStorageContainer: {{ .Values.cognitiveSearchMemorySource.configBlobStorageContainer }}
-  MSCosmosDBOpenAI__CognitiveSearchMemorySource__ConfigFilePath: {{ .Values.cognitiveSearchMemorySource.configFilePath }}
   MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageContainer: {{ .Values.blobStorageMemorySource.configBlobStorageContainer }}
   MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigFilePath: {{ .Values.blobStorageMemorySource.configFilePath }}

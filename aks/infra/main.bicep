@@ -396,7 +396,7 @@ module assignContributorrRoleToASO 'role-assignments/subscription-contributor-ro
   }
 }
 
-// Managed identity for ChatServiceWebApi
+// Managed identity for ChatAPI
 module chatServiceApiManagedIdentity 'managed-identity/chat-service-web-api-workload-identity.bicep' = {
   name: 'chat-service-api-managed-identity'
   scope: resourceGroup
