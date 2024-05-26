@@ -9,9 +9,9 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
-param chatServiceWebApiExists bool
+param chatAPIExists bool
 @secure()
-param chatServiceWebApiDefinition object
+param chatAPIDefinition object
 param searchExists bool
 @secure()
 param searchDefinition object
@@ -325,8 +325,8 @@ module appsEnv './shared/apps-env.bicep' = {
   scope: rg
 }
 
-module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
-  name: 'ChatServiceWebApi'
+module chatAPI './app/ChatAPI.bicep' = {
+  name: 'ChatAPI'
   params: {
     name: '${abbrs.appContainerApps}chatservicew-${resourceToken}'
     location: location
@@ -338,8 +338,8 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     containerAppsEnvironmentName: appsEnv.outputs.name
     containerRegistryName: registry.outputs.name
-    exists: chatServiceWebApiExists
-    appDefinition: chatServiceWebApiDefinition
+    exists: chatAPIExists
+    appDefinition: chatAPIDefinition
     envSettings: [
       {
         name: 'MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint'
@@ -359,11 +359,6 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
         name: 'ApplicationInsights__ConnectionString'
         value: monitoring.outputs.applicationInsightsConnectionSecretRef
         secretRef: monitoring.outputs.applicationInsightsConnectionSecretName
-      }
-      {
-        name: 'MSCosmosDBOpenAI__AISearchMemorySource__ConfigBlobStorageConnection'
-        value: storage.outputs.connectionSecretRef
-        secretRef: storage.outputs.connectionSecretName
       }
       {
         name: 'MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection'
@@ -396,10 +391,10 @@ module chatServiceWebApi './app/ChatServiceWebApi.bicep' = {
   dependsOn: [ cosmos, monitoring, openAi, storage ]
 }
 
-module search './app/Search.bicep' = {
-  name: 'Search'
+module search './app/UserPortal.bicep' = {
+  name: 'UserPortal'
   params: {
-    apiUri: chatServiceWebApi.outputs.uri
+    apiUri: chatAPI.outputs.uri
     name: '${abbrs.appContainerApps}search-${resourceToken}'
     location: location
     tags: tags
@@ -417,7 +412,7 @@ module search './app/Search.bicep' = {
       }
       {
         name: 'MSCosmosDBOpenAI__ChatManager__APIUrl'
-        value: chatServiceWebApi.outputs.uri
+        value: chatAPI.outputs.uri
       }
     ]
     secretSettings: [
@@ -429,7 +424,7 @@ module search './app/Search.bicep' = {
     ]
   }
   scope: rg
-  dependsOn: [ chatServiceWebApi, monitoring ]
+  dependsOn: [ chatAPI, monitoring ]
 }
 
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
@@ -439,4 +434,4 @@ output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
 
-output SERVICE_CHATSERVICEWEBAPI_ENDPOINT_URL string = chatServiceWebApi.outputs.uri
+output SERVICE_CHATAPI_ENDPOINT_URL string = chatAPI.outputs.uri

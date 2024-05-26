@@ -15,14 +15,14 @@ Follow the steps below to deploy the solution to your Azure subscription.
 2. Clone the repository:
    
     ```cmd
-    git clone https://github.com/AzureCosmosDB/VectorSearchAiAssistant.git
+    git clone https://github.com/Azure/BuildYourOwnCopilot.git
     ```
 
-3. Switch to the `cognitive-search-vector` branch:
+3. Switch to the `main` branch:
 
     ```cmd
-    cd VectorSearchAiAssistant
-    git checkout cognitive-search-vector
+    cd BuildYourOwnCopilot
+    git checkout main
     ```
 
 4. Set the proper folder permissions on the `scripts` folder:

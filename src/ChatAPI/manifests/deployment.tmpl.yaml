@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels:
+    app: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: api
+      containers:
+        - name: api
+          image: "{{.Env.SERVICE_API_IMAGE_NAME}}"
+          imagePullPolicy: Always
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__BlobStorageMemorySource__ConfigBlobStorageConnection
+            - name: MSCosmosDBOpenAI__CosmosDB__Endpoint
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__CosmosDB__Endpoint
+            - name: MSCosmosDBOpenAI__CosmosDB__Key
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__CosmosDB__Key
+            - name: MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint
+            - name: MSCosmosDBOpenAI__CosmosDBVectorStore__Key
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__CosmosDBVectorStore__Key
+            - name: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection
+            - name: MSCosmosDBOpenAI__OpenAI__Endpoint
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__OpenAI__Endpoint
+            - name: MSCosmosDBOpenAI__OpenAI__Key
+              valueFrom:
+                secretKeyRef:
+                  name: secret-api
+                  key: MSCosmosDBOpenAI__OpenAI__Key
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources: {}
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []
