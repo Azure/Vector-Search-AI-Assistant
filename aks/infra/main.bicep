@@ -243,13 +243,6 @@ module storage './resources/storage.bicep' = {
         container: 'system-prompt'
       }
       {
-        name: 'acsmemorysourceconfig-json'
-        file: 'ACSMemorySourceConfig.json'
-        path: 'ACSMemorySourceConfig.json'
-        content: loadTextContent('../../MemorySources/ACSMemorySourceConfig.json')
-        container: 'memory-source'
-      }
-      {
         name: 'blobmemorysourceconfig-json'
         file: 'BlobMemorySourceConfig.json'
         path: 'BlobMemorySourceConfig.json'
