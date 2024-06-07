@@ -183,18 +183,6 @@ module openAi './resources/openai.bicep' = if (deployOpenAi) {
   scope: resourceGroup
 }
 
-module cogSearch './resources/search.bicep' = {
-  name: 'cogsearch'
-  params: {
-    keyvaultName: keyVault.outputs.name
-    location: location
-    name: '${abbrs.searchSearchServices}${resourceToken}'
-    sku: 'basic'
-    tags: tags
-  }
-  scope: resourceGroup
-}
-
 module openAiSecrets './resources/openai-secrets.bicep' = {
   name: 'openaiSecrets'
   scope: resourceGroup
@@ -385,8 +373,6 @@ output PROMETHEUS_ENDPOINT string = monitoring.outputs.prometheusEndpoint
 
 output AZURE_COSMOS_DB_NAME string = cosmos.outputs.name
 output AZURE_COSMOS_DB_ENDPOINT string = cosmos.outputs.endpoint
-output AZURE_COGNITIVE_SEARCH_NAME string = cogSearch.outputs.name
-output AZURE_COGNITIVE_SEARCH_ENDPOINT string = cogSearch.outputs.endpoint
 output AZURE_OPENAI_NAME string = openAiInstance.name
 output AZURE_OPENAI_ENDPOINT string = azureOpenAiEndpoint
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
