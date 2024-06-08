@@ -169,14 +169,6 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-02-02-preview' = {
   }
 }
 
-// Prometheus custom config for pod annotation scraping
-module prometheusConfig '../monitoring/prometheus-config.bicep' = {
-  name: 'prometheus-config'
-  params: {
-    kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-  }
-}
-
 @description('The AKS cluster identity')
 output clusterIdentity object = {
   clientId: aks.properties.identityProfile.kubeletidentity.clientId
