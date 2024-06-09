@@ -9,6 +9,8 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+param existingOpenAiInstance object
+
 param chatAPIExists bool
 @secure()
 param chatAPIDefinition object
@@ -18,6 +20,15 @@ param searchDefinition object
 
 @description('Id of the user or app to assign application roles')
 param principalId string
+
+var deployOpenAi = empty(existingOpenAiInstance.name)
+var azureOpenAiEndpoint = deployOpenAi ? openAi.outputs.endpoint : customerOpenAi.properties.endpoint
+var azureOpenAi = deployOpenAi ? openAiInstance : existingOpenAiInstance
+var openAiInstance = {
+  name: openAi.outputs.name
+  resourceGroup: rg.name
+  subscriptionId: subscription().subscriptionId
+}
 
 // Tags that should be applied to all resources.
 // 
@@ -37,6 +48,18 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   tags: tags
 }
 
+resource customerOpenAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing =
+  if (!deployOpenAi) {
+    scope: subscription(existingOpenAiInstance.subscriptionId)
+    name: existingOpenAiInstance.resourceGroup
+  }
+
+resource customerOpenAi 'Microsoft.CognitiveServices/accounts@2023-05-01' existing =
+  if (!deployOpenAi) {
+    name: existingOpenAiInstance.name
+    scope: customerOpenAiResourceGroup
+  }
+
 module monitoring './shared/monitoring.bicep' = {
   name: 'monitoring'
   params: {
@@ -52,6 +75,14 @@ module monitoring './shared/monitoring.bicep' = {
 module cosmos './shared/cosmosdb.bicep' = {
   name: 'cosmos'
   params: {
+    capabilities: [
+      {
+        name: 'EnableNoSQLVectorSearch'
+      }
+      {
+        name: 'EnableServerless'
+      }
+    ]
     containers: [
       {
         name: 'embedding'
@@ -83,28 +114,6 @@ module cosmos './shared/cosmosdb.bicep' = {
         indexingPolicy: null
         vectorEmbeddingPolicy: {}
       }
-    ]
-    databaseName: 'vsai-database'
-    keyvaultName: keyVault.outputs.name
-    location: location
-    name: '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
-    tags: tags
-  }
-  scope: rg
-}
-
-module cosmosVec './shared/cosmosdb.bicep' = {
-  name: 'cosmosVec'
-  params: {
-    capabilities: [
-      {
-        name: 'EnableNoSQLVectorSearch'
-      }
-      {
-        name: 'EnableServerless'
-      }
-    ]
-    containers: [
       {
         name: 'main-vector-store'
         partitionKeyPath: '/partitionKey'
@@ -169,11 +178,10 @@ module cosmosVec './shared/cosmosdb.bicep' = {
         }
       }
     ]
-    databaseName: 'byoc-database'
+    databaseName: 'vsai-database'
     keyvaultName: keyVault.outputs.name
-    secretName: 'cosmosdb-vec-key'
     location: location
-    name: '${abbrs.documentDBDatabaseAccounts}vec${resourceToken}'
+    name: '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
     tags: tags
   }
   scope: rg
@@ -211,7 +219,7 @@ module keyVault './shared/keyvault.bicep' = {
   scope: rg
 }
 
-module openAi './shared/openai.bicep' = {
+module openAi './shared/openai.bicep' = if (deployOpenAi) {
   name: 'openai'
   params: {
     deployments: [
@@ -219,7 +227,7 @@ module openAi './shared/openai.bicep' = {
         name: 'completions'
         sku: {
           name: 'Standard'
-          capacity: 120
+          capacity: 10
         }
         model: {
           name: 'gpt-35-turbo'
@@ -230,7 +238,7 @@ module openAi './shared/openai.bicep' = {
         name: 'embeddings'
         sku: {
           name: 'Standard'
-          capacity: 120
+          capacity: 10
         }
         model: {
           name: 'text-embedding-ada-002'
@@ -245,6 +253,17 @@ module openAi './shared/openai.bicep' = {
     tags: tags
   }
   scope: rg
+}
+
+module openAiSecrets './shared/openai-secrets.bicep' = {
+  name: 'openaiSecrets'
+  scope: rg
+
+  params: {
+    keyvaultName: keyVault.outputs.name
+    openAiInstance: azureOpenAi
+    tags: tags
+  }
 }
 
 module storage './shared/storage.bicep' = {
@@ -343,11 +362,11 @@ module chatAPI './app/ChatAPI.bicep' = {
     envSettings: [
       {
         name: 'MSCosmosDBOpenAI__CosmosDBVectorStore__Endpoint'
-        value: cosmosVec.outputs.endpoint
+        value: cosmos.outputs.endpoint
       }
       {
         name: 'MSCosmosDBOpenAI__OpenAI__Endpoint'
-        value: openAi.outputs.endpoint
+        value: azureOpenAiEndpoint
       }
       {
         name: 'MSCosmosDBOpenAI__CosmosDB__Endpoint'
@@ -372,8 +391,8 @@ module chatAPI './app/ChatAPI.bicep' = {
       }
       {
         name: 'MSCosmosDBOpenAI__CosmosDBVectorStore__Key'
-        value: cosmosVec.outputs.keySecretRef
-        secretRef: cosmosVec.outputs.keySecretName
+        value: cosmos.outputs.keySecretRef
+        secretRef: cosmos.outputs.keySecretName
       }
       {
         name: 'MSCosmosDBOpenAI__DurableSystemPrompt__BlobStorageConnection'
@@ -382,8 +401,8 @@ module chatAPI './app/ChatAPI.bicep' = {
       }
       {
         name: 'MSCosmosDBOpenAI__OpenAI__Key'
-        value: openAi.outputs.keySecretRef
-        secretRef: openAi.outputs.keySecretName
+        value: openAiSecrets.outputs.keySecretRef
+        secretRef: openAiSecrets.outputs.keySecretName
       }
     ]
   }
@@ -429,7 +448,7 @@ module search './app/UserPortal.bicep' = {
 
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 output AZURE_COSMOS_DB_NAME string = cosmos.outputs.name
-output AZURE_COSMOS_DB_VEC_NAME string = cosmosVec.outputs.name
+output AZURE_COSMOS_DB_VEC_NAME string = cosmos.outputs.name
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
