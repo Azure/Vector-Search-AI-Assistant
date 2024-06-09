@@ -270,17 +270,6 @@ module openAi './resources/openai.bicep' = if (deployOpenAi) {
   scope: resourceGroup
 }
 
-module openAiSecrets './resources/openai-secrets.bicep' = {
-  name: 'openaiSecrets'
-  scope: resourceGroup
-
-  params: {
-    keyvaultName: keyVault.outputs.name
-    openAiInstance: azureOpenAi
-    tags: tags
-  }
-}
-
 module storage './resources/storage.bicep' = {
   name: 'storage'
   params: {
