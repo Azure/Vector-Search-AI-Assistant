@@ -9,6 +9,8 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+param existingOpenAiInstance object
+
 param chatAPIExists bool
 @secure()
 param chatAPIDefinition object
@@ -18,6 +20,15 @@ param searchDefinition object
 
 @description('Id of the user or app to assign application roles')
 param principalId string
+
+var deployOpenAi = empty(existingOpenAiInstance.name)
+var azureOpenAiEndpoint = deployOpenAi ? openAi.outputs.endpoint : customerOpenAi.properties.endpoint
+var azureOpenAi = deployOpenAi ? openAiInstance : existingOpenAiInstance
+var openAiInstance = {
+  name: openAi.outputs.name
+  resourceGroup: rg.name
+  subscriptionId: subscription().subscriptionId
+}
 
 // Tags that should be applied to all resources.
 // 
@@ -36,6 +47,18 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   location: location
   tags: tags
 }
+
+resource customerOpenAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing =
+  if (!deployOpenAi) {
+    scope: subscription(existingOpenAiInstance.subscriptionId)
+    name: existingOpenAiInstance.resourceGroup
+  }
+
+resource customerOpenAi 'Microsoft.CognitiveServices/accounts@2023-05-01' existing =
+  if (!deployOpenAi) {
+    name: existingOpenAiInstance.name
+    scope: customerOpenAiResourceGroup
+  }
 
 module monitoring './shared/monitoring.bicep' = {
   name: 'monitoring'
@@ -196,7 +219,7 @@ module keyVault './shared/keyvault.bicep' = {
   scope: rg
 }
 
-module openAi './shared/openai.bicep' = {
+module openAi './shared/openai.bicep' = if (deployOpenAi) {
   name: 'openai'
   params: {
     deployments: [
@@ -230,6 +253,17 @@ module openAi './shared/openai.bicep' = {
     tags: tags
   }
   scope: rg
+}
+
+module openAiSecrets './shared/openai-secrets.bicep' = {
+  name: 'openaiSecrets'
+  scope: rg
+
+  params: {
+    keyvaultName: keyVault.outputs.name
+    openAiInstance: azureOpenAi
+    tags: tags
+  }
 }
 
 module storage './shared/storage.bicep' = {
@@ -332,7 +366,7 @@ module chatAPI './app/ChatAPI.bicep' = {
       }
       {
         name: 'MSCosmosDBOpenAI__OpenAI__Endpoint'
-        value: openAi.outputs.endpoint
+        value: azureOpenAiEndpoint
       }
       {
         name: 'MSCosmosDBOpenAI__CosmosDB__Endpoint'
@@ -367,8 +401,8 @@ module chatAPI './app/ChatAPI.bicep' = {
       }
       {
         name: 'MSCosmosDBOpenAI__OpenAI__Key'
-        value: openAi.outputs.keySecretRef
-        secretRef: openAi.outputs.keySecretName
+        value: openAiSecrets.outputs.keySecretRef
+        secretRef: openAiSecrets.outputs.keySecretName
       }
     ]
   }
