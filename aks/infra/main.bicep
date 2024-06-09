@@ -83,6 +83,14 @@ module monitoring './monitoring/monitoring.bicep' = {
 module cosmos './resources/cosmosdb.bicep' = {
   name: 'cosmos'
   params: {
+    capabilities: [
+      {
+        name: 'EnableNoSQLVectorSearch'
+      }
+      {
+        name: 'EnableServerless'
+      }
+    ]
     containers: [
       {
         name: 'embedding'
@@ -114,28 +122,6 @@ module cosmos './resources/cosmosdb.bicep' = {
         indexingPolicy: null
         vectorEmbeddingPolicy: {}
       }
-    ]
-    databaseName: 'vsai-database'
-    keyvaultName: keyVault.outputs.name
-    location: location
-    name: '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
-    tags: tags
-  }
-  scope: resourceGroup
-}
-
-module cosmosVec './resources/cosmosdb.bicep' = {
-  name: 'cosmosVec'
-  params: {
-    capabilities: [
-      {
-        name: 'EnableNoSQLVectorSearch'
-      }
-      {
-        name: 'EnableServerless'
-      }
-    ]
-    containers: [
       {
         name: 'main-vector-store'
         partitionKeyPath: '/partitionKey'
@@ -205,11 +191,10 @@ module cosmosVec './resources/cosmosdb.bicep' = {
         }
       }
     ]
-    databaseName: 'cj-byd-to-chat-gpt'
+    databaseName: 'vsai-database'
     keyvaultName: keyVault.outputs.name
-    secretName: 'cosmosdb-vec-key'
     location: location
-    name: '${abbrs.documentDBDatabaseAccounts}vec${resourceToken}'
+    name: '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
     tags: tags
   }
   scope: resourceGroup
@@ -234,7 +219,7 @@ module openAi './resources/openai.bicep' = {
         name: 'completions'
         sku: {
           name: 'Standard'
-          capacity: 120
+          capacity: 10
         }
         model: {
           name: 'gpt-35-turbo'
@@ -245,7 +230,7 @@ module openAi './resources/openai.bicep' = {
         name: 'embeddings'
         sku: {
           name: 'Standard'
-          capacity: 120
+          capacity: 10
         }
         model: {
           name: 'text-embedding-ada-002'
@@ -441,8 +426,8 @@ output PROMETHEUS_ENDPOINT string = monitoring.outputs.prometheusEndpoint
 
 output AZURE_COSMOS_DB_NAME string = cosmos.outputs.name
 output AZURE_COSMOS_DB_ENDPOINT string = cosmos.outputs.endpoint
-output AZURE_COSMOS_DB_VEC_NAME string = cosmosVec.outputs.name
-output AZURE_COSMOS_DB_VEC_ENDPOINT string = cosmosVec.outputs.endpoint
+output AZURE_COSMOS_DB_VEC_NAME string = cosmos.outputs.name
+output AZURE_COSMOS_DB_VEC_ENDPOINT string = cosmos.outputs.endpoint
 output AZURE_OPENAI_NAME string = openAi.outputs.name
 output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name

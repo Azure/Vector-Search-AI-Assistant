@@ -142,7 +142,7 @@ resource app 'Microsoft.App/containerApps@2023-04-01-preview' = {
         }
       ]
       scale: {
-        minReplicas: 1
+        minReplicas: 0
         maxReplicas: 10
       }
     }
