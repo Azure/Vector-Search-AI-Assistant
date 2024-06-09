@@ -8,6 +8,13 @@
       "location": {
         "value": "${AZURE_LOCATION}"
       },
+      "existingOpenAiInstance": {
+        "value": {
+          "name": "${OPENAI_NAME}",
+          "resourceGroup": "${OPENAI_RESOURCE_GROUP}",
+          "subscriptionId": "${OPENAI_SUBSCRIPTION_ID}"
+        }
+      },
       "chatAPIExists": {
         "value": "${SERVICE_CHATAPI_RESOURCE_EXISTS=false}"
       },
