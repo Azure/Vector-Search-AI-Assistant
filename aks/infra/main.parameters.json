@@ -10,9 +10,9 @@
       },
       "existingOpenAiInstance": {
         "value": {
-          "name": "${OPENAI_NAME}",
-          "resourceGroup": "${OPENAI_RESOURCE_GROUP}",
-          "subscriptionId": "${OPENAI_SUBSCRIPTION_ID}"
+          "name": "${OPENAI_NAME=''}",
+          "resourceGroup": "${OPENAI_RESOURCE_GROUP=''}",
+          "subscriptionId": "${OPENAI_SUBSCRIPTION_ID=''}"
         }
       },
       "principalId": {

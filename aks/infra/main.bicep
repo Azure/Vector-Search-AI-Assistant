@@ -15,16 +15,7 @@ param existingOpenAiInstance object
 param principalId string = ''
 
 @description('The Kubernetes version.')
-param kubernetesVersion string = '1.26'
-
-var deployOpenAi = empty(existingOpenAiInstance.name)
-var azureOpenAiEndpoint = deployOpenAi ? openAi.outputs.endpoint : customerOpenAi.properties.endpoint
-var azureOpenAi = deployOpenAi ? openAiInstance : existingOpenAiInstance
-var openAiInstance = {
-  name: openAi.outputs.name
-  resourceGroup: resourceGroup.name
-  subscriptionId: subscription().subscriptionId
-}
+param kubernetesVersion string = '1.28'
 
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
@@ -36,18 +27,6 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: location
   tags: tags
 }
-
-resource customerOpenAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing =
-  if (!deployOpenAi) {
-    scope: subscription(existingOpenAiInstance.subscriptionId)
-    name: existingOpenAiInstance.resourceGroup
-  }
-
-resource customerOpenAi 'Microsoft.CognitiveServices/accounts@2023-05-01' existing =
-  if (!deployOpenAi) {
-    name: existingOpenAiInstance.name
-    scope: customerOpenAiResourceGroup
-  }
 
 // The Azure Container Registry to hold the images
 module acr './resources/acr.bicep' = {
@@ -234,7 +213,7 @@ module keyVault './resources/keyvault.bicep' = {
   scope: resourceGroup
 }
 
-module openAi './resources/openai.bicep' = if (deployOpenAi) {
+module openAi './resources/openai.bicep' = {
   name: 'openai'
   params: {
     deployments: [
@@ -452,6 +431,6 @@ output AZURE_COSMOS_DB_ENDPOINT string = cosmos.outputs.endpoint
 output AZURE_COSMOS_DB_VEC_NAME string = cosmos.outputs.name
 output AZURE_COSMOS_DB_VEC_ENDPOINT string = cosmos.outputs.endpoint
 output AZURE_OPENAI_NAME string = openAi.outputs.name
-output AZURE_OPENAI_ENDPOINT string = azureOpenAiEndpoint
+output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
 
