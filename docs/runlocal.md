@@ -79,6 +79,10 @@ This solution can be run locally post Azure deployment. To do so, use the steps 
                 "Endpoint": "https://<...>.documents.azure.com:443/",
                 "Key": "<...>"
             },
+            "CosmosDBVectorStore": {
+                "Endpoint": "https://<...>.documents.azure.com:443/",
+                "Key": "<...>"
+            },    
             "DurableSystemPrompt": {
                 "BlobStorageConnection": "<...>"
             },
