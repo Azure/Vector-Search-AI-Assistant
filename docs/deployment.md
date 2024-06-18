@@ -9,6 +9,7 @@ Users can deploy this solution from three locations, local machine, virtual mach
 - .NET 7 SDK
 - Docker Desktop
 - Azure CLI ([v2.51.0 or greater](https://docs.microsoft.com/cli/azure/install-azure-cli))
+- Cross-platform (not Windows) PowerShell ([7.0 or greater](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell))
 - [Helm 3.11.1 or greater](https://helm.sh/docs/intro/install/) (for AKS deployment)
 - Visual Studio 2022 (only needed if you plan to run/debug the solution locally)
 
