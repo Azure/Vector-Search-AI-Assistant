@@ -289,7 +289,7 @@ module storage './resources/storage.bicep' = {
         name: 'blobmemorysourceconfig-json'
         file: 'BlobMemorySourceConfig.json'
         path: 'BlobMemorySourceConfig.json'
-        content: loadTextContent('../../MemorySources/BlobMemorySourceConfig.json')
+        content: loadJsonContent('../../MemorySources/BlobMemorySourceConfig.json')
         container: 'memory-source'
       }
       {
