@@ -95,12 +95,6 @@ module cosmos './resources/cosmosdb.bicep' = {
     ]
     containers: [
       {
-        name: 'embedding'
-        partitionKeyPath: '/id'
-        indexingPolicy: null
-        vectorEmbeddingPolicy: {}
-      }
-      {
         name: 'completions'
         partitionKeyPath: '/sessionId'
         indexingPolicy: null
@@ -123,74 +117,6 @@ module cosmos './resources/cosmosdb.bicep' = {
         partitionKeyPath: '/id'
         indexingPolicy: null
         vectorEmbeddingPolicy: {}
-      }
-      {
-        name: 'main-vector-store'
-        partitionKeyPath: '/partitionKey'
-        indexingPolicy: {
-          indexingMode: 'consistent'
-          automatic: true
-          includedPaths: [
-            {
-              path: '/*'
-            }
-          ]
-          excludedPaths: [
-            {
-              path: '/embedding/?'
-            }
-          ]
-          vectorIndexes: [
-            {
-              path: '/embedding'
-              type: 'quantizedFlat'
-            }
-          ]
-        }
-        vectorEmbeddingPolicy: {
-          vectorEmbeddings: [
-            {
-              path: '/embedding'
-              dataType: 'float32'
-              dimensions: 1536
-              distanceFunction: 'cosine'
-            }
-          ]
-        }
-      }
-      {
-        name: 'cache-vector-store'
-        partitionKeyPath: '/partitionKey'
-        indexingPolicy: {
-          indexingMode: 'consistent'
-          automatic: true
-          includedPaths: [
-            {
-              path: '/*'
-            }
-          ]
-          excludedPaths: [
-            {
-              path: '/embedding/?'
-            }
-          ]
-          vectorIndexes: [
-            {
-              path: '/embedding'
-              type: 'quantizedFlat'
-            }
-          ]
-        }
-        vectorEmbeddingPolicy: {
-          vectorEmbeddings: [
-            {
-              path: '/embedding'
-              dataType: 'float32'
-              dimensions: 1536
-              distanceFunction: 'cosine'
-            }
-          ]
-        }
       }
     ]
     databaseName: 'vsai-database'
