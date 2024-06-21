@@ -4,19 +4,26 @@
 
 namespace BuildYourOwnCopilot.Service.Services
 {
-    public class DefaultPromptFilter : IPromptFilter
+    public class DefaultPromptFilter : IPromptRenderFilter
     {
         public string RenderedPrompt => _renderedPrompt;
 
+        public string PluginName => _pluginName;
+
+        public string FunctionName => _functionName;
+
         private string _renderedPrompt = string.Empty;
+        private string _pluginName = string.Empty;
+        private string _functionName = string.Empty;
 
-        public void OnPromptRendered(PromptRenderedContext context)
+        public async Task OnPromptRenderAsync(PromptRenderContext context, Func<PromptRenderContext, Task> next)
         {
-            _renderedPrompt = context.RenderedPrompt;
-        }
+            _pluginName = context.Function?.PluginName ?? string.Empty;
+            _functionName = context.Function?.Name ?? string.Empty;
 
-        public void OnPromptRendering(PromptRenderingContext context)
-        {
+            await next(context);
+
+            _renderedPrompt = context.RenderedPrompt ?? string.Empty;
         }
     }
 }

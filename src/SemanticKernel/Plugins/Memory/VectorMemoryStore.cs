@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using BuildYourOwnCopilot.Common.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Memory;
 using Newtonsoft.Json;
-using System.Reflection;
-using BuildYourOwnCopilot.Common.Interfaces;
 
 #pragma warning disable SKEXP0001
 
@@ -29,6 +28,8 @@ namespace BuildYourOwnCopilot.SemanticKernel.Plugins.Memory
             _textEmbedding = textEmbedding;
             _logger = logger;
         }
+
+        public string CollectionName => _collectionName;
 
         public async Task Initialize() =>
             await _memoryStore.CreateCollectionAsync(_collectionName);
@@ -57,19 +58,22 @@ namespace BuildYourOwnCopilot.SemanticKernel.Plugins.Memory
                 // Exercise: Test also using the JSON text representation - itemTransformer.ObjectToEmbed
                 var embedding = await _textEmbedding.GenerateEmbeddingAsync(itemTransformer.TextToEmbed);
 
-                await _memoryStore.UpsertAsync(_collectionName, MemoryRecord.LocalRecord(
-                    itemTransformer.EmbeddingId,
-                    itemTransformer.TextToEmbed,
-                    string.Empty,
+                await _memoryStore.UpsertAsync(_collectionName, new MemoryRecord(
+                    new MemoryRecordMetadata(
+                        false,
+                        itemTransformer.EmbeddingId,
+                        itemTransformer.TextToEmbed,
+                        string.Empty,
+                        string.Empty,
+                        JsonConvert.SerializeObject(itemTransformer.TypedValue)),
                     embedding,
-                    JsonConvert.SerializeObject(itemTransformer.TypedValue),
                     itemTransformer.EmbeddingPartitionKey));
 
                 _logger.LogInformation($"Memorized vector for item: {itemTransformer.Name} of type {itemTransformer.TypedValue.GetType().Name}");
             }
-            catch (Exception x)
+            catch (Exception ex)
             {
-                _logger.LogError($"Exception while generating vector for [{itemTransformer.Name} of type {itemTransformer.TypedValue.GetType().Name}]: " + x.Message);
+                _logger.LogError($"Exception while generating vector for [{itemTransformer.Name} of type {itemTransformer.TypedValue.GetType().Name}]: " + ex.Message);
             }
         }
 

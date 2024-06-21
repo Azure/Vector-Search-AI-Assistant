@@ -15,5 +15,7 @@ namespace BuildYourOwnCopilot.Common.Interfaces
         JObject ObjectToEmbed { get; }
 
         string TextToEmbed { get; }
+
+        string? VectorIndexName { get; }
     }
 }

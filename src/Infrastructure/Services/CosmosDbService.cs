@@ -1,15 +1,14 @@
-﻿using Microsoft.Azure.Cosmos;
+﻿using BuildYourOwnCopilot.Common.Interfaces;
+using BuildYourOwnCopilot.Common.Models.BusinessDomain;
+using BuildYourOwnCopilot.Common.Models.Chat;
+using BuildYourOwnCopilot.Common.Models.Configuration;
+using BuildYourOwnCopilot.Service.Interfaces;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
-using BuildYourOwnCopilot.Common.Interfaces;
-using BuildYourOwnCopilot.Common.Models;
-using BuildYourOwnCopilot.Common.Models.BusinessDomain;
-using BuildYourOwnCopilot.Common.Models.Chat;
-using BuildYourOwnCopilot.Common.Models.Configuration;
-using BuildYourOwnCopilot.Service.Interfaces;
 
 namespace BuildYourOwnCopilot.Service.Services
 {
@@ -24,7 +23,6 @@ namespace BuildYourOwnCopilot.Service.Services
         private readonly Container _leases;
         private readonly Database _database;
         private readonly Dictionary<string, Container> _containers;
-        readonly Dictionary<string, Type> _memoryTypes;
 
         private readonly IItemTransformerFactory _itemTransformerFactory;
         private readonly IRAGService _ragService;
@@ -98,8 +96,6 @@ namespace BuildYourOwnCopilot.Service.Services
 
             _leases = database?.GetContainer(_settings.ChangeFeedLeaseContainer)
                 ?? throw new ArgumentException($"Unable to connect to the {_settings.ChangeFeedLeaseContainer} container required to listen to the CosmosDB change feed.");
-
-            _memoryTypes = ModelRegistry.Models.ToDictionary(m => m.Key, m => m.Value.Type);
 
             Task.Run(() => StartChangeFeedProcessors());
             _logger.LogInformation("Cosmos DB service initialized.");

@@ -1,33 +1,56 @@
-﻿using MathNet.Numerics;
-using Newtonsoft.Json;
-using BuildYourOwnCopilot.Common.Models.Chat;
-using BuildYourOwnCopilot.Common.Models.ConfigurationOptions;
+﻿using BuildYourOwnCopilot.Common.Models.Chat;
+using BuildYourOwnCopilot.Infrastructure.Interfaces;
+using BuildYourOwnCopilot.Infrastructure.Models.ConfigurationOptions;
+using BuildYourOwnCopilot.SemanticKernel.Memory;
+using BuildYourOwnCopilot.SemanticKernel.Models;
 using BuildYourOwnCopilot.SemanticKernel.Plugins.Memory;
 using BuildYourOwnCopilot.Service.Constants;
 using BuildYourOwnCopilot.Service.Interfaces;
 using BuildYourOwnCopilot.Service.Models.Chat;
 using BuildYourOwnCopilot.Service.Models.ConfigurationOptions;
+using MathNet.Numerics;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Newtonsoft.Json;
 
-namespace BuildYourOwnCopilot.Service.Services
+#pragma warning disable SKEXP0010, SKEXP0020;
+
+namespace BuildYourOwnCopilot.Infrastructure.Services
 {
     public class SemanticCacheService : ISemanticCacheService
     {
         private readonly SemanticCacheServiceSettings _settings;
-        private readonly VectorSearchSettings _searchSettings;
+        private readonly CosmosDBVectorStoreSettings _searchSettings;
         private readonly VectorMemoryStore _memoryStore;
         private readonly ITokenizerService _tokenizer;
         private readonly string _tokenizerEncoder;
 
         public SemanticCacheService(
-            SemanticCacheServiceSettings semanticCacheServiceSettings,
-            VectorSearchSettings searchSettings,
-            VectorMemoryStore memoryStore,
+            SemanticCacheServiceSettings settings,
+            OpenAISettings openAISettings,
+            CosmosDBVectorStoreSettings searchSettings,
+            ICosmosDBClientFactory cosmosDBClientFactory,
             ITokenizerService tokenizerService,
-            string tokenizerEncoder)
+            string tokenizerEncoder,
+            ILoggerFactory loggerFactory)
         {
-            _settings = semanticCacheServiceSettings;
+            _settings = settings;
             _searchSettings = searchSettings;
-            _memoryStore = memoryStore;
+            _memoryStore = new VectorMemoryStore(
+                _searchSettings.IndexName,
+                new AzureCosmosDBNoSQLMemoryStore(
+                    cosmosDBClientFactory.Client,
+                    cosmosDBClientFactory.DatabaseName,
+                    searchSettings.VectorEmbeddingPolicy,
+                    searchSettings.IndexingPolicy
+                ),
+                new AzureOpenAITextEmbeddingGenerationService(
+                    openAISettings.EmbeddingsDeployment,
+                    openAISettings.Endpoint,
+                    openAISettings.Key,
+                    dimensions: (int)_searchSettings.Dimensions
+                ),
+                loggerFactory.CreateLogger<VectorMemoryStore>());
             _tokenizer = tokenizerService;
             _tokenizerEncoder = tokenizerEncoder;
         }

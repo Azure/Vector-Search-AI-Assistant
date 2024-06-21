@@ -15,7 +15,6 @@ namespace ChatAPI
             builder.AddCosmosDBService();
 
             builder.AddSemanticKernelRAGService();
-            builder.AddCosmosDBVectorStoreService();
             builder.AddMemorySourceServices();
 
             builder.AddPromptService();

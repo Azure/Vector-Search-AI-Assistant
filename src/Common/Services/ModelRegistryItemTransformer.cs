@@ -80,5 +80,8 @@ namespace BuildYourOwnCopilot.Common.Services
             _isEmbeddedEntity
                 ? _textToEmbed!
                 : throw new ItemTransformerException("Only EmbeddedEntity objects can be embedded.");
+
+        public string? VectorIndexName =>
+            _typeMetadata.VectorIndexCollectionName;
     }
 }

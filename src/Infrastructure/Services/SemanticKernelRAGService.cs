@@ -1,19 +1,21 @@
 ﻿using Azure.AI.OpenAI;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Embeddings;
-using Microsoft.SemanticKernel.Memory;
-using System.Text.RegularExpressions;
 using BuildYourOwnCopilot.Common.Interfaces;
 using BuildYourOwnCopilot.Common.Models.BusinessDomain;
 using BuildYourOwnCopilot.Common.Models.Chat;
-using BuildYourOwnCopilot.SemanticKernel.Connectors.AzureCosmosDBNoSql;
+using BuildYourOwnCopilot.Infrastructure.Interfaces;
+using BuildYourOwnCopilot.Infrastructure.Services;
+using BuildYourOwnCopilot.SemanticKernel.Memory;
 using BuildYourOwnCopilot.SemanticKernel.Plugins.Core;
 using BuildYourOwnCopilot.SemanticKernel.Plugins.Memory;
 using BuildYourOwnCopilot.Service.Interfaces;
 using BuildYourOwnCopilot.Service.Models.ConfigurationOptions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.SemanticKernel.Memory;
+using System.Text.RegularExpressions;
 
 #pragma warning disable SKEXP0001, SKEXP0010, SKEXP0020, SKEXP0050, SKEXP0060
 
@@ -21,26 +23,30 @@ namespace BuildYourOwnCopilot.Service.Services;
 
 public class SemanticKernelRAGService : IRAGService
 {
-    readonly SemanticKernelRAGServiceSettings _settings;
-    readonly Kernel _semanticKernel;
-    readonly IEnumerable<IMemorySource> _memorySources;
-    readonly ILogger<SemanticKernelRAGService> _logger;
+    readonly IItemTransformerFactory _itemTransformerFactory;
     readonly ISystemPromptService _systemPromptService;
-    readonly ICosmosDBVectorStoreService _cosmosDBVectorStoreService;
+    readonly IEnumerable<IMemorySource> _memorySources;
+    readonly ICosmosDBClientFactory _cosmosDBClientFactory;
     readonly ITokenizerService _tokenizerService;
-    readonly VectorMemoryStore _longTermMemory;
-    readonly VectorMemoryStore _shortTermMemory;
+    readonly SemanticKernelRAGServiceSettings _settings;
+    readonly ILoggerFactory _loggerFactory;
+
+    readonly ILogger<SemanticKernelRAGService> _logger;
+    readonly Kernel _semanticKernel;
+    
+    readonly Dictionary<string, VectorMemoryStore> _longTermMemoryStores = [];
+    VectorMemoryStore _shortTermMemoryStore;
+
+    readonly List<MemoryStoreContextPlugin> _contextPlugins = [];
+    KnowledgeManagementContextPlugin _kmContextPlugin;
+    ContextPluginsListPlugin _listPlugin;
+
     readonly ISemanticCacheService _semanticCache;
 
-    readonly IItemTransformerFactory _itemTransformerFactory;
-
-    readonly string _shortTermCollectionName = "short-term";
-
     bool _serviceInitialized = false;
-    bool _shortTermMemoryInitialized = false;
-    bool _semanticMemoryInitialized = false;
 
     string _prompt = string.Empty;
+    string _contextSelectorPrompt = string.Empty;
 
     public bool IsInitialized => _serviceInitialized;
 
@@ -48,30 +54,26 @@ public class SemanticKernelRAGService : IRAGService
         IItemTransformerFactory itemTransformerFactory,
         ISystemPromptService systemPromptService,
         IEnumerable<IMemorySource> memorySources,
-        ICosmosDBVectorStoreService cosmosDBVectorStoreService,
+        ICosmosDBClientFactory cosmosDBClientFactory,
         ITokenizerService tokenizerService,
         IOptions<SemanticKernelRAGServiceSettings> options,
-        ILogger<SemanticKernelRAGService> logger,
         ILoggerFactory loggerFactory)
     {
         _itemTransformerFactory = itemTransformerFactory;
         _systemPromptService = systemPromptService;
-        _cosmosDBVectorStoreService = cosmosDBVectorStoreService;
-        _tokenizerService = tokenizerService;
         _memorySources = memorySources;
+        _cosmosDBClientFactory = cosmosDBClientFactory;
+        _tokenizerService = tokenizerService;
         _settings = options.Value;
-        _logger = logger;
+        _loggerFactory = loggerFactory;
+
+        _logger = _loggerFactory.CreateLogger<SemanticKernelRAGService>();
 
         _logger.LogInformation("Initializing the Semantic Kernel RAG service...");
 
         var builder = Kernel.CreateBuilder();
 
         builder.Services.AddSingleton<ILoggerFactory>(loggerFactory);
-
-        builder.AddAzureOpenAITextEmbeddingGeneration(
-            _settings.OpenAI.EmbeddingsDeployment,
-            _settings.OpenAI.Endpoint,
-            _settings.OpenAI.Key);
 
         builder.AddAzureOpenAIChatCompletion(
             _settings.OpenAI.CompletionsDeployment,
@@ -80,64 +82,99 @@ public class SemanticKernelRAGService : IRAGService
 
         _semanticKernel = builder.Build();
 
-        // The long-term memory uses an Azure Cosmos DB NoSQL memory store
-        _longTermMemory = new VectorMemoryStore(
-            _settings.KnowledgeRetrieval.IndexName,
-            new AzureCosmosDBNoSqlMemoryStore(_cosmosDBVectorStoreService),
-            _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
-            loggerFactory.CreateLogger<VectorMemoryStore>());
+        CreateMemoryStoresAndPlugins();
 
-        _shortTermMemory = new VectorMemoryStore(
-            _shortTermCollectionName,
-            new VolatileMemoryStore(),
-            _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
-            loggerFactory.CreateLogger<VectorMemoryStore>());
-
+        // Semantic cache uses a dedicated text embedding generation service.
+        // This allows us to experiment with different embedding sizes.
         _semanticCache = new SemanticCacheService(
             _settings.SemanticCache,
-            _settings.SemanticCacheRetrieval,
-            new VectorMemoryStore(
-                _settings.SemanticCacheRetrieval.IndexName,
-                new AzureCosmosDBNoSqlMemoryStore(_cosmosDBVectorStoreService),
-                _semanticKernel.Services.GetRequiredService<ITextEmbeddingGenerationService>()!,
-                loggerFactory.CreateLogger<VectorMemoryStore>()),
+            _settings.OpenAI,
+            _settings.SemanticCacheIndexing,
+            cosmosDBClientFactory,
             _tokenizerService,
-            _settings.TextSplitter.TokenizerEncoder!);
+            _settings.TextSplitter.TokenizerEncoder!,
+            loggerFactory);
 
         Task.Run(Initialize);
     }
 
     private async Task Initialize()
     {
-        await _longTermMemory.Initialize();
+        foreach (var longTermMemoryStore in _longTermMemoryStores.Values)
+            await longTermMemoryStore.Initialize();
+        await EnsureShortTermMemory();
         await _semanticCache.Initialize();
 
         _prompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName);
-
-        var kmContextPlugin = new KnowledgeManagementContextPlugin(
-            _longTermMemory,
-            _shortTermMemory,
+        _kmContextPlugin = new KnowledgeManagementContextPlugin(
             _prompt,
-            _settings.KnowledgeRetrieval,
             _settings.OpenAI,
-            _logger);
+            _loggerFactory.CreateLogger<KnowledgeManagementContextPlugin>());
+        _semanticKernel.ImportPluginFromObject(_kmContextPlugin);
 
-        _semanticKernel.ImportPluginFromObject(kmContextPlugin);
+        _contextSelectorPrompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ContextSelectorPromptName);
+        _listPlugin = new ContextPluginsListPlugin(
+            _contextPlugins);
+        _semanticKernel.ImportPluginFromObject(_listPlugin);
 
         _serviceInitialized = true;
-
         _logger.LogInformation("Semantic Kernel RAG service initialized.");
+    }
+
+    private void CreateMemoryStoresAndPlugins()
+    {
+        // The long-term memory stores use an Azure Cosmos DB NoSQL memory store.
+
+        foreach (var item in _settings.ModelRegistryKnowledgeIndexing.Values)
+        {
+            var memoryStore = new VectorMemoryStore(
+                item.IndexName,
+                new AzureCosmosDBNoSQLMemoryStore(
+                    _cosmosDBClientFactory.Client,
+                    _cosmosDBClientFactory.DatabaseName,
+                    item.VectorEmbeddingPolicy,
+                    item.IndexingPolicy),
+                new AzureOpenAITextEmbeddingGenerationService(
+                    _settings.OpenAI.EmbeddingsDeployment,
+                    _settings.OpenAI.Endpoint,
+                    _settings.OpenAI.Key,
+                    dimensions: (int)item.Dimensions),
+                _loggerFactory.CreateLogger<VectorMemoryStore>()
+            );
+
+            _longTermMemoryStores.Add(memoryStore.CollectionName, memoryStore);
+            _contextPlugins.Add(new MemoryStoreContextPlugin(
+                memoryStore,
+                item,
+                _loggerFactory.CreateLogger<MemoryStoreContextPlugin>()));
+        }
+
+        // The short-term memory store uses a volatile memory store.
+
+        _shortTermMemoryStore = new VectorMemoryStore(
+             _settings.StaticKnowledgeIndexing.IndexName,
+             new VolatileMemoryStore(),
+             new AzureOpenAITextEmbeddingGenerationService(
+                 _settings.OpenAI.EmbeddingsDeployment,
+                 _settings.OpenAI.Endpoint,
+                 _settings.OpenAI.Key,
+                 dimensions: (int)_settings.StaticKnowledgeIndexing.Dimensions),
+             _loggerFactory.CreateLogger<VectorMemoryStore>()
+        );
+
+        _contextPlugins.Add(new MemoryStoreContextPlugin(
+            _shortTermMemoryStore,
+            _settings.StaticKnowledgeIndexing,
+            _loggerFactory.CreateLogger<MemoryStoreContextPlugin>()));
     }
 
     private async Task EnsureShortTermMemory()
     {
         try
         {
-            if (_shortTermMemoryInitialized)
-                return;
-
             // The memories collection in the short term memory store must be created explicitly
-            await _shortTermMemory.MemoryStore.CreateCollectionAsync(_shortTermCollectionName);
+            await _shortTermMemoryStore.MemoryStore.CreateCollectionAsync(
+                _settings.StaticKnowledgeIndexing.IndexName);
 
             // Get current short term memories. Short term memories are generated or loaded at runtime and kept in SK's volatile memory.
             //The content here has embeddings generated on it so it can be used in a vector query by the user.
@@ -157,10 +194,9 @@ public class SemanticKernelRAGService : IRAGService
                     memory__ = m
                 })))
             {
-                await _shortTermMemory.AddMemory(itemTransformer);
+                await _shortTermMemoryStore.AddMemory(itemTransformer);
             }
 
-            _shortTermMemoryInitialized = true;
             _logger.LogInformation("Semantic Kernel RAG service short-term memory initialized.");
 
         }
@@ -190,19 +226,26 @@ public class SemanticKernelRAGService : IRAGService
         // The semantic cache was not able to retrieve a hit from the cache so we are moving on with the normal flow.
         // We still need to keep the cache item around as it contains the properties we need later on to update the cache with the new entry.
 
-        await EnsureShortTermMemory();
-
-        // Use observability features to capture the fully rendered prompt.
+        // Use observability features to capture the fully rendered prompts.
         var promptFilter = new DefaultPromptFilter();
-        _semanticKernel.PromptFilters.Add(promptFilter);
-        
-        var arguments = new KernelArguments()
-        {
-            ["userPrompt"] = userPrompt,
-            ["messageHistory"] = messageHistory
-        };
+        _semanticKernel.PromptRenderFilters.Add(promptFilter);
 
-        var result = await _semanticKernel.InvokePromptAsync(_prompt, arguments);
+        var result = await _semanticKernel.InvokePromptAsync(
+            _contextSelectorPrompt,
+            new KernelArguments
+            {
+                ["userPrompt"] = userPrompt
+            });
+
+        var pluginsToRun = result.GetValue<string>();
+
+        result = await _semanticKernel.InvokePromptAsync(
+            _prompt,
+            new KernelArguments()
+            {
+                ["userPrompt"] = userPrompt,
+                ["messageHistory"] = messageHistory
+            });
 
         var completion = result.GetValue<string>()!;
         var completionUsage = (result.Metadata!["Usage"] as CompletionsUsage)!;
@@ -243,11 +286,25 @@ public class SemanticKernelRAGService : IRAGService
 
     public async Task AddMemory(IItemTransformer itemTransformer)
     {
-        await _longTermMemory.AddMemory(itemTransformer);
+        if (!string.IsNullOrWhiteSpace(itemTransformer.VectorIndexName))
+        {
+            await _longTermMemoryStores[itemTransformer.VectorIndexName].AddMemory(itemTransformer);
+        }
+        else
+            _logger.LogWarning("Object with embedding id {EmbeddingId} and name {Name} has an invalid vector index name.", 
+                itemTransformer.EmbeddingId,
+                itemTransformer.Name);
     }
 
     public async Task RemoveMemory(IItemTransformer itemTransformer)
     {
-        await _longTermMemory.RemoveMemory(itemTransformer);
+        if (!string.IsNullOrWhiteSpace(itemTransformer.VectorIndexName))
+        {
+            await _longTermMemoryStores[itemTransformer.VectorIndexName].RemoveMemory(itemTransformer);
+        }
+        else
+            _logger.LogWarning("Object with embedding id {EmbeddingId} and name {Name} has an invalid vector index name.",
+                itemTransformer.EmbeddingId,
+                itemTransformer.Name);
     }
 }
