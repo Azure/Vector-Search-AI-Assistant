@@ -100,25 +100,32 @@ public class SemanticKernelRAGService : IRAGService
 
     private async Task Initialize()
     {
-        foreach (var longTermMemoryStore in _longTermMemoryStores.Values)
-            await longTermMemoryStore.Initialize();
-        await EnsureShortTermMemory();
-        await _semanticCache.Initialize();
+        try
+        {
+            foreach (var longTermMemoryStore in _longTermMemoryStores.Values)
+                await longTermMemoryStore.Initialize();
+            await EnsureShortTermMemory();
+            await _semanticCache.Initialize();
 
-        _prompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName);
-        _kmContextPlugin = new KnowledgeManagementContextPlugin(
-            _prompt,
-            _settings.OpenAI,
-            _loggerFactory.CreateLogger<KnowledgeManagementContextPlugin>());
-        _semanticKernel.ImportPluginFromObject(_kmContextPlugin);
+            _prompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ChatCompletionPromptName);
+            _kmContextPlugin = new KnowledgeManagementContextPlugin(
+                _prompt,
+                _settings.OpenAI,
+                _loggerFactory.CreateLogger<KnowledgeManagementContextPlugin>());
+            _semanticKernel.ImportPluginFromObject(_kmContextPlugin);
 
-        _contextSelectorPrompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ContextSelectorPromptName);
-        _listPlugin = new ContextPluginsListPlugin(
-            _contextPlugins);
-        _semanticKernel.ImportPluginFromObject(_listPlugin);
+            _contextSelectorPrompt = await _systemPromptService.GetPrompt(_settings.OpenAI.ContextSelectorPromptName);
+            _listPlugin = new ContextPluginsListPlugin(
+                _contextPlugins);
+            _semanticKernel.ImportPluginFromObject(_listPlugin);
 
-        _serviceInitialized = true;
-        _logger.LogInformation("Semantic Kernel RAG service initialized.");
+            _serviceInitialized = true;
+            _logger.LogInformation("Semantic Kernel RAG service initialized.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Semantic Kernel RAG service was not initialized. The following error occurred: {ErrorMessage}.", ex.Message);
+        }
     }
 
     private void CreateMemoryStoresAndPlugins()
@@ -206,6 +213,23 @@ public class SemanticKernelRAGService : IRAGService
         }
     }
 
+    private List<MemoryStoreContextPlugin> GetPluginsToRun(string pluginNamesList)
+    {
+        try
+        {
+            var pluginNames = pluginNamesList
+                .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Select(pn => pn.ToLower())
+                .ToList();
+            return _contextPlugins.Where(cp => pluginNames.Contains(cp.Name)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not parse the list of plugin names: {PluginNames}.", pluginNamesList);
+            return _contextPlugins;
+        }
+    }
+
     public async Task<CompletionResult> GetResponse(string userPrompt, List<Message> messageHistory)
     {
         var cacheItem = await _semanticCache.GetCacheItem(userPrompt, messageHistory);
@@ -237,7 +261,10 @@ public class SemanticKernelRAGService : IRAGService
                 ["userPrompt"] = userPrompt
             });
 
-        var pluginsToRun = result.GetValue<string>();
+        var pluginNamesList = result.GetValue<string>();
+
+        var pluginsToRun = GetPluginsToRun(pluginNamesList!);
+        _kmContextPlugin.SetContextPlugins(pluginsToRun);
 
         result = await _semanticKernel.InvokePromptAsync(
             _prompt,

@@ -8,7 +8,8 @@ namespace ChatAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddApplicationInsightsTelemetry();
+            if (!builder.Environment.IsDevelopment())
+                builder.Services.AddApplicationInsightsTelemetry();
 
             builder.AddItemTransformerFactory();
 

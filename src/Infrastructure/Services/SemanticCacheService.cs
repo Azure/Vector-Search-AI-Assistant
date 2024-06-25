@@ -24,6 +24,7 @@ namespace BuildYourOwnCopilot.Infrastructure.Services
         private readonly VectorMemoryStore _memoryStore;
         private readonly ITokenizerService _tokenizer;
         private readonly string _tokenizerEncoder;
+        private readonly ILogger<SemanticCacheService> _logger;
 
         public SemanticCacheService(
             SemanticCacheServiceSettings settings,
@@ -53,6 +54,8 @@ namespace BuildYourOwnCopilot.Infrastructure.Services
                 loggerFactory.CreateLogger<VectorMemoryStore>());
             _tokenizer = tokenizerService;
             _tokenizerEncoder = tokenizerEncoder;
+
+            _logger = loggerFactory.CreateLogger<SemanticCacheService>();
         }
 
         public async Task Initialize() =>
@@ -89,21 +92,29 @@ namespace BuildYourOwnCopilot.Infrastructure.Services
 
             await SetConversationContext(cacheItem, userMessageHistory);
 
-            var cacheMatches = await _memoryStore
-                .GetNearestMatches(
-                    cacheItem.ConversationContextEmbedding,
-                    1,
-                    _searchSettings.MinRelevance)
-                .ToListAsync()
-                .ConfigureAwait(false);
-            if (cacheMatches.Count == 0)
-                return cacheItem;
+            try
+            {
 
-            var matchedCacheItem = JsonConvert.DeserializeObject<SemanticCacheItem>(
-                cacheMatches.First().Metadata.AdditionalMetadata);
+                var cacheMatches = await _memoryStore
+                    .GetNearestMatches(
+                        cacheItem.ConversationContextEmbedding,
+                        1,
+                        _searchSettings.MinRelevance)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+                if (cacheMatches.Count == 0)
+                    return cacheItem;
 
-            cacheItem.Completion = matchedCacheItem!.Completion;
-            cacheItem.CompletionTokens = matchedCacheItem.CompletionTokens;
+                var matchedCacheItem = JsonConvert.DeserializeObject<SemanticCacheItem>(
+                    cacheMatches.First().Metadata.AdditionalMetadata);
+
+                cacheItem.Completion = matchedCacheItem!.Completion;
+                cacheItem.CompletionTokens = matchedCacheItem.CompletionTokens;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in cache search: {ErrorMessage}.", ex.Message);
+            }
 
             return cacheItem;
         }
