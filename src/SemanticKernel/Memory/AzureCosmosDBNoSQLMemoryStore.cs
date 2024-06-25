@@ -381,27 +381,27 @@ public class AzureCosmosDBNoSQLMemoryStore : IMemoryStore, IDisposable
     {
         // It would be nice to "WHERE" on the similarity score to stay above the `minRelevanceScore`, but alas
         // queries don't support that.
-        var queryDefinition = new QueryDefinition($"""
-            SELECT TOP @limit x.id,x.key,x.metadata,x.timestamp,{(withEmbeddings ? "x.embedding," : "")}VectorDistance(x.embedding, @embedding) AS SimilarityScore
-            FROM x
-            ORDER BY VectorDistance(x.embedding, @embedding)
-            """);
-        queryDefinition.WithParameter("@embedding", embedding);
-        queryDefinition.WithParameter("@limit", limit);
-
         //var queryDefinition = new QueryDefinition($"""
-        //    SELECT Top @topN
-        //        x.id, x.key, x.metadata, x.similarityScore
-        //    FROM 
-        //        (
-        //            SELECT c.id, c.partitionKey, c.metadata, VectorDistance(c.embedding, @embedding, false) as similarityScore FROM c
-        //        ) x
-        //        WHERE x.similarityScore > @similarityScore
-        //        ORDER BY x.similarityScore desc
+        //    SELECT TOP @limit x.id,x.key,x.metadata,x.timestamp,{(withEmbeddings ? "x.embedding," : "")}VectorDistance(x.embedding, @embedding) AS SimilarityScore
+        //    FROM x
+        //    ORDER BY VectorDistance(x.embedding, @embedding)
         //    """);
-        //queryDefinition.WithParameter("@similarityScore", minRelevanceScore);
         //queryDefinition.WithParameter("@embedding", embedding);
-        //queryDefinition.WithParameter("@topN", limit);
+        //queryDefinition.WithParameter("@limit", limit);
+
+        var queryDefinition = new QueryDefinition($"""
+            SELECT Top @topN
+                x.id, x.key, x.metadata, x.similarityScore
+            FROM 
+                (
+                    SELECT c.id, c.key, c.metadata, VectorDistance(c.embedding, @embedding, false) as similarityScore FROM c
+                ) x
+            WHERE x.similarityScore > @similarityScore
+            ORDER BY x.similarityScore desc
+            """);
+        queryDefinition.WithParameter("@similarityScore", minRelevanceScore);
+        queryDefinition.WithParameter("@embedding", embedding);
+        queryDefinition.WithParameter("@topN", limit);
 
         var feedIterator = this._cosmosClient
          .GetDatabase(this._databaseName)
