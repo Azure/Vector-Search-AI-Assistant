@@ -3,6 +3,7 @@
     "ChatAPI": {
       "commandName": "Project",
       "launchBrowser": true,
+      "launchUrl": "status",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

@@ -8,14 +8,14 @@ namespace ChatAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddApplicationInsightsTelemetry();
+            if (!builder.Environment.IsDevelopment())
+                builder.Services.AddApplicationInsightsTelemetry();
 
             builder.AddItemTransformerFactory();
 
             builder.AddCosmosDBService();
 
             builder.AddSemanticKernelRAGService();
-            builder.AddCosmosDBVectorStoreService();
             builder.AddMemorySourceServices();
 
             builder.AddPromptService();

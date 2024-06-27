@@ -29,7 +29,7 @@ namespace BuildYourOwnCopilot.SemanticKernel.Chat
             _memoryTypes = memoryTypes;
 
             // If no external tokenizer has been provided, use our own
-            _tokenizer = tokenizer != null ? tokenizer : new MicrosoftMLTokenizer();
+            _tokenizer = tokenizer ?? new MicrosoftMLTokenizer();
             
             _promptOptimizationSettings = promptOptimizationSettings != null
                 ? promptOptimizationSettings
@@ -98,7 +98,7 @@ namespace BuildYourOwnCopilot.SemanticKernel.Chat
 
         private void OptimizePromptSize()
         {
-            var systemPromptTokens = _tokenizer.GetTokensCount(_systemPrompt);
+            var systemPromptTokens = _tokenizer!.GetTokensCount(_systemPrompt);
 
             var memories = _memories.Select(m => new
             {
@@ -121,7 +121,7 @@ namespace BuildYourOwnCopilot.SemanticKernel.Chat
 
             // Start trimming down things to fit within the defined constraints
 
-            if (systemPromptTokens > _promptOptimizationSettings.SystemMaxTokens)
+            if (systemPromptTokens > _promptOptimizationSettings!.SystemMaxTokens)
                 throw new Exception($"The estimated size of the core system prompt ({systemPromptTokens} tokens) exceeds the configured maximum of {_promptOptimizationSettings.SystemMaxTokens}.");
 
             // Limit memories

@@ -16,7 +16,8 @@ namespace BuildYourOwnCopilot.Common.Models
                         TypeMatchingProperties = ["customerId", "firstName"],
                         NamingProperties = ["firstName", "lastName"],
                         IdentifyingProperties = ["customerId"],
-                        PartitioningProperties = ["customerId"]
+                        PartitioningProperties = ["customerId"],
+                        VectorIndexCollectionName = "customer-vector-store"
                     } 
                 },
                 { 
@@ -27,7 +28,8 @@ namespace BuildYourOwnCopilot.Common.Models
                         TypeMatchingProperties = ["sku"],
                         NamingProperties = ["name"],
                         IdentifyingProperties = ["id"],
-                        PartitioningProperties = ["categoryId"]
+                        PartitioningProperties = ["categoryId"],
+                        VectorIndexCollectionName = "product-vector-store"
                     } 
                 },
                 { 
@@ -38,7 +40,8 @@ namespace BuildYourOwnCopilot.Common.Models
                         TypeMatchingProperties = ["orderDate", "shipDate"],
                         NamingProperties = ["id"],
                         IdentifyingProperties = ["id"],
-                        PartitioningProperties = ["customerId"]
+                        PartitioningProperties = ["customerId"],
+                        VectorIndexCollectionName = "customer-vector-store"
                     } 
                 },
                 {
@@ -84,5 +87,6 @@ namespace BuildYourOwnCopilot.Common.Models
         public List<string>? NamingProperties { get; init; }
         public List<string>? IdentifyingProperties { get; init; }
         public List<string>? PartitioningProperties { get; init; }
+        public string? VectorIndexCollectionName { get; init; }
     }
 }

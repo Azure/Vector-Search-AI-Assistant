@@ -1,6 +1,8 @@
 ﻿using BuildYourOwnCopilot.Common.Interfaces;
 using BuildYourOwnCopilot.Common.Models.Configuration;
 using BuildYourOwnCopilot.Common.Services;
+using BuildYourOwnCopilot.Infrastructure.Interfaces;
+using BuildYourOwnCopilot.Infrastructure.Services;
 using BuildYourOwnCopilot.Service.Interfaces;
 using BuildYourOwnCopilot.Service.MemorySource;
 using BuildYourOwnCopilot.Service.Models.ConfigurationOptions;
@@ -25,6 +27,7 @@ namespace BuildYourOwnCopilot
             builder.Services.AddOptions<CosmosDBSettings>()
                 .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CosmosDB"));
             builder.Services.AddSingleton<ICosmosDBService, CosmosDBService>();
+            builder.Services.AddSingleton<ICosmosDBClientFactory, CosmosDBClientFactory>();
         }
 
         /// <summary>
@@ -45,17 +48,6 @@ namespace BuildYourOwnCopilot
         public static void AddChatService(this IHostApplicationBuilder builder)
         {
             builder.Services.AddSingleton<IChatService, ChatService>();
-        }
-
-        /// <summary>
-        /// Registers the <see cref="ICosmosDBVectorStoreService"/> implementation with the dependency injection container.
-        /// </summary>
-        /// <param name="builder">The hosted applications and services builder.</param>
-        public static void AddCosmosDBVectorStoreService (this IHostApplicationBuilder builder)
-        {
-            builder.Services.AddOptions<CosmosDBVectorStoreServiceSettings>()
-                .Bind(builder.Configuration.GetSection("MSCosmosDBOpenAI:CosmosDBVectorStore"));
-            builder.Services.AddSingleton<ICosmosDBVectorStoreService, CosmosDBVectorStoreService>();
         }
 
         /// <summary>
