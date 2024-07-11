@@ -216,42 +216,42 @@ module storage './shared/storage.bicep' = {
         name: 'retailassistant-default-txt'
         file: 'Default.txt'
         path: 'RetailAssistant/Default.txt'
-        content: loadTextContent('../../SystemPrompts/RetailAssistant/Default.txt')
+        content: loadTextContent('../../data/SystemPrompts/RetailAssistant/Default.txt')
         container: 'system-prompt'
       }
       {
         name: 'retailassistant-limited-txt'
         file: 'Limited.txt'
         path: 'RetailAssistant/Limited.txt'
-        content: loadTextContent('../../SystemPrompts/RetailAssistant/Limited.txt')
+        content: loadTextContent('../../data/SystemPrompts/RetailAssistant/Limited.txt')
         container: 'system-prompt'
       }
       {
         name: 'summarizer-twowords-txt'
         file: 'TwoWords.txt'
         path: 'Summarizer/TwoWords.txt'
-        content: loadTextContent('../../SystemPrompts/Summarizer/TwoWords.txt')
+        content: loadTextContent('../../data/SystemPrompts/Summarizer/TwoWords.txt')
         container: 'system-prompt'
       }
       {
         name: 'blobmemorysourceconfig-json'
         file: 'BlobMemorySourceConfig.json'
         path: 'BlobMemorySourceConfig.json'
-        content: loadJsonContent('../../MemorySources/BlobMemorySourceConfig.json')
+        content: loadJsonContent('../../data/MemorySources/BlobMemorySourceConfig.json')
         container: 'memory-source'
       }
       {
         name: 'return-policies-txt'
         file: 'return-policies.txt'
         path: 'return-policies.txt'
-        content: loadTextContent('../../MemorySources/return-policies.txt')
+        content: loadTextContent('../../data/MemorySources/return-policies.txt')
         container: 'product-policy'
       }
       {
         name: 'shipping-policies-txt'
         file: 'shipping-policies.txt'
         path: 'shipping-policies.txt'
-        content: loadTextContent('../../MemorySources/shipping-policies.txt')
+        content: loadTextContent('../../data/MemorySources/shipping-policies.txt')
         container: 'product-policy'
       }
     ]
