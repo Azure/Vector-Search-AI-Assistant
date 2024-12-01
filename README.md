@@ -1,5 +1,9 @@
 # Build Your Own Copilot with Azure Cosmos DB
 
+This version is no longer being maintained. There is a newer version of this solution accelerator available at https://github.com/Azure/BuildYourOwnCopilot
+
+-----
+
 This solution demonstrates how to design and implement a RAG Pattern solution that incorporates Azure Cosmos DB with Azure OpenAI Service along with other key Azure services, to build a Generative AI solution with an AI assistant user interface. 
 
 The scenario for this solution is for a consumer retail "Intelligent Agent" for a retail bike shop that sells bicycles, biking accessories, components and clothing. The dataset in this solution is the [Cosmic Works](https://github.com/azurecosmosdb/cosmicworks) sample for Azure Cosmos DB, which is adapted from the [Adventure Works 2017 dataset](https://learn.microsoft.com/en-us/sql/samples/adventureworks-install-configure?view=sql-server-ver16&tabs=ssms).
